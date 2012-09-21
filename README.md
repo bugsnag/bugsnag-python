@@ -21,7 +21,7 @@ How to Install (Django)
     pip install bugsnag
     ```
 
-1.  Configure the notifier in your Django settings.py:
+1.  Configure the notifier in your Django `settings.py`:
 
     ```python
     BUGSNAG = {
@@ -30,12 +30,10 @@ How to Install (Django)
     }
     ```
     
-1.  Add the Bugsnag middleware to your Django app.
+1.  Add Bugsnag to the end of your Django middleware in `settings.py`:
     
     ```python
-    MIDDLEWARE_CLASSES = (
-        "bugsnag.django.middleware.BugsnagMiddleware",
-    }
+    MIDDLEWARE_CLASSES.append("bugsnag.django.middleware.BugsnagMiddleware")
     ```
 
 
