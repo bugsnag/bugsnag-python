@@ -31,7 +31,16 @@ def notify(exception, **options):
     """
     Notify bugsnag of an exception.
     """
-    Notification(exception, configuration, RequestConfiguration.get_instance(), **options).deliver()
+    if isinstance(exception, (list, tuple)):
+        # Exception tuples, eg. from sys.exc_info
+        exc_type, exc_value, bt = exception
+        if not "traceback" in options:
+            options["traceback"] = bt
+
+        Notification(exc_value, configuration, RequestConfiguration.get_instance(), **options).deliver()
+    else:
+        # Exception objects
+        Notification(exception, configuration, RequestConfiguration.get_instance(), **options).deliver()
 
 
 def auto_notify(exception, **options):
