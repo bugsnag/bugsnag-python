@@ -46,26 +46,45 @@ How to Install
     pip install bugsnag blinker
     ```
 
-1.  Configure the notifier when your python app starts
+1.  Configure Bugsnag and attach it to Flask's exception handler
 
     ```python
+    # Import bugsnag
     import bugsnag
+    from bugsnag.flask import handle_exceptions
+
+    # Configure Bugsnag
     bugsnag.configure(
       api_key = "YOUR_API_KEY_HERE",
       project_root = "/path/to/your/app",
     )
-    ```
-
-1.  Attach Bugsnag to Flask's exception handler
-
-    ```python
-    from bugsnag.flask import handle_exceptions
-
+    
+    # Attach Bugsnag to Flask's exception handler
     app = Flask(__name__)
     handle_exceptions(app)
     ```
 
 ### WSGI Apps
+
+1.  Install the Bugsnag Notifier
+
+    ```bash
+    pip install bugsnag
+    ```
+
+1.  Configure Bugsnag and attach the WSGI middleware
+
+    ```python
+    # Configure Bugsnag
+    import bugsnag
+    bugsnag.configure(
+      api_key = "YOUR_API_KEY_HERE",
+      project_root = "/path/to/your/app",
+    )
+
+    # Wrap your WSGI app with Bugsnag
+    application = BugsnagMiddleware(application)
+    ```
 
 ### Other Python Apps
 
@@ -75,7 +94,7 @@ How to Install
     pip install bugsnag
     ```
 
-1.  Configure the notifier when your python app starts:
+1.  Configure the notifier when your python app starts
 
     ```python
     import bugsnag
