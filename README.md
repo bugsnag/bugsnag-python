@@ -12,8 +12,10 @@ as fast as possible. [Create a free account](http://bugsnag.com) to start
 capturing exceptions from your applications.
 
 
-How to Install (Django)
-----------------------
+How to Install
+--------------
+
+### Django Apps
 
 1.  Install the Bugsnag Notifier
 
@@ -36,9 +38,33 @@ How to Install (Django)
     MIDDLEWARE_CLASSES.append("bugsnag.django.middleware.BugsnagMiddleware")
     ```
 
+### Flask Apps
 
-How to Install (Other Python Apps)
-----------------------------------
+1.  Install the Bugsnag Notifier and the `blinker` signals library
+
+    ```bash
+    pip install bugsnag blinker
+    ```
+
+1.  Configure Bugsnag and attach it to Flask's exception handler
+
+    ```python
+    # Import bugsnag
+    import bugsnag
+    from bugsnag.flask import handle_exceptions
+
+    # Configure Bugsnag
+    bugsnag.configure(
+      api_key = "YOUR_API_KEY_HERE",
+      project_root = "/path/to/your/app",
+    )
+    
+    # Attach Bugsnag to Flask's exception handler
+    app = Flask(__name__)
+    handle_exceptions(app)
+    ```
+
+### WSGI Apps
 
 1.  Install the Bugsnag Notifier
 
@@ -46,12 +72,36 @@ How to Install (Other Python Apps)
     pip install bugsnag
     ```
 
-1.  Configure the notifier when your python app starts:
+1.  Configure Bugsnag and attach the WSGI middleware
+
+    ```python
+    # Configure Bugsnag
+    import bugsnag
+    bugsnag.configure(
+      api_key = "YOUR_API_KEY_HERE",
+      project_root = "/path/to/your/app",
+    )
+
+    # Wrap your WSGI app with Bugsnag
+    application = BugsnagMiddleware(application)
+    ```
+
+### Other Python Apps
+
+1.  Install the Bugsnag Notifier
+
+    ```bash
+    pip install bugsnag
+    ```
+
+1.  Configure the notifier when your python app starts
 
     ```python
     import bugsnag
-    
-    bugsnag.configure(api_key = "YOUR_API_KEY_HERE")
+    bugsnag.configure(
+      api_key = "YOUR_API_KEY_HERE",
+      project_root = "/path/to/your/app",
+    )
     ```
 
 

@@ -84,7 +84,7 @@ class Notification(object):
 
             stacktrace = []
             for line in trace:
-                file_name = str(line[0])
+                file_name = os.path.abspath(str(line[0]))
                 in_project = False
 
                 if file_name.startswith(bugsnag_module_path):
