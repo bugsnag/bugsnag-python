@@ -1,6 +1,8 @@
 import sys
 import urllib
 
+from werkzeug.wrappers import Request
+
 import bugsnag
 
 class BugsnagMiddleware(object):
@@ -28,40 +30,18 @@ class BugsnagMiddleware(object):
                     self.handle_exception(e, environ)
 
     def handle_exception(self, exception, env):
+        request = Request(env)
+        
         bugsnag.configure_request(
-            context="%s %s" % (env.get('REQUEST_METHOD', ''), env.get('PATH_INFO', '')),
-            request_data= {
-                'url': get_current_url(env),
-                'httpMethod': env.get('REQUEST_METHOD', ''),
-                'params': "TODO",
-                'ip': "TODO",
-                'userAgent': "TODO",
+            context="%s %s" % (request.method, request.path),
+            user_id=request.remote_addr,
+            request_data={
+                "url": request.base_url,
+                "headers": dict(request.headers),
+                "cookies": dict(request.cookies),
+                "params": dict(request.form),
             },
-            environment_data=dict(env),
+            environment_data=dict(request.environ),
         )
         bugsnag.auto_notify(exception)
         bugsnag.clear_request_config()
-
-
-def get_host(environ):
-    scheme = environ.get('wsgi.url_scheme')
-    if 'HTTP_X_FORWARDED_HOST' in environ:
-        result = environ['HTTP_X_FORWARDED_HOST']
-    elif 'HTTP_HOST' in environ:
-        result = environ['HTTP_HOST']
-    else:
-        result = environ['SERVER_NAME']
-        if (scheme, str(environ['SERVER_PORT'])) not \
-           in (('https', '443'), ('http', '80')):
-            result += ':' + environ['SERVER_PORT']
-    if result.endswith(':80') and scheme == 'http':
-        result = result[:-3]
-    elif result.endswith(':443') and scheme == 'https':
-        result = result[:-4]
-    return result
-
-def get_current_url(environ):
-    tmp = [environ['wsgi.url_scheme'], '://', get_host(environ)]
-    tmp.append(urllib.quote(environ.get('SCRIPT_NAME', '').rstrip('/')))
-    tmp.append(urllib.quote('/' + environ.get('PATH_INFO', '').lstrip('/')))
-    return ''.join(tmp)
