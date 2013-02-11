@@ -245,6 +245,17 @@ bugsnag.configure(params_filters = ["credit_card_number"])
 
 By default, `params_filters` is set to `["password", "password_confirmation"]`
 
+###ignore_classes
+
+Sets which exception classes should never be sent to Bugnsag. This feature is
+useful when you have a large number of 404 errors and dont want them all sent
+to Bugsnag.
+
+```python
+bugsnag.configure(ignore_classes = ["django.http.Http404"])
+```
+
+By default, `ignore_classes` is set to `[]`
 
 Per-request Configuration
 -------------------------
