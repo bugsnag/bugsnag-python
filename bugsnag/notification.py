@@ -170,4 +170,5 @@ class Notification(object):
             if status != 200:
                 bugsnag.log("Notification to %s failed, got non-200 response code %d" % status)
         except Exception, e:
-            bugsnag.log("Notification to %s failed, %s" % (req.get_full_url(), e))
+            bugsnag.log("Notification to %s failed" % (req.get_full_url()))
+            print traceback.format_exc()
