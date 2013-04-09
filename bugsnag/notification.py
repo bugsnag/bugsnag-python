@@ -3,7 +3,6 @@ import urllib2
 import sys
 import threading
 import traceback
-import inspect
 
 try:
     import json
@@ -11,13 +10,12 @@ except ImportError:
     import simplejson as json
 
 import bugsnag
+from bugsnag.utils import sanitize_object, fully_qualified_class_name
 
 class Notification(object):
     """
     A single exception notification to Bugsnag.
     """
-    MAX_STRING_LENGTH = 1024
-
     NOTIFIER_NAME = "Python Bugsnag Notifier"
     NOTIFIER_URL = "https://github.com/bugsnag/bugsnag-python"
 
@@ -39,7 +37,7 @@ class Notification(object):
             if self.configuration.notify_release_stages != None and not self.configuration.release_stage in self.configuration.notify_release_stages:
                 return
         
-            if self.configuration.ignore_classes != None and self.__fully_qualified_class_name(self.exception) in self.configuration.ignore_classes:
+            if self.configuration.ignore_classes != None and fully_qualified_class_name(self.exception) in self.configuration.ignore_classes:
                 return
 
             # Generate the URL
@@ -127,15 +125,15 @@ class Notification(object):
                     "context": self.request_configuration.get("context", options),
                     "userId": self.request_configuration.get("user_id", options),
                     "exceptions": [{
-                        "errorClass": self.__fully_qualified_class_name(self.exception),
+                        "errorClass": fully_qualified_class_name(self.exception),
                         "message": str(self.exception),
                         "stacktrace": stacktrace,
                     }],
                     "metaData": {
-                        "request": self.__sanitize_dict(self.request_configuration.get("request_data", options)),
-                        "environment": self.__sanitize_dict(self.request_configuration.get("environment_data", options)),
-                        "session": self.__sanitize_dict(self.request_configuration.get("session_data", options)),
-                        "extraData": self.__sanitize_dict(self.request_configuration.get("extra_data", options)),
+                        "request": sanitize_object(self.request_configuration.get("request_data", options)),
+                        "environment": sanitize_object(self.request_configuration.get("environment_data", options)),
+                        "session": sanitize_object(self.request_configuration.get("session_data", options)),
+                        "extraData": sanitize_object(self.request_configuration.get("extra_data", options)),
                     }
                 }]
             }
@@ -144,23 +142,6 @@ class Notification(object):
             return json.dumps(payload)
         finally:
             del tb
-
-    def __fully_qualified_class_name(self, obj):
-        module = inspect.getmodule(obj)
-        if module != None and module.__name__ != "__main__":
-            return module.__name__ + "." + obj.__class__.__name__
-        else:
-            return obj.__class__.__name__
-
-    def __sanitize_dict(self, dictionary):
-        for k,v in dictionary.iteritems():
-            if k in self.configuration.params_filters:
-                del dictionary[k]
-            elif isinstance(v,dict):
-                self.__sanitize_dict(v)
-            else:
-                dictionary[k] = str(v)[:self.MAX_STRING_LENGTH]
-        return dictionary
 
     def __open_url(self, req):
         try:
