@@ -8,7 +8,8 @@ def test_sanitize_object():
             "another_password": "123456",
             "regular": "text"
         },
-        "bad_utf8": "a test of \xe9 char"
+        "bad_utf8": "a test of \xe9 char",
+        "list": ["list", "of", "things"],
     }
 
     # Sanitize our object
@@ -18,3 +19,4 @@ def test_sanitize_object():
     assert(sane_dict["password"] == "[FILTERED]")
     assert(sane_dict["metadata"]["another_password"] == "[FILTERED]")
     assert(sane_dict["metadata"]["regular"] == "text")
+    assert("things" in sane_dict["list"])

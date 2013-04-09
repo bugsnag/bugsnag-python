@@ -18,7 +18,7 @@ def sanitize_object(obj, **kwargs):
 
         return clean_dict
     elif any(isinstance(obj, t) for t in (list, set, tuple)):
-        return [sanitize_object(x, **kwargs) for x in list]
+        return [sanitize_object(x, **kwargs) for x in obj]
     else:
         return unicode(obj, errors='replace')[:MAX_STRING_LENGTH]
 
