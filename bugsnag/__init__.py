@@ -58,6 +58,12 @@ def log(message):
     print("** [Bugsnag] %s" % message)
 
 
+def warn(message):
+    """
+    Print a warning message with a Bugsnag prefix.
+    """
+    sys.stderr.write("** [Bugsnag] WARNING: %s\n" % message)
+
 
 # Hook into all uncaught exceptions
 def __bugsnag_excepthook(exctype, exception, traceback):

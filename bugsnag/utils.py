@@ -1,4 +1,7 @@
 import inspect
+import traceback
+
+import bugsnag
 
 MAX_STRING_LENGTH = 1024
 
@@ -20,7 +23,17 @@ def sanitize_object(obj, **kwargs):
     elif any(isinstance(obj, t) for t in (list, set, tuple)):
         return [sanitize_object(x, **kwargs) for x in obj]
     else:
-        return unicode(obj, errors='replace')[:MAX_STRING_LENGTH]
+        try:
+            if isinstance(obj, unicode):
+                string = obj
+            else:
+                string = unicode(str(obj), errors='replace')
+
+        except Exception, exc:
+            bugsnag.warn("Could not add object to metadata: %s" % traceback.format_exc())
+            string = "[BADENCODING]"
+
+        return string[:MAX_STRING_LENGTH]
 
 def fully_qualified_class_name(obj):
     module = inspect.getmodule(obj)

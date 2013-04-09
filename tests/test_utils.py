@@ -10,6 +10,9 @@ def test_sanitize_object():
         },
         "bad_utf8": "a test of \xe9 char",
         "list": ["list", "of", "things"],
+        "unicode": u"string",
+        "obj": Exception(),
+        "valid_unicode": u"\u2603",
     }
 
     # Sanitize our object

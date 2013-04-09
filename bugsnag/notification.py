@@ -57,8 +57,7 @@ class Notification(object):
             threading.Thread(target=self.__open_url, args=(req,)).start()
         
         except Exception, exc:
-            bugsnag.log("Notification to %s failed" % (url))
-            print traceback.format_exc()
+            bugsnag.warn("Notification to %s failed:\n%s" % (url, traceback.format_exc()))
 
     def __generate_payload(self, exception, **options):
         try:
