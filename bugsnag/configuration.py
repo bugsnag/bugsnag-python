@@ -23,6 +23,8 @@ class _BaseConfiguration(object):
             if hasattr(self, name):
                 setattr(self, name, value)
 
+        return self
+
 class Configuration(_BaseConfiguration):
     """
     Global app-level Bugsnag configuration settings.
@@ -37,7 +39,7 @@ class Configuration(_BaseConfiguration):
         self.project_root = None
         self.app_version = None
         self.params_filters = ["password", "password_confirmation"]
-        self.ignore_classes = None # TODO:JS
+        self.ignore_classes = []
         self.endpoint = "notify.bugsnag.com"
 
 

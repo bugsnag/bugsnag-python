@@ -5,8 +5,11 @@ import os
 
 class BugsnagMiddleware(object):
     def __init__(self):
+        # Ignore django 404s by default
+        bugsnag.configuration.ignore_classes.append("django.http.Http404")
+
+        # Import Bugsnag settings from settings.py
         django_bugsnag_settings = getattr(settings, 'BUGSNAG', {})
-        
         bugsnag.configure(**django_bugsnag_settings)
     
     def process_request(self, request):
