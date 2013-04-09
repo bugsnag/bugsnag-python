@@ -1,6 +1,10 @@
 Changelog
 =========
 
+1.2.1
+-----
+-   Additional protection for bad string encodings
+
 1.2.0
 -----
 -   Fixed issue when non-unicode data was passed in metadata
