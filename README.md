@@ -77,6 +77,8 @@ How to Install
     ```python
     # Configure Bugsnag
     import bugsnag
+    from bugsnag.wsgi.middleware import BugsnagMiddleware
+
     bugsnag.configure(
       api_key = "YOUR_API_KEY_HERE",
       project_root = "/path/to/your/app",
