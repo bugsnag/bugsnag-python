@@ -86,6 +86,34 @@ How to Install
     application = BugsnagMiddleware(application)
     ```
 
+### Tornado Apps
+
+1.  Install the Bugsnag Notifier
+
+    ```bash
+    pip install bugsnag
+    ```
+
+1.  Configure the notifier when your python app starts
+
+    ```python
+    import bugsnag
+    bugsnag.configure(
+      api_key = "YOUR_API_KEY_HERE",
+      project_root = "/path/to/your/app",
+    )
+    ```
+
+2.  Have your request handlers inherit from `BugsnagRequestHandler`
+
+    ```python
+    from bugsnag.tornado import BugsnagRequestHandler
+
+    class MyHandler(BugsnagRequestHandler):
+        # ...
+    ```
+
+
 ### Other Python Apps
 
 1.  Install the Bugsnag Notifier
