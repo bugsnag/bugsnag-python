@@ -1,6 +1,10 @@
 Changelog
 =========
 
+1.2.2
+-----
+-   Added support for Tornado apps
+
 1.2.1
 -----
 -   Additional protection for bad string encodings
