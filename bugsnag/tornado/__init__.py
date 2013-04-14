@@ -11,7 +11,6 @@ class BugsnagRequestHandler(RequestHandler):
                 "url": self.request.full_url(),
                 "method": self.request.method,
                 "arguments": self.request.arguments,
-                "cookies": self.cookies,
             },
         )
 
