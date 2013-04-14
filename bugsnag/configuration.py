@@ -4,6 +4,7 @@ import threading
 
 threadlocal = threading.local()
 
+
 class _BaseConfiguration(object):
     def get(self, name, overrides=None):
         """
@@ -25,6 +26,7 @@ class _BaseConfiguration(object):
 
         return self
 
+
 class Configuration(_BaseConfiguration):
     """
     Global app-level Bugsnag configuration settings.
@@ -41,6 +43,9 @@ class Configuration(_BaseConfiguration):
         self.params_filters = ["password", "password_confirmation"]
         self.ignore_classes = []
         self.endpoint = "notify.bugsnag.com"
+
+    def should_notify():
+        
 
 
 class RequestConfiguration(_BaseConfiguration):

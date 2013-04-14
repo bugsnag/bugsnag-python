@@ -6,6 +6,7 @@ from bugsnag.notification import Notification
 
 configuration = Configuration()
 
+
 def configure(**options):
     """
     Configure the Bugsnag notifier application-wide settings.
@@ -37,10 +38,12 @@ def notify(exception, **options):
         if not "traceback" in options:
             options["traceback"] = bt
 
-        Notification(exc_value, configuration, RequestConfiguration.get_instance(), **options).deliver()
+        Notification(exc_value, configuration,
+                     RequestConfiguration.get_instance(), **options).deliver()
     else:
         # Exception objects
-        Notification(exception, configuration, RequestConfiguration.get_instance(), **options).deliver()
+        Notification(exception, configuration,
+                     RequestConfiguration.get_instance(), **options).deliver()
 
 
 def auto_notify(exception, **options):
@@ -70,5 +73,5 @@ def __bugsnag_excepthook(exctype, exception, traceback):
     auto_notify(exception, traceback=traceback)
     _old_excepthook(exctype, exception, traceback)
 
-_old_excepthook = sys.excepthook    
-sys.excepthook = __bugsnag_excepthook   
+_old_excepthook = sys.excepthook
+sys.excepthook = __bugsnag_excepthook

@@ -12,6 +12,7 @@ except ImportError:
 import bugsnag
 from bugsnag.utils import sanitize_object, fully_qualified_class_name
 
+
 class Notification(object):
     """
     A single exception notification to Bugsnag.
@@ -19,55 +20,55 @@ class Notification(object):
     NOTIFIER_NAME = "Python Bugsnag Notifier"
     NOTIFIER_URL = "https://github.com/bugsnag/bugsnag-python"
 
-    def __init__(self, exception, configuration, request_configuration, **options):
+    def __init__(self, exception, config, request_config, **options):
         self.exception = exception
         self.options = options
-        self.configuration = configuration
-        self.request_configuration = request_configuration
+        self.config = config
+        self.request_config = request_config
 
     def deliver(self):
         """
         Deliver the exception notification to Bugsnag.
         """
         try:
-            if self.configuration.api_key == None:
+            if self.config.api_key is None:
                 bugsnag.log("No API key configured, couldn't notify")
                 return
-            
-            if self.configuration.notify_release_stages != None and not self.configuration.release_stage in self.configuration.notify_release_stages:
+
+            if self.config.notify_release_stages is not None and self.config.release_stage not in self.config.notify_release_stages:
                 return
-        
-            if self.configuration.ignore_classes != None and fully_qualified_class_name(self.exception) in self.configuration.ignore_classes:
+
+            if self.config.ignore_classes is not None and fully_qualified_class_name(self.exception) in self.config.ignore_classes:
                 return
 
             # Generate the URL
-            if self.configuration.use_ssl:
-                url = "https://%s" % self.configuration.endpoint
+            if self.config.use_ssl:
+                url = "https://%s" % self.config.endpoint
             else:
-                url = "http://%s" % self.configuration.endpoint
+                url = "http://%s" % self.config.endpoint
 
             bugsnag.log("Notifying %s of exception" % url)
 
             # Generate the payload
             payload = self.__generate_payload(self.exception, **self.options)
-        
+
             req = urllib2.Request(url, payload, {
                 'Content-Type': 'application/json'
             })
             threading.Thread(target=self.__open_url, args=(req,)).start()
-        
+
         except Exception, exc:
             bugsnag.warn("Notification to %s failed:\n%s" % (url, traceback.format_exc()))
 
     def __generate_payload(self, exception, **options):
         try:
             # Set up the lib root
-            lib_root = self.configuration.get("lib_root", options)
+            lib_root = self.config.get("lib_root", options)
             if lib_root and lib_root[-1] != os.sep:
                 lib_root += os.sep
 
             # Set up the project root
-            project_root = self.configuration.get("project_root", options)
+            project_root = self.config.get("project_root", options)
             if project_root and project_root[-1] != os.sep:
                 project_root += os.sep
 
@@ -93,7 +94,7 @@ class Notification(object):
                 elif project_root and file_name.startswith(project_root):
                     file_name = file_name[len(project_root):]
                     in_project = True
-            
+
                 stacktrace.append({
                     "file": file_name,
                     "lineNumber": int(str(line[1])),
@@ -108,31 +109,32 @@ class Notification(object):
             try:
                 import pkg_resources
                 notifier_version = pkg_resources.get_distribution("bugsnag_python").version
-            except: pass
+            except:
+                pass
 
             # Construct the payload dictionary
             payload = {
-                "apiKey": self.configuration.api_key,
+                "apiKey": self.config.api_key,
                 "notifier": {
                     "name": self.NOTIFIER_NAME,
                     "url": self.NOTIFIER_URL,
                     "version": notifier_version,
                 },
                 "events": [{
-                    "releaseStage": self.configuration.get("release_stage", options),
-                    "appVersion": self.configuration.get("app_version", options),
-                    "context": self.request_configuration.get("context", options),
-                    "userId": self.request_configuration.get("user_id", options),
+                    "releaseStage": self.config.get("release_stage", options),
+                    "appVersion": self.config.get("app_version", options),
+                    "context": self.request_config.get("context", options),
+                    "userId": self.request_config.get("user_id", options),
                     "exceptions": [{
                         "errorClass": fully_qualified_class_name(self.exception),
                         "message": str(self.exception),
                         "stacktrace": stacktrace,
                     }],
                     "metaData": {
-                        "request": sanitize_object(self.request_configuration.get("request_data", options)),
-                        "environment": sanitize_object(self.request_configuration.get("environment_data", options)),
-                        "session": sanitize_object(self.request_configuration.get("session_data", options)),
-                        "extraData": sanitize_object(self.request_configuration.get("extra_data", options)),
+                        "request": sanitize_object(self.request_config.get("request_data", options)),
+                        "environment": sanitize_object(self.request_config.get("environment_data", options)),
+                        "session": sanitize_object(self.request_config.get("session_data", options)),
+                        "extraData": sanitize_object(self.request_config.get("extra_data", options)),
                     }
                 }]
             }
