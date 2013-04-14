@@ -10,7 +10,22 @@ except ImportError:
     import simplejson as json
 
 import bugsnag
-from bugsnag.utils import sanitize_object, fully_qualified_class_name
+from bugsnag.utils import sanitize_object
+from bugsnag.utils import fully_qualified_class_name as class_name
+from bugsnag.utils import package_version
+
+
+def request(req):
+    try:
+        resp = urllib2.urlopen(req)
+        status = resp.getcode()
+
+        if status != 200:
+            bugsnag.log("Notification to %s failed, status %d" % status)
+
+    except Exception:
+        bugsnag.log("Notification to %s failed" % (req.get_full_url()))
+        print traceback.format_exc()
 
 
 class Notification(object):
@@ -30,50 +45,48 @@ class Notification(object):
         """
         Deliver the exception notification to Bugsnag.
         """
+        url = self.config.get_endpoint()
+
         try:
             if self.config.api_key is None:
                 bugsnag.log("No API key configured, couldn't notify")
                 return
 
-            if self.config.notify_release_stages is not None and self.config.release_stage not in self.config.notify_release_stages:
+            # Return early if we shouldn't notify for current release stage
+            if not self.config.should_notify():
                 return
 
-            if self.config.ignore_classes is not None and fully_qualified_class_name(self.exception) in self.config.ignore_classes:
+            # Return early if we should ignore exceptions of this type
+            if self.config.should_ignore(self.exception):
                 return
 
-            # Generate the URL
-            if self.config.use_ssl:
-                url = "https://%s" % self.config.endpoint
-            else:
-                url = "http://%s" % self.config.endpoint
-
+            # Generate the payload and make the request
             bugsnag.log("Notifying %s of exception" % url)
 
-            # Generate the payload
-            payload = self.__generate_payload(self.exception, **self.options)
-
+            payload = self.__generate_payload()
             req = urllib2.Request(url, payload, {
                 'Content-Type': 'application/json'
             })
-            threading.Thread(target=self.__open_url, args=(req,)).start()
+            threading.Thread(target=request, args=(req,)).start()
 
-        except Exception, exc:
-            bugsnag.warn("Notification to %s failed:\n%s" % (url, traceback.format_exc()))
+        except Exception:
+            exc = traceback.format_exc()
+            bugsnag.warn("Notification to %s failed:\n%s" % (url, exc))
 
-    def __generate_payload(self, exception, **options):
+    def __generate_payload(self):
         try:
             # Set up the lib root
-            lib_root = self.config.get("lib_root", options)
+            lib_root = self.config.get("lib_root", self.options)
             if lib_root and lib_root[-1] != os.sep:
                 lib_root += os.sep
 
             # Set up the project root
-            project_root = self.config.get("project_root", options)
+            project_root = self.config.get("project_root", self.options)
             if project_root and project_root[-1] != os.sep:
                 project_root += os.sep
 
             # Build the stacktrace
-            tb = options.get("traceback", sys.exc_info()[2])
+            tb = self.options.get("traceback", sys.exc_info()[2])
             if tb:
                 trace = traceback.extract_tb(tb)
             else:
@@ -105,12 +118,7 @@ class Notification(object):
             stacktrace.reverse()
 
             # Fetch the notifier version from the package
-            notifier_version = "unknown"
-            try:
-                import pkg_resources
-                notifier_version = pkg_resources.get_distribution("bugsnag_python").version
-            except:
-                pass
+            notifier_version = package_version("bugsnag_python") or "unknown"
 
             # Construct the payload dictionary
             payload = {
@@ -121,21 +129,16 @@ class Notification(object):
                     "version": notifier_version,
                 },
                 "events": [{
-                    "releaseStage": self.config.get("release_stage", options),
-                    "appVersion": self.config.get("app_version", options),
-                    "context": self.request_config.get("context", options),
-                    "userId": self.request_config.get("user_id", options),
+                    "releaseStage": self.config.get("release_stage", self.options),
+                    "appVersion": self.config.get("app_version", self.options),
+                    "context": self.request_config.get("context", self.options),
+                    "userId": self.request_config.get("user_id", self.options),
                     "exceptions": [{
-                        "errorClass": fully_qualified_class_name(self.exception),
+                        "errorClass": class_name(self.exception),
                         "message": str(self.exception),
                         "stacktrace": stacktrace,
                     }],
-                    "metaData": {
-                        "request": sanitize_object(self.request_config.get("request_data", options)),
-                        "environment": sanitize_object(self.request_config.get("environment_data", options)),
-                        "session": sanitize_object(self.request_config.get("session_data", options)),
-                        "extraData": sanitize_object(self.request_config.get("extra_data", options)),
-                    }
+                    "metaData": self.__generate_metadata(),
                 }]
             }
 
@@ -144,13 +147,18 @@ class Notification(object):
         finally:
             del tb
 
-    def __open_url(self, req):
-        try:
-            resp = urllib2.urlopen(req)
-            status = resp.getcode()
-
-            if status != 200:
-                bugsnag.log("Notification to %s failed, got non-200 response code %d" % status)
-        except Exception, e:
-            bugsnag.log("Notification to %s failed" % (req.get_full_url()))
-            print traceback.format_exc()
+    def __generate_metadata(self):
+        return {
+            "request": sanitize_object(
+                self.request_config.get("request_data", self.options)
+            ),
+            "environment": sanitize_object(
+                self.request_config.get("environment_data", self.options)
+            ),
+            "session": sanitize_object(
+                self.request_config.get("session_data", self.options)
+            ),
+            "extraData": sanitize_object(
+                self.request_config.get("extra_data", self.options)
+            ),
+        }

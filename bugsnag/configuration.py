@@ -1,6 +1,8 @@
 from distutils.sysconfig import get_python_lib
 import threading
 
+from bugsnag.utils import fully_qualified_class_name
+
 
 threadlocal = threading.local()
 
@@ -44,8 +46,17 @@ class Configuration(_BaseConfiguration):
         self.ignore_classes = []
         self.endpoint = "notify.bugsnag.com"
 
-    def should_notify():
-        
+    def should_notify(self):
+        return self.notify_release_stages is None or \
+            self.release_stage in self.notify_release_stages
+
+    def should_ignore(self, exception):
+        return self.ignore_classes is not None and \
+            fully_qualified_class_name(exception) in self.ignore_classes
+
+    def get_endpoint(self):
+        proto = "https" if self.use_ssl else "http"
+        return "%s://%s" % (proto, self.endpoint)
 
 
 class RequestConfiguration(_BaseConfiguration):

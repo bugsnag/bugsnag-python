@@ -34,11 +34,10 @@ def notify(exception, **options):
     """
     if isinstance(exception, (list, tuple)):
         # Exception tuples, eg. from sys.exc_info
-        exc_type, exc_value, bt = exception
         if not "traceback" in options:
-            options["traceback"] = bt
+            options["traceback"] = exception[2]
 
-        Notification(exc_value, configuration,
+        Notification(exception[1], configuration,
                      RequestConfiguration.get_instance(), **options).deliver()
     else:
         # Exception objects

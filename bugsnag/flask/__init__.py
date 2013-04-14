@@ -3,9 +3,12 @@ import urlparse
 from flask import got_request_exception, request, session
 import bugsnag
 
+
 def handle_exceptions(app):
     got_request_exception.connect(__log_exception, app)
 
+
+# pylint: disable-msg=W0613
 def __log_exception(sender, exception, **extra):
     bugsnag.configure_request(
         context="%s %s" % (request.method, request.path),
