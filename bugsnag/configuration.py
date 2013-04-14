@@ -36,7 +36,7 @@ class Configuration(_BaseConfiguration):
     def __init__(self):
         self.api_key = None
         self.release_stage = "production"
-        self.notify_release_stages = ["production"]
+        self.notify_release_stages = None
         self.auto_notify = True
         self.use_ssl = False
         self.lib_root = get_python_lib()
