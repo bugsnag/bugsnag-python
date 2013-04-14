@@ -1,6 +1,10 @@
 Changelog
 =========
 
+1.2.3
+-----
+-   Fix cookies bug in Tornado apps
+
 1.2.2
 -----
 -   Added support for Tornado apps
