@@ -1,8 +1,11 @@
 from distutils.sysconfig import get_python_lib
 import threading
 
+from bugsnag.utils import fully_qualified_class_name
+
 
 threadlocal = threading.local()
+
 
 class _BaseConfiguration(object):
     def get(self, name, overrides=None):
@@ -25,6 +28,7 @@ class _BaseConfiguration(object):
 
         return self
 
+
 class Configuration(_BaseConfiguration):
     """
     Global app-level Bugsnag configuration settings.
@@ -32,7 +36,7 @@ class Configuration(_BaseConfiguration):
     def __init__(self):
         self.api_key = None
         self.release_stage = "production"
-        self.notify_release_stages = ["production"]
+        self.notify_release_stages = None
         self.auto_notify = True
         self.use_ssl = False
         self.lib_root = get_python_lib()
@@ -41,6 +45,18 @@ class Configuration(_BaseConfiguration):
         self.params_filters = ["password", "password_confirmation"]
         self.ignore_classes = []
         self.endpoint = "notify.bugsnag.com"
+
+    def should_notify(self):
+        return self.notify_release_stages is None or \
+            self.release_stage in self.notify_release_stages
+
+    def should_ignore(self, exception):
+        return self.ignore_classes is not None and \
+            fully_qualified_class_name(exception) in self.ignore_classes
+
+    def get_endpoint(self):
+        proto = "https" if self.use_ssl else "http"
+        return "%s://%s" % (proto, self.endpoint)
 
 
 class RequestConfiguration(_BaseConfiguration):
