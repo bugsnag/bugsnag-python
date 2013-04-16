@@ -1,13 +1,17 @@
 from werkzeug.wrappers import Request
 
 import bugsnag
+import urllib
 
 
 def handle_exception(exception, env):
     request = Request(env)
 
+    # Don't use werkzeug to get the path, it does zany stuff with unicode
+    path = urllib.quote('/' + env.get('PATH_INFO', '').lstrip('/'))
+
     bugsnag.configure_request(
-        context="%s %s" % (request.method, request.path),
+        context="%s %s" % (request.method, path),
         user_id=request.remote_addr,
         request_data={
             "url": request.base_url,
