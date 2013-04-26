@@ -4,10 +4,7 @@ import bugsnag
 
 
 def get_user_id(request):
-    if request.user.is_authenticated():
-        return request.user.username
-    else:
-        return request.META['REMOTE_ADDR']
+    return request.META['REMOTE_ADDR']
 
 
 def is_development_server(request):
