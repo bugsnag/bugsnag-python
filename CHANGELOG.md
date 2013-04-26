@@ -1,6 +1,11 @@
 Changelog
 =========
 
+1.2.4
+-----
+-   Removed automatic userId population from username in django, to avoid a
+    database lookup
+
 1.2.3
 -----
 -   Fix cookies bug in Tornado apps
