@@ -1,6 +1,10 @@
 Changelog
 =========
 
+1.2.5
+-----
+-   Add blinker as a dependency, makes using Bugsnag with Flask easier
+
 1.2.4
 -----
 -   Removed automatic userId population from username in django, to avoid a
