@@ -34,5 +34,5 @@ setup(
         'Programming Language :: Python :: 2.6',
         'Topic :: Software Development'
     ],
-    install_requires="werkzeug",
+    install_requires=["werkzeug", "blinker"],
 )

@@ -40,10 +40,10 @@ How to Install
 
 ### Flask Apps
 
-1.  Install the Bugsnag Notifier and the `blinker` signals library
+1.  Install the Bugsnag Notifier
 
     ```bash
-    pip install bugsnag blinker
+    pip install bugsnag
     ```
 
 1.  Configure Bugsnag and attach it to Flask's exception handler
