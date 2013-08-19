@@ -381,6 +381,7 @@ Contributing
 
 -   [Fork](https://help.github.com/articles/fork-a-repo) the [notifier on github](https://github.com/bugsnag/bugsnag-python)
 -   Commit and push until you are happy with your contribution
+-   Run the tests using [nosetests](https://nose.readthedocs.org/)
 -   [Make a pull request](https://help.github.com/articles/using-pull-requests)
 -   Thanks!
 
