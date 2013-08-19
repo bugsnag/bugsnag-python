@@ -50,3 +50,4 @@ def test_ignore_classes():
 
     c = Configuration()
     c.ignore_classes.append("StandardError")
+    assert(c.should_ignore(Exception("Example")) == False)
