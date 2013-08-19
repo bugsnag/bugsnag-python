@@ -7,3 +7,7 @@ python:
 install: "pip install -r requirements.txt --use-mirrors"
 
 script: nosetests
+
+notifications:
+  hipchat:
+    secure: "DhxqQMVndfUqgfqlxwbex0kk4MnPayTeJ1435vh60WtalfWVEMUZkf+P0B9rOf9Gmw1IAikd43eBhE9YliEKEfNV9D2hpA1U0qAtUQcHvaWvXW0Uy8tur9J/2dZnwH9qLs02F1Ty7YPUXQBfbkzXLt6Z6w596Aca3H5Obtw4cic="
