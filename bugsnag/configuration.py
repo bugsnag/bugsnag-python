@@ -1,5 +1,6 @@
 from distutils.sysconfig import get_python_lib
 import threading
+import os
 
 from bugsnag.utils import fully_qualified_class_name
 
@@ -34,13 +35,13 @@ class Configuration(_BaseConfiguration):
     Global app-level Bugsnag configuration settings.
     """
     def __init__(self):
-        self.api_key = None
+        self.api_key = os.environ.get('BUGSNAG_API_KEY', None)
         self.release_stage = "production"
         self.notify_release_stages = None
         self.auto_notify = True
         self.use_ssl = False
         self.lib_root = get_python_lib()
-        self.project_root = None
+        self.project_root = os.getcwd()
         self.app_version = None
         self.params_filters = ["password", "password_confirmation"]
         self.ignore_classes = []

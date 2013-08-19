@@ -31,6 +31,9 @@ How to Install
         "project_root": "/path/to/your/app",
     }
     ```
+
+    If not set the project_root will default to the current working directory,
+    and api_key will default to the `BUGSNAG_API_KEY` environment variable.
     
 1.  Add Bugsnag to the end of your Django middleware in `settings.py`:
     

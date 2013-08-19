@@ -1,4 +1,5 @@
 from bugsnag.configuration import Configuration
+import os
 
 def test_get_endpoint():
     # Test default endpoint with ssl
@@ -16,6 +17,12 @@ def test_get_endpoint():
     c.use_ssl = False
     c.endpoint = "localhost:1234"
     assert(c.get_endpoint() == "http://localhost:1234")
+
+def test_environment_defaults():
+    os.environ['BUGSNAG_API_KEY'] = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+    c = Configuration()
+    assert(c.api_key == 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+    assert(c.project_root == os.getcwd())
 
 def test_should_notify():
     # Test custom release_stage
@@ -43,4 +50,3 @@ def test_ignore_classes():
 
     c = Configuration()
     c.ignore_classes.append("StandardError")
-    assert(c.should_ignore(Exception("Example")) == False)
