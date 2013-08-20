@@ -1,6 +1,11 @@
 Changelog
 =========
 
+1.2.6
+-----
+-   Read the API key from the environment for Heroku users
+-   Best guess a project_root for a sensible default
+
 1.2.5
 -----
 -   Add blinker as a dependency, makes using Bugsnag with Flask easier
