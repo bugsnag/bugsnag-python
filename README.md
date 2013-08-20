@@ -35,10 +35,13 @@ How to Install
     If not set the project_root will default to the current working directory,
     and api_key will default to the `BUGSNAG_API_KEY` environment variable.
     
-1.  Add Bugsnag to the end of your Django middleware in `settings.py`:
-    
+1.  Add the Bugsnag middleware to your app by editing your `MIDDLEWARE_CLASSES` in `settings.py`.
+
     ```python
-    MIDDLEWARE_CLASSES.append("bugsnag.django.middleware.BugsnagMiddleware")
+    MIDDLEWARE_CLASSES = (
+        ...
+        "bugsnag.django.middleware.BugsnagMiddleware"
+    )
     ```
 
 ### Flask Apps
