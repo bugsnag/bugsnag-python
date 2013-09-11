@@ -2,3 +2,4 @@ tornado
 flask
 werkzeug
 blinker
+django

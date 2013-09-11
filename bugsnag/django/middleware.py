@@ -1,7 +1,5 @@
-from django.conf import settings
-
 import bugsnag
-
+import bugsnag.django
 
 def get_user_id(request):
     return request.META['REMOTE_ADDR']
@@ -18,12 +16,7 @@ def is_development_server(request):
 
 class BugsnagMiddleware(object):
     def __init__(self):
-        # Ignore django 404s by default
-        bugsnag.configuration.ignore_classes.append("django.http.Http404")
-
-        # Import Bugsnag settings from settings.py
-        django_bugsnag_settings = getattr(settings, 'BUGSNAG', {})
-        bugsnag.configure(**django_bugsnag_settings)
+        bugsnag.django.configure()
 
     # pylint: disable-msg=R0201
     def process_request(self, request):
