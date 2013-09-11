@@ -4,7 +4,6 @@ import bugsnag
 
 def configure():
     # Ignore django 404s by default
-    print "Configuring!"
     bugsnag.configuration.ignore_classes.append("django.http.Http404")
 
     # Import Bugsnag settings from settings.py
