@@ -1,6 +1,10 @@
 Changelog
 =========
 
+1.2.7
+-----
+-   Configure the log handler in the constructor for when called from cron job.
+
 1.2.6
 -----
 -   Read the API key from the environment for Heroku users
