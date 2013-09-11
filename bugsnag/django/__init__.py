@@ -1,8 +1,8 @@
-from django.conf import settings
-
 import bugsnag
 
 def configure():
+    from django.conf import settings
+    
     # Import Bugsnag settings from settings.py
     django_bugsnag_settings = getattr(settings, 'BUGSNAG', {})
     bugsnag.configure(**django_bugsnag_settings)
