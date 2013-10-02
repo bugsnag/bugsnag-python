@@ -24,7 +24,11 @@ def handle_exception(exception, env):
 
 class BugsnagMiddleware(object):
     """
-    Bugsnag middleware bitches
+    Notifies Bugsnag on any unhandled exception that happens while processing
+    a request in your application.
+
+    This middleware should be installed before any middlewares that catch
+    the exception and render an error messae.
     """
 
     def __init__(self, application):
