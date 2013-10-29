@@ -1,6 +1,10 @@
 Changelog
 =========
 
+1.3.0
+-----
+-   Added celery integration
+
 1.2.7
 -----
 -   Configure the log handler in the constructor for when called from cron job.
