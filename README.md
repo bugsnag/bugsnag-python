@@ -121,6 +121,30 @@ How to Install
         # ...
     ```
 
+### Celery
+
+1. Install the Bugsnag notifier
+
+    ```bash
+    pip install bugsnag
+    ```
+
+1. Configure the notifier in your worker module
+
+    ```
+    import bugsnag
+    bugsnag.configure(
+        api_key = "YOUR_API_KEY_HERE",
+        project_root = "/path/to/your/app"
+    )
+    ```
+
+1. Add the bugsnag failure handler to celery
+
+    ```
+    from bugsnag.celery import connect_failure_handler
+    connect_failure_handler()
+    ```
 
 ### Other Python Apps
 
