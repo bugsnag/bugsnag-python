@@ -131,7 +131,7 @@ How to Install
 
 1. Configure the notifier in your worker module
 
-    ```
+    ```python
     import bugsnag
     bugsnag.configure(
         api_key = "YOUR_API_KEY_HERE",
@@ -141,7 +141,7 @@ How to Install
 
 1. Add the bugsnag failure handler to celery
 
-    ```
+    ```python
     from bugsnag.celery import connect_failure_handler
     connect_failure_handler()
     ```
