@@ -1,5 +1,6 @@
 from bugsnag.configuration import Configuration
 import os
+import socket
 
 def test_get_endpoint():
     # Test default endpoint with ssl
@@ -51,3 +52,11 @@ def test_ignore_classes():
     c = Configuration()
     c.ignore_classes.append("StandardError")
     assert(c.should_ignore(Exception("Example")) == False)
+
+def test_hostname():
+    c = Configuration()
+    assert(c.hostname == socket.gethostname())
+
+    os.environ["DYNO"] = "YES"
+    c = Configuration()
+    assert(c.hostname == None)

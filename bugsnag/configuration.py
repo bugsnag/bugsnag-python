@@ -49,6 +49,8 @@ class Configuration(_BaseConfiguration):
         self.endpoint = "notify.bugsnag.com"
         if not os.getenv("DYNO"):
             self.hostname = socket.gethostname()
+        else:
+            self.hostname = None
 
     def should_notify(self):
         return self.notify_release_stages is None or \
