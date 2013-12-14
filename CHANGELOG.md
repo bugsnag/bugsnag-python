@@ -1,6 +1,10 @@
 Changelog
 =========
 
+1.3.1
+-----
+-   Send hostname to Bugsnag
+
 1.3.0
 -----
 -   Added celery integration
