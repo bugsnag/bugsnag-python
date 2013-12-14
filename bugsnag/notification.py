@@ -139,7 +139,10 @@ class Notification(object):
                         "stacktrace": stacktrace,
                     }],
                     "metaData": self.__generate_metadata(),
-                }]
+                }],
+                "device": {
+                    "hostname": self.config.get("hostname", self.options)
+                }
             }
 
             # JSON-encode and return the payload
