@@ -1,6 +1,11 @@
 Changelog
 =========
 
+1.3.2
+-----
+
+-   Allow custom groupingHash
+
 1.3.1
 -----
 -   Send hostname to Bugsnag
