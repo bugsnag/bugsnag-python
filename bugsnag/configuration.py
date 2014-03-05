@@ -92,6 +92,7 @@ class RequestConfiguration(_BaseConfiguration):
     def __init__(self):
         self.context = None
         self.user_id = None
+        self.grouping_hash = None
         self.extra_data = {}
         self.request_data = {}
         self.environment_data = {}
