@@ -133,6 +133,7 @@ class Notification(object):
                     "appVersion": self.config.get("app_version", self.options),
                     "context": self.request_config.get("context", self.options),
                     "userId": self.request_config.get("user_id", self.options),
+                    "groupingHash": self.request_config.get("grouping_hash", self.options),
                     "exceptions": [{
                         "errorClass": class_name(self.exception),
                         "message": str(self.exception),

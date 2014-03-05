@@ -396,6 +396,13 @@ This data will be displayed in the "Extra Data" tab on your Bugsnag dashboard.
 bugsnag.configure_request(extra_data = {"user_type": "admin"})
 ```
 
+###grouping_hash
+
+A string to use to group errors using your own custom grouping algorithm.
+
+```python
+bugsnag.configure_request(grouping_hash = "/path/to/file.py:30|RuntimeError")
+
 
 Reporting Bugs or Feature Requests
 ----------------------------------
