@@ -121,6 +121,38 @@ How to Install
         # ...
     ```
 
+### Bottle Apps
+
+1. Install the Bugsnag notifier
+
+    ```bash
+    pip install bugsnag
+    ```
+
+2. Configure the notifier when your python app starts
+
+    ```python
+    import bugsnag
+    bugsnag.configure(
+        api_key = "YOUR_API_KEY_HERE",
+        project_root = "/path/to/your/app"
+    )
+    ```
+
+3. Add the Bugsnag middleware
+
+    ```python
+    import bottle
+    from bugsnag.wsgi.middleware import BugsnagMiddleware
+
+    app = bottle.app()
+    # Don't catch exceptions in bottle.
+    app.catchall = False
+    # Catch them in Bugsnag instead.
+    myapp = BugsnagMiddleware(app)
+    bottle.run(app=myapp)
+    ```
+
 ### Celery
 
 1. Install the Bugsnag notifier
