@@ -24,7 +24,7 @@ class _BaseConfiguration(object):
         """
         Set one or more configuration settings.
         """
-        for name, value in options.items():
+        for name, value in list(options.items()):
             if hasattr(self, name):
                 setattr(self, name, value)
 

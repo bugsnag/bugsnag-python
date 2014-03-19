@@ -1,6 +1,6 @@
 import inspect
 import traceback
-
+import six
 import bugsnag
 
 
@@ -12,7 +12,7 @@ def sanitize_object(obj, **kwargs):
 
     if isinstance(obj, dict):
         clean_dict = {}
-        for k, v in obj.iteritems():
+        for k, v in six.iteritems(obj):
             # Remove values for keys matching filters
             if any(f in k for f in filters):
                 clean_dict[k] = "[FILTERED]"
@@ -26,10 +26,14 @@ def sanitize_object(obj, **kwargs):
         return [sanitize_object(x, **kwargs) for x in obj]
     else:
         try:
-            if isinstance(obj, unicode):
+            if isinstance(obj, six.string_types):
                 string = obj
             else:
-                string = unicode(str(obj), errors='replace')
+                if six.PY2:
+                    string = unicode(str(obj), errors='replace')
+                else:
+                    # TODO: This probably needs a little more work than just stringifying whatever obj is
+                    string = str(obj)
 
         except Exception:
             exc = traceback.format_exc()

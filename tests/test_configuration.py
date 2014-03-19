@@ -46,11 +46,11 @@ def test_should_notify():
 def test_ignore_classes():
     # Test ignoring a class works
     c = Configuration()
-    c.ignore_classes.append("StandardError")
-    assert(c.should_ignore(StandardError("Example")) == True)
+    c.ignore_classes.append("SystemError")
+    assert(c.should_ignore(SystemError("Example")) == True)
 
     c = Configuration()
-    c.ignore_classes.append("StandardError")
+    c.ignore_classes.append("SystemError")
     assert(c.should_ignore(Exception("Example")) == False)
 
 def test_hostname():

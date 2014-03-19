@@ -1,5 +1,6 @@
+from six.moves import urllib
 import os
-import urllib2
+#import urllib2
 import sys
 import threading
 import traceback
@@ -17,7 +18,7 @@ from bugsnag.utils import package_version
 
 def request(req):
     try:
-        resp = urllib2.urlopen(req)
+        resp = urllib.request.urlopen(req)
         status = resp.getcode()
 
         if status != 200:
@@ -25,7 +26,7 @@ def request(req):
 
     except Exception:
         bugsnag.log("Notification to %s failed" % (req.get_full_url()))
-        print traceback.format_exc()
+        print((traceback.format_exc()))
 
 
 class Notification(object):
