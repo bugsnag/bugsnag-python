@@ -1,3 +1,5 @@
+from __future__ import division, print_function, absolute_import
+
 import inspect
 import traceback
 import six
@@ -32,7 +34,6 @@ def sanitize_object(obj, **kwargs):
                 if six.PY2:
                     string = unicode(str(obj), errors='replace')
                 else:
-                    # TODO: This probably needs a little more work than just stringifying whatever obj is
                     string = str(obj)
 
         except Exception:
