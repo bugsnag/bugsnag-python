@@ -57,7 +57,7 @@ def log(message):
     """
     Print a log message with a Bugsnag prefix.
     """
-    print("** [Bugsnag] %s" % message)
+    print(("** [Bugsnag] %s" % message))
 
 
 def warn(message):

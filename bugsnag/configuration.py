@@ -1,3 +1,5 @@
+from __future__ import division, print_function, absolute_import
+
 from distutils.sysconfig import get_python_lib
 import threading
 import os
@@ -24,7 +26,7 @@ class _BaseConfiguration(object):
         """
         Set one or more configuration settings.
         """
-        for name, value in options.items():
+        for name, value in list(options.items()):
             if hasattr(self, name):
                 setattr(self, name, value)
 
