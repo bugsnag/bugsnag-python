@@ -63,7 +63,7 @@ class Notification(object):
             # Generate the payload and make the request
             bugsnag.log("Notifying %s of exception" % url)
 
-            payload = self.__generate_payload()
+            payload = self._generate_payload()
             req = urllib2.Request(url, payload, {
                 'Content-Type': 'application/json'
             })
@@ -73,7 +73,7 @@ class Notification(object):
             exc = traceback.format_exc()
             bugsnag.warn("Notification to %s failed:\n%s" % (url, exc))
 
-    def __generate_payload(self):
+    def _generate_payload(self):
         try:
             # Set up the lib root
             lib_root = self.config.get("lib_root", self.options)
@@ -139,7 +139,7 @@ class Notification(object):
                         "message": str(self.exception),
                         "stacktrace": stacktrace,
                     }],
-                    "metaData": self.__generate_metadata(),
+                    "metaData": self._generate_metadata(),
                 }],
                 "device": {
                     "hostname": self.config.get("hostname", self.options)
@@ -151,18 +151,21 @@ class Notification(object):
         finally:
             del tb
 
-    def __generate_metadata(self):
+    def sanitize_object(self, data):
+        return sanitize_object(data, filters=self.config.get("params_filters", self.options))
+
+    def _generate_metadata(self):
         return {
-            "request": sanitize_object(
+            "request": self.sanitize_object(
                 self.request_config.get("request_data", self.options)
             ),
-            "environment": sanitize_object(
+            "environment": self.sanitize_object(
                 self.request_config.get("environment_data", self.options)
             ),
-            "session": sanitize_object(
+            "session": self.sanitize_object(
                 self.request_config.get("session_data", self.options)
             ),
-            "extraData": sanitize_object(
+            "extraData": self.sanitize_object(
                 self.request_config.get("extra_data", self.options)
             ),
         }
