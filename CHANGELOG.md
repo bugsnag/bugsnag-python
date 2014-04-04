@@ -1,6 +1,11 @@
 Changelog
 =========
 
+1.4.0
+-----
+
+-   Make params_filter configuration work
+
 1.3.2
 -----
 
