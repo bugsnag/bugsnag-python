@@ -50,7 +50,7 @@ def auto_notify(exception, **options):
     Notify bugsnag of an exception if auto_notify is enabled.
     """
     if configuration.auto_notify:
-        notify(exception, **options)
+        notify(exception, severity="error", **options)
 
 
 def log(message):

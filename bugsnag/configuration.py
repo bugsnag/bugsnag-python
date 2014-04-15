@@ -69,6 +69,7 @@ class RequestConfiguration(_BaseConfiguration):
     """
     Per-request Bugsnag configuration settings.
     """
+
     @classmethod
     def get_instance(cls):
         """
