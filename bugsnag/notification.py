@@ -130,6 +130,7 @@ class Notification(object):
                 },
                 "events": [{
                     "releaseStage": self.config.get("release_stage", self.options),
+                    "payloadVersion": self.config.get("payload_version", self.options),
                     "appVersion": self.config.get("app_version", self.options),
                     "context": self.request_config.get("context", self.options),
                     "userId": self.request_config.get("user_id", self.options),
