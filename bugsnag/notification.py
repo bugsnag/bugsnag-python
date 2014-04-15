@@ -37,12 +37,16 @@ class Notification(object):
     PAYLOAD_VERSION = "2"
     SUPPORTED_SEVERITIES = ["info", "warning", "error"]
 
-    def __init__(self, exception, config, request_config, severity=None, **options):
+    def __init__(self, exception, config, request_config, **options):
         self.exception = exception
         self.options = options
         self.config = config
         self.request_config = request_config
-        self.severity = severity
+
+        if "severity" in options and options["severity"] in self.SUPPORTED_SEVERITIES:
+            self.severity = options["severity"]
+        else:
+            self.severity = "warning"
 
     def deliver(self):
         """
@@ -123,12 +127,6 @@ class Notification(object):
             # Fetch the notifier version from the package
             notifier_version = package_version("bugsnag_python") or "unknown"
 
-            severity = None
-            if self.severity is not None and self.severity in self.SUPPORTED_SEVERITIES:
-                severity = self.severity
-            else:
-                severity = "warning"
-
             # Construct the payload dictionary
             payload = {
                 "apiKey": self.config.api_key,
@@ -139,7 +137,7 @@ class Notification(object):
                 },
                 "events": [{
                     "payloadVersion": self.PAYLOAD_VERSION,
-                    "severity": severity,
+                    "severity": self.severity,
                     "releaseStage": self.config.get("release_stage", self.options),
                     "appVersion": self.config.get("app_version", self.options),
                     "context": self.request_config.get("context", self.options),
