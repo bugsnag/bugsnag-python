@@ -16,7 +16,7 @@ class BugsnagRequestHandler(RequestHandler):
         )
 
         # Notify bugsnag
-        bugsnag.notify(exc)
+        bugsnag.auto_notify(exc)
 
         # Call the parent handler
         RequestHandler._handle_request_exception(self, exc)
