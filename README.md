@@ -3,12 +3,12 @@ Bugsnag Notifier for Python
 
 The Bugsnag Notifier for Python gives you instant notification of exceptions
 thrown from your **Django** or **plain Python** app.
-Any uncaught exceptions will trigger a notification to be sent to your 
+Any uncaught exceptions will trigger a notification to be sent to your
 Bugsnag project.
 
-[Bugsnag](http://bugsnag.com) captures errors in real-time from your web, 
-mobile and desktop applications, helping you to understand and resolve them 
-as fast as possible. [Create a free account](http://bugsnag.com) to start 
+[Bugsnag](http://bugsnag.com) captures errors in real-time from your web,
+mobile and desktop applications, helping you to understand and resolve them
+as fast as possible. [Create a free account](http://bugsnag.com) to start
 capturing exceptions from your applications.
 
 
@@ -34,7 +34,7 @@ How to Install
 
     If not set the project_root will default to the current working directory,
     and api_key will default to the `BUGSNAG_API_KEY` environment variable.
-    
+
 1.  Add the Bugsnag middleware to your app by editing your `MIDDLEWARE_CLASSES` in `settings.py`.
 
     ```python
@@ -64,7 +64,7 @@ How to Install
       api_key = "YOUR_API_KEY_HERE",
       project_root = "/path/to/your/app",
     )
-    
+
     # Attach Bugsnag to Flask's exception handler
     app = Flask(__name__)
     handle_exceptions(app)
@@ -214,7 +214,7 @@ Then to notify Bugsnag of an error, you can call `bugsnag.notify`:
 bugsnag.notify(Exception("Something broke!"))
 ```
 
-You can also pass [additional configuration setting](#per-request-configuration) 
+You can also pass [additional configuration setting](#per-request-configuration)
 in as named parameters. These parameters will only affect the current call
 to notify. For example:
 
@@ -270,18 +270,18 @@ you can set the `release_stage` that is reported to Bugsnag.
 ```python
 bugsnag.configure(release_stage = "development")
 ```
-    
+
 In Django apps this value is automatically set to "development" if
-the server running is the Django development server. Otherwise the default is 
+the server running is the Django development server. Otherwise the default is
 "production".
 
 ###notify_release_stages
 
-By default, we will only notify Bugsnag of exceptions that happen when 
-your `release_stage` is set to be "production". If you would like to 
+By default, we will only notify Bugsnag of exceptions that happen when
+your `release_stage` is set to be "production". If you would like to
 change which release stages notify Bugsnag of exceptions you can
 set `notify_release_stages`:
-    
+
 ```python
 bugsnag.configure(notify_release_stages = ["production", "development"])
 ```
@@ -291,7 +291,7 @@ bugsnag.configure(notify_release_stages = ["production", "development"])
 By default, we will automatically notify Bugsnag of any fatal exceptions
 in your application. If you want to stop this from happening, you can set
 `auto_notify`:
-    
+
 ```python
 bugsnag.configure(auto_notify = False)
 ```
@@ -317,7 +317,7 @@ bugsnag.configure(project_root = "/var/www/myproject")
 
 ###app_version
 
-If you want to track which versions of your application each exception 
+If you want to track which versions of your application each exception
 happens in, you can set `app_version`. This is set to `None` by default.
 
 ```python
@@ -327,8 +327,8 @@ bugsnag.configure(app_version = "2.5.1")
 ###params_filters
 
 Sets the strings to filter out from the `params` hashes before sending
-them to Bugsnag. Use this if you want to ensure you don't send 
-sensitive data such as passwords, and credit card numbers to our 
+them to Bugsnag. Use this if you want to ensure you don't send
+sensitive data such as passwords, and credit card numbers to our
 servers. Any keys which contain these strings will be filtered.
 
 ```python
@@ -352,7 +352,7 @@ By default, `ignore_classes` is set to `[]`
 Per-request Configuration
 -------------------------
 
-The following configuration options can be set on a *per-request* basis. 
+The following configuration options can be set on a *per-request* basis.
 Setting or overriding these allows you to attach useful request-specific
 data along with exceptions, which can speed up debugging.
 
@@ -380,8 +380,8 @@ bugsnag.configure_request(context = "/users")
 
 ###user_id
 
-A unique identifier for a user affected by this event. This could be 
-any distinct identifier that makes sense for your application. 
+A unique identifier for a user affected by this event. This could be
+any distinct identifier that makes sense for your application.
 In Django apps, this is automatically set to the username of the current user,
 or the remote ip address.
 
@@ -411,7 +411,7 @@ bugsnag.configure_request(environment_data = {"user-agent": "Mozilla"})
 
 ###request_data
 
-The data associated with the current request. 
+The data associated with the current request.
 In Django apps, this is automatically populated with the current request
 data from the `HttpRequest` object.
 
@@ -451,6 +451,12 @@ Contributing
 
 -   [Fork](https://help.github.com/articles/fork-a-repo) the [notifier on github](https://github.com/bugsnag/bugsnag-python)
 -   Commit and push until you are happy with your contribution
+-   Download the dependencies
+
+    ```bash
+    pip install -r requirements.txt
+    ```
+
 -   Run the tests using [nosetests](https://nose.readthedocs.org/)
 -   [Make a pull request](https://help.github.com/articles/using-pull-requests)
 -   Thanks!
@@ -459,5 +465,5 @@ Contributing
 License
 -------
 
-The Bugsnag python notifier is free software released under the MIT License. 
+The Bugsnag python notifier is free software released under the MIT License.
 See [LICENSE.txt](https://github.com/bugsnag/bugsnag-python/blob/master/LICENSE.txt) for details.
