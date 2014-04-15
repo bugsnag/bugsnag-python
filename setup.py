@@ -14,7 +14,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='bugsnag',
-    version='1.4.0',
+    version='1.5.0',
     description='Official Python notifier for Bugsnag (https://bugsnag.com).',
     long_description=__doc__,
     author='Simon Maynard',

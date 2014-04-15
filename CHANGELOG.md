@@ -1,14 +1,17 @@
 Changelog
 =========
 
+1.5.0
+-----
+-   Send 'severity' of error to Bugsnag
+-   Add 'payloadVersion'
+
 1.4.0
 -----
-
 -   Make params_filter configuration work
 
 1.3.2
 -----
-
 -   Allow custom groupingHash
 
 1.3.1
@@ -54,7 +57,7 @@ Changelog
 -   Fixed issue when non-unicode data was passed in metadata
 -   Filters are now applied for substring matches ("password" will now also
     match "confirm_password")
--   Ignore django.http.Http404 exceptions by default when using 
+-   Ignore django.http.Http404 exceptions by default when using
     django middleware
 
 1.1.2
