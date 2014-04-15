@@ -28,7 +28,7 @@ def clear_request_config():
     RequestConfiguration.clear()
 
 
-def notify(exception, **options):
+def notify(exception, severity=None, **options):
     """
     Notify bugsnag of an exception.
     """
@@ -38,11 +38,11 @@ def notify(exception, **options):
             options["traceback"] = exception[2]
 
         Notification(exception[1], configuration,
-                     RequestConfiguration.get_instance(), **options).deliver()
+                     RequestConfiguration.get_instance(), severity, **options).deliver()
     else:
         # Exception objects
         Notification(exception, configuration,
-                     RequestConfiguration.get_instance(), **options).deliver()
+                     RequestConfiguration.get_instance(), severity, **options).deliver()
 
 
 def auto_notify(exception, **options):
@@ -50,7 +50,7 @@ def auto_notify(exception, **options):
     Notify bugsnag of an exception if auto_notify is enabled.
     """
     if configuration.auto_notify:
-        notify(exception, **options)
+        notify(exception, "error", **options)
 
 
 def log(message):

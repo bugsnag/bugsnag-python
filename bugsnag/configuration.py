@@ -44,7 +44,6 @@ class Configuration(_BaseConfiguration):
         self.lib_root = get_python_lib()
         self.project_root = os.getcwd()
         self.app_version = None
-        self.payload_version = "2"
         self.params_filters = ["password", "password_confirmation"]
         self.ignore_classes = []
         self.endpoint = "notify.bugsnag.com"
@@ -70,6 +69,7 @@ class RequestConfiguration(_BaseConfiguration):
     """
     Per-request Bugsnag configuration settings.
     """
+
     @classmethod
     def get_instance(cls):
         """
