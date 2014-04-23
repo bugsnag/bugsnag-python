@@ -1,7 +1,7 @@
 from __future__ import division, print_function, absolute_import
 
-import six
-from six.moves.urllib.request import urlopen, Request
+from bugsnag import six
+from bugsnag.six.moves.urllib.request import urlopen, Request
 import os
 import sys
 import threading

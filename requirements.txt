@@ -4,4 +4,3 @@ werkzeug
 blinker
 django
 celery
-six
