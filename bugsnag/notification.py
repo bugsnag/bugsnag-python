@@ -1,5 +1,8 @@
+from __future__ import division, print_function, absolute_import
+
+from bugsnag import six
+from bugsnag.six.moves.urllib.request import urlopen, Request
 import os
-import urllib2
 import sys
 import threading
 import traceback
@@ -17,7 +20,7 @@ from bugsnag.utils import package_version
 
 def request(req):
     try:
-        resp = urllib2.urlopen(req)
+        resp = urlopen(req)
         status = resp.getcode()
 
         if status != 200:
@@ -25,7 +28,7 @@ def request(req):
 
     except Exception:
         bugsnag.log("Notification to %s failed" % (req.get_full_url()))
-        print traceback.format_exc()
+        print((traceback.format_exc()))
 
 
 class Notification(object):
@@ -70,8 +73,8 @@ class Notification(object):
             # Generate the payload and make the request
             bugsnag.log("Notifying %s of exception" % url)
 
-            payload = self._generate_payload()
-            req = urllib2.Request(url, payload, {
+            payload = self._generate_payload().encode('utf-8', errors='replace')
+            req = Request(url, payload, {
                 'Content-Type': 'application/json'
             })
             threading.Thread(target=request, args=(req,)).start()

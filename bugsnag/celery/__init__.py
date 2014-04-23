@@ -1,3 +1,5 @@
+from __future__ import division, print_function, absolute_import
+
 from celery.signals import task_failure
 import bugsnag
 
