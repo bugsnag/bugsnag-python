@@ -197,11 +197,11 @@ How to Install
     ```
 
 
-Sending Non-Fatal Exceptions to Bugsnag
+Sending Handled Exceptions to Bugsnag
 ---------------------------------------
 
-Fatal exceptions are automatically sent to Bugsnag by the notifier.
-If you would like to send non-fatal exceptions to Bugsnag, you should import
+Unhandled exceptions are automatically sent to Bugsnag by the notifier.
+If you would like to send handled exceptions to Bugsnag, you should import
 the `bugsnag` module:
 
 ```python
@@ -224,6 +224,23 @@ bugsnag.notify(Exception("Something broke!"),
     extra_data={"request_id": 12345, "message_id": 854},
 )
 ```
+
+### Severity
+
+You can set the severity of an error in Bugsnag by including the severity option when
+notifying bugsnag of the error,
+
+```python
+bugsnag.notify(Exception("Something broke!"),
+  severity = "error"
+)
+```
+
+Valid severities are `error`, `warning` and `info`.
+
+Severity is displayed in the dashboard and can be used to filter the error list.
+By default all crashes (or unhandled exceptions) are set to `error` and all
+`bugsnag.notify` calls default to `warning`.
 
 
 Configuration
