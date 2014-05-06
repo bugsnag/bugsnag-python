@@ -33,4 +33,4 @@ class BugsnagRequestHandler(RequestHandler):
 
     def bugsnag_ignore_status_codes(self):
         # Subclasses can override to add or remove codes
-        return [401, 403]
+        return range(400, 500)
