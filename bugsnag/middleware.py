@@ -30,13 +30,13 @@ class DefaultMiddleware(object):
 
     def __call__(self, notification):
         notification.set_user(id=notification.request_config.user_id)
-        notification.grouping_hash = notification.request_config.grouping_hash
-        notification.context = notification.request_config.context
+        notification.grouping_hash = notification.request_config.get("grouping_hash")
+        notification.context = notification.request_config.get("context")
 
-        notification.add_tab("request", notification.request_config.request_data)
-        notification.add_tab("environment", notification.request_config.environment_data)
-        notification.add_tab("session", notification.request_config.session_data)
-        notification.add_tab("extraData", notification.request_config.extra_data)
+        notification.add_tab("request", notification.request_config.get("request_data"))
+        notification.add_tab("environment", notification.request_config.get("environment_data"))
+        notification.add_tab("session", notification.request_config.get("session_data"))
+        notification.add_tab("extraData", notification.request_config.get("extra_data"))
 
         self.bugsnag(notification)
 

@@ -28,5 +28,4 @@ def configure():
 
     # Ignore django 404s by default
     bugsnag.configuration.ignore_classes.append("django.http.Http404")
-    print("Configuring bugsnag")
-    bugsnag.middleware.before_notify(add_django_request_to_notification)
+    bugsnag.before_notify(add_django_request_to_notification)

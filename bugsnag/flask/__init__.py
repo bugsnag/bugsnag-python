@@ -20,7 +20,7 @@ def add_flask_request_to_notification(notification):
 
 
 def handle_exceptions(app):
-    bugsnag.middleware.before_notify(add_flask_request_to_notification)
+    bugsnag.before_notify(add_flask_request_to_notification)
     got_request_exception.connect(__log_exception, app)
 
 

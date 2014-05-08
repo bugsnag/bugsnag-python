@@ -6,6 +6,7 @@ import os
 import socket
 
 from bugsnag.utils import fully_qualified_class_name
+from bugsnag.middleware import MiddlewareStack, DefaultMiddleware
 
 
 threadlocal = threading.local()
@@ -48,6 +49,10 @@ class Configuration(_BaseConfiguration):
         self.params_filters = ["password", "password_confirmation"]
         self.ignore_classes = []
         self.endpoint = "notify.bugsnag.com"
+
+        self.middleware = MiddlewareStack()
+        self.middleware.append(DefaultMiddleware)
+
         if not os.getenv("DYNO"):
             self.hostname = socket.gethostname()
         else:
