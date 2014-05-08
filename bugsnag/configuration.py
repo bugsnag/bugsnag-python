@@ -26,9 +26,8 @@ class _BaseConfiguration(object):
         """
         Set one or more configuration settings.
         """
-        for name, value in list(options.items()):
-            if hasattr(self, name):
-                setattr(self, name, value)
+        for name, value in options.items():
+            setattr(self, name, value)
 
         return self
 
@@ -65,7 +64,6 @@ class Configuration(_BaseConfiguration):
     def get_endpoint(self):
         proto = "https" if self.use_ssl else "http"
         return "%s://%s" % (proto, self.endpoint)
-
 
 class RequestConfiguration(_BaseConfiguration):
     """

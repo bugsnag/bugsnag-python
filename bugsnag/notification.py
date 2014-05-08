@@ -46,6 +46,9 @@ class Notification(object):
         self.config = config
         self.request_config = request_config
 
+        self.user = {}
+        self.meta_data = {}
+
         if "severity" in options and options["severity"] in self.SUPPORTED_SEVERITIES:
             self.severity = options["severity"]
         else:
@@ -73,15 +76,29 @@ class Notification(object):
             # Generate the payload and make the request
             bugsnag.log("Notifying %s of exception" % url)
 
-            payload = self._generate_payload().encode('utf-8', errors='replace')
-            req = Request(url, payload, {
-                'Content-Type': 'application/json'
-            })
-            threading.Thread(target=request, args=(req,)).start()
+            def deliver():
+                payload = self._generate_payload().encode('utf-8', errors='replace')
+                req = Request(url, payload, {
+                    'Content-Type': 'application/json'
+                })
+                threading.Thread(target=request, args=(req,)).start()
+
+            bugsnag.middleware.run(self, deliver)
 
         except Exception:
             exc = traceback.format_exc()
             bugsnag.warn("Notification to %s failed:\n%s" % (url, exc))
+
+    def set_user(self,id=None,name=None,email=None):
+        if id:
+            self.user["id"] = id
+        if name:
+            self.user["name"] = name
+        if email:
+            self.user["email"] = email
+
+    def add_tab(self,name, dictionary):
+        self.meta_data[name] = self.sanitize_object(dictionary)
 
     def _generate_payload(self):
         try:
@@ -143,15 +160,16 @@ class Notification(object):
                     "severity": self.severity,
                     "releaseStage": self.config.get("release_stage", self.options),
                     "appVersion": self.config.get("app_version", self.options),
-                    "context": self.request_config.get("context", self.options),
-                    "userId": self.request_config.get("user_id", self.options),
-                    "groupingHash": self.request_config.get("grouping_hash", self.options),
+                    "context": self.context,
+                    "userId": self.user_id,
+                    "groupingHash": self.grouping_hash,
                     "exceptions": [{
                         "errorClass": class_name(self.exception),
                         "message": str(self.exception),
                         "stacktrace": stacktrace,
                     }],
-                    "metaData": self._generate_metadata(),
+                    "metaData": self.meta_data,
+                    "user": self.user
                 }],
                 "device": {
                     "hostname": self.config.get("hostname", self.options)
@@ -165,19 +183,3 @@ class Notification(object):
 
     def sanitize_object(self, data):
         return sanitize_object(data, filters=self.config.get("params_filters", self.options))
-
-    def _generate_metadata(self):
-        return {
-            "request": self.sanitize_object(
-                self.request_config.get("request_data", self.options)
-            ),
-            "environment": self.sanitize_object(
-                self.request_config.get("environment_data", self.options)
-            ),
-            "session": self.sanitize_object(
-                self.request_config.get("session_data", self.options)
-            ),
-            "extraData": self.sanitize_object(
-                self.request_config.get("extra_data", self.options)
-            ),
-        }

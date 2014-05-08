@@ -2,10 +2,11 @@ import sys
 
 from bugsnag.configuration import Configuration, RequestConfiguration
 from bugsnag.notification import Notification
-
+from bugsnag.middleware import MiddlewareStack, DefaultMiddleware
 
 configuration = Configuration()
-
+middleware = MiddlewareStack()
+middleware.append(DefaultMiddleware)
 
 def configure(**options):
     """
