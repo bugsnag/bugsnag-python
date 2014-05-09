@@ -39,6 +39,10 @@ def add_django_request_to_notification(notification):
     notification.add_tab("environment", dict(request.META))
 
 def configure():
+    # default to development if in DEBUG mode
+    if getattr(settings, 'DEBUG'):
+        bugsnag.configure(release_stage='development')
+
     # Import Bugsnag settings from settings.py
     django_bugsnag_settings = getattr(settings, 'BUGSNAG', {})
     bugsnag.configure(**django_bugsnag_settings)
