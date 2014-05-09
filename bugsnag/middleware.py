@@ -30,8 +30,12 @@ class DefaultMiddleware(object):
 
     def __call__(self, notification):
         notification.set_user(id=notification.request_config.user_id)
+        notification.set_user(**notification.request_config.user)
         notification.grouping_hash = notification.request_config.get("grouping_hash")
         notification.context = notification.request_config.get("context")
+
+        for name, dictionary in notification.request_config.meta_data.items():
+            notification.add_tab(name, dictionary)
 
         notification.add_tab("request", notification.request_config.get("request_data"))
         notification.add_tab("environment", notification.request_config.get("environment_data"))

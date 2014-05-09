@@ -2,25 +2,63 @@ from werkzeug.wrappers import Request
 
 import bugsnag
 from bugsnag.wsgi import request_path
+from bugsnag.six import advance_iterator, Iterator
+
+def add_wsgi_request_data_to_notification(notification):
+    if not hasattr(notification.request_config, "wsgi_environ"):
+        return
+
+    environ = notification.request_config.wsgi_environ
+    request = Request(environ)
+
+    notification.context = "%s %s" % (request.method, request_path(environ))
+    notification.set_user(id=request.remote_addr)
+    notification.add_tab("request", {
+                "url": request.base_url,
+                "headers": dict(request.headers),
+                "cookies": dict(request.cookies),
+                "params": dict(request.form),
+            })
+    notification.add_tab("environment", dict(request.environ))
 
 
-def handle_exception(exception, env):
-    request = Request(env)
+class WrappedWSGIApp(Iterator):
+    """
+    Wraps a running WSGI app and sends all exceptions to bugsnag.
+    """
 
-    bugsnag.configure_request(
-        context="%s %s" % (request.method, request_path(env)),
-        user_id=request.remote_addr,
-        request_data={
-            "url": request.base_url,
-            "headers": dict(request.headers),
-            "cookies": dict(request.cookies),
-            "params": dict(request.form),
-        },
-        environment_data=dict(request.environ),
-    )
-    bugsnag.auto_notify(exception)
-    bugsnag.clear_request_config()
+    def __init__(self, application, environ, start_response):
+        self.environ = environ
 
+        bugsnag.configure_request(wsgi_environ=self.environ)
+
+        try:
+            self.app = iter(application(environ, start_response))
+        except Exception as e:
+            bugsnag.auto_notify(e)
+            raise
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        try:
+            return advance_iterator(self.app)
+        except StopIteration:
+            raise
+        except Exception as e:
+            bugsnag.auto_notify(e)
+            raise
+
+    def close(self):
+        try:
+            if hasattr(self.app, 'close'):
+                return self.app.close()
+        except Exception as e:
+            bugsnag.auto_notify(e)
+            raise
+        finally:
+            bugsnag.clear_request_config()
 
 class BugsnagMiddleware(object):
     """
@@ -32,26 +70,8 @@ class BugsnagMiddleware(object):
     """
 
     def __init__(self, application):
+        bugsnag.before_notify(add_wsgi_request_data_to_notification)
         self.application = application
 
     def __call__(self, environ, start_response):
-        try:
-            iterable = self.application(environ, start_response)
-        except Exception as e:
-            handle_exception(e, environ)
-            raise
-
-        try:
-            for event in iterable:
-                yield event
-        except Exception as e:
-            handle_exception(e, environ)
-            raise
-        finally:
-            if iterable and hasattr(iterable, 'close') and \
-               callable(iterable.close):
-
-                try:
-                    iterable.close()
-                except Exception:
-                    handle_exception(e, environ)
+        return WrappedWSGIApp(self.application, environ, start_response)

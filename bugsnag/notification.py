@@ -17,6 +17,25 @@ from bugsnag.utils import sanitize_object
 from bugsnag.utils import fully_qualified_class_name as class_name
 from bugsnag.utils import package_version
 
+def deliver(payload, url):
+    payload = json.dumps(payload).encode('utf-8', errors='replace')
+    req = Request(url, payload, {
+        'Content-Type': 'application/json'
+    })
+
+    def request():
+        try:
+            resp = urlopen(req)
+            status = resp.getcode()
+
+            if status != 200:
+                bugsnag.log("Notification to %s failed, status %d" % (url, status))
+
+        except Exception:
+            bugsnag.log("Notification to %s failed" % (req.get_full_url()))
+            print((traceback.format_exc()))
+
+    threading.Thread(target=request).start()
 
 class Notification(object):
     """
@@ -198,11 +217,11 @@ class Notification(object):
                     "stacktrace": self.stacktrace,
                 }],
                 "metaData": self.meta_data,
-                "user": self.user
-            }],
-            "device": {
-                "hostname": self.hostname
-            }
+                "user": self.user,
+                "device": {
+                    "hostname": self.hostname
+                }
+            }]
         }
 
     def _send_to_bugsnag(self):
@@ -210,20 +229,5 @@ class Notification(object):
         url = self.config.get_endpoint()
         bugsnag.log("Notifying %s of exception" % url)
 
-        payload = json.dumps(self._payload()).encode('utf-8', errors='replace')
-        req = Request(url, payload, {
-            'Content-Type': 'application/json'
-        })
-        threading.Thread(target=self._request, args=(req,)).start()
+        deliver(self._payload(), url)
 
-    def _request(self, req):
-        try:
-            resp = urlopen(req)
-            status = resp.getcode()
-
-            if status != 200:
-                bugsnag.log("Notification to %s failed, status %d" % status)
-
-        except Exception:
-            bugsnag.log("Notification to %s failed" % (req.get_full_url()))
-            print((traceback.format_exc()))

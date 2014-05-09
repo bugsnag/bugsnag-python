@@ -4,3 +4,6 @@ werkzeug
 blinker
 django
 celery
+WebTest
+mock
+nose
