@@ -220,7 +220,9 @@ class Notification(object):
                 "user": self.user,
                 "device": {
                     "hostname": self.hostname
-                }
+                },
+                "projectRoot": self.config.get("project_root"),
+                "libRoot": self.config.get("lib_root")
             }]
         }
 
