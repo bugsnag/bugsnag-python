@@ -47,7 +47,7 @@ class Configuration(_BaseConfiguration):
         self.project_root = os.getcwd()
         self.app_version = None
         self.params_filters = ["password", "password_confirmation"]
-        self.ignore_classes = []
+        self.ignore_classes = ["KeyboardInterrupt"]
         self.endpoint = "notify.bugsnag.com"
 
         self.middleware = MiddlewareStack()
