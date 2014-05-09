@@ -18,7 +18,7 @@ from bugsnag.utils import fully_qualified_class_name as class_name
 from bugsnag.utils import package_version
 
 def deliver(payload, url):
-    payload = json.dumps(payload).encode('utf-8', errors='replace')
+    payload = json.dumps(payload).encode('utf-8', 'replace')
     req = Request(url, payload, {
         'Content-Type': 'application/json'
     })
