@@ -17,7 +17,7 @@ def add_wsgi_request_data_to_notification(notification):
                 "url": request.base_url,
                 "headers": dict(request.headers),
                 "cookies": dict(request.cookies),
-                "params": dict(request.form),
+                "params": dict(request.args),
             })
     notification.add_tab("environment", dict(request.environ))
 
