@@ -2,7 +2,7 @@ Bugsnag Notifier for Python
 =========================
 
 The Bugsnag Notifier for Python gives you instant notification of exceptions
-thrown from your **Django** or **plain Python** app.
+thrown from your **Django**, **WSGI**, **Tornado**, **Flask** or **plain Python** app.
 Any uncaught exceptions will trigger a notification to be sent to your
 Bugsnag project.
 
@@ -225,24 +225,6 @@ bugsnag.notify(Exception("Something broke!"),
 )
 ```
 
-### Severity
-
-You can set the severity of an error in Bugsnag by including the severity option when
-notifying bugsnag of the error,
-
-```python
-bugsnag.notify(Exception("Something broke!"),
-  severity = "error"
-)
-```
-
-Valid severities are `error`, `warning` and `info`.
-
-Severity is displayed in the dashboard and can be used to filter the error list.
-By default all crashes (or unhandled exceptions) are set to `error` and all
-`bugsnag.notify` calls default to `warning`.
-
-
 Configuration
 -------------
 
@@ -379,7 +361,7 @@ for example:
 ```python
 bugsnag.configure_request(
     context = "/users",
-    user_id = "bob-hoskins",
+    user = {"id":"bob-hoskins"},
 )
 ```
 
@@ -395,54 +377,102 @@ current request.
 bugsnag.configure_request(context = "/users")
 ```
 
-###user_id
+###user
 
-A unique identifier for a user affected by this event. This could be
-any distinct identifier that makes sense for your application.
-In Django apps, this is automatically set to the username of the current user,
-or the remote ip address.
+A dictionary of "id", "email", and "name" that are used to identify and search for
+the user in Bugsnag.
+
+By default the "id" is set to the username of the current django user, or the IP
+address of the connection.
+
 
 ```python
-bugsnag.configure_request(user_id = "bob-hoskins")
+bugsnag.configure_request(user={"id":"bob-hoskins", name: "Bob Hoskins", email: "foo@bar.com"})
 ```
 
-###session_data
+(The legacy parameter `user_id` acts as though you set a user hash with just the id property).
 
-The data associated with the current session.
-In Django apps, this is automatically populated with the current session
-data from the `SessionMiddleware`.
+###meta_data
+
+A dictionary of dictionaries, each of which appears as a tab on the Bugsnag dashboard.
 
 ```python
-bugsnag.configure_request(session_data = {"default": "/users"})
+bugsnag.configure_request("metadata":{"account":{"name":"ACME Inc.", "premium": True}})
 ```
 
-###environment_data
+The deprecated parameters `session_data`, `environment_data`, `request_data`
+and `extra_data` can be used to set the "session", "environment", "request" and
+"extra" tabs of metadata if needed.
 
-The data associated with the current environment.
-In Django apps, this is automatically populated with relevant environment
-data automatically.
+Notification options
+--------------------
+
+The `Bugsnag.notify` function accepts a large number of keyword arguments. These
+can be used to override configuration or to send more data to bugsnag.
+
+###traceback
+
+The traceback to use for the exception. If omitted this will be read from `sys.exc_info`.
 
 ```python
-bugsnag.configure_request(environment_data = {"user-agent": "Mozilla"})
+bugsnag.notify(e, sys.exc_info()[2])
 ```
 
-###request_data
+###api_key
 
-The data associated with the current request.
-In Django apps, this is automatically populated with the current request
-data from the `HttpRequest` object.
+Use a specific API key for this notification. (defaults to `bugsnag.configuration.api_key`)
 
 ```python
-bugsnag.configure_request(request_data = {"path": "/users"})
+bugsnag.notify(e, api_key="YOUR_API_KEY_HERE")
 ```
 
-###extra_data
+###context
 
-A dictionary containing any further data you wish to attach to exceptions.
-This data will be displayed in the "Extra Data" tab on your Bugsnag dashboard.
+A string representing what was happening in your application at the time of
+the error. In Django apps, this is automatically set to be the path of the
+current request.
 
 ```python
-bugsnag.configure_request(extra_data = {"user_type": "admin"})
+bugsnag.notify(e, context="sign_up")
+```
+
+###severity
+
+You can set the severity of an error in Bugsnag by including the severity option when
+notifying bugsnag of the error,
+
+```python
+bugsnag.notify(Exception("Something broke!"), severity="error")
+```
+
+Valid severities are `error`, `warning` and `info`.
+
+Severity is displayed in the dashboard and can be used to filter the error list.
+By default all crashes (or unhandled exceptions) are set to `error` and all
+`bugsnag.notify` calls default to `warning`.
+
+###user
+
+Information about the user currently using your app. This should be a dictionary
+containing "id", "email" and "name" keys.
+
+```python
+bugsnag.notify(e, user={"id":"bob-hoskins", name: "Bob Hoskins", email: "foo@bar.com"})
+```
+
+###meta_data
+
+A dictionary of dictionaries. Each dictionary will show up as a tab on Bugsnag.
+
+```
+bugsnag.notify(e, "metadata":{"account":{"name":"ACME Inc.", "premium": True}})
+```
+
+Any key that has no other meaning will also be treated as meta-data, so you could
+have done:
+
+```
+bugsnag.notify(e, {"account":{"name":"ACME Inc.", "premium": True})
 ```
 
 ###grouping_hash
@@ -450,9 +480,8 @@ bugsnag.configure_request(extra_data = {"user_type": "admin"})
 A string to use to group errors using your own custom grouping algorithm.
 
 ```python
-bugsnag.configure_request(grouping_hash = "/path/to/file.py:30|RuntimeError")
+bugsnag.notify(e, grouping_hash="/path/to/file.py:30|RuntimeError")
 ```
-
 
 Reporting Bugs or Feature Requests
 ----------------------------------
