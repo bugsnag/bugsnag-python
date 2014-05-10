@@ -55,7 +55,7 @@ class Notification(object):
         request_config is the thread-local instance of bugsnag.Configuration (used by middleware)
 
         options can be used to override any of the configuration parameters:
-            "api_key", "release_state", "app_version", "hostname"
+            "api_key", "release_stage", "app_version", "hostname"
         and to provide the following top-level notification payload keys:
             "user", "context", "severity", "grouping_hash", "meta_data", ("user_id")
         or to provide the exception parameter:
