@@ -1,4 +1,5 @@
-from bugsnag.utils import sanitize_object
+from bugsnag.utils import json_encode, sanitize_object
+from nose.tools import eq_
 
 def test_sanitize_object():
     filters = ["password", "credit_card"]
@@ -23,3 +24,8 @@ def test_sanitize_object():
     assert(sane_dict["metadata"]["another_password"] == "[FILTERED]")
     assert(sane_dict["metadata"]["regular"] == "text")
     assert("things" in sane_dict["list"])
+
+def test_json_encode():
+
+    payload = {"a": u"a" * 512 * 1024}
+    eq_(json_encode(payload), '{"a": "' + 'a' * 1024 + '"}')

@@ -5,7 +5,13 @@ import traceback
 import bugsnag
 from bugsnag import six
 
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
+
+MAX_PAYLOAD_LENGTH = 128 * 1024
 MAX_STRING_LENGTH = 1024
 
 
@@ -41,7 +47,31 @@ def sanitize_object(obj, **kwargs):
             bugsnag.warn("Could not add object to metadata: %s" % exc)
             string = "[BADENCODING]"
 
-        return string[:MAX_STRING_LENGTH]
+        return string
+
+def shrink_object(obj):
+    if isinstance(obj, six.string_types):
+        return obj[:MAX_STRING_LENGTH]
+
+    elif isinstance(obj, dict):
+        for k, v in six.iteritems(obj):
+            obj[k] = shrink_object(v)
+
+    elif any(isinstance(obj, t) for t in (list, set, tuple)):
+        return [shrink_object(x) for x in obj]
+
+    return obj
+
+
+def json_encode(obj):
+
+    payload = json.dumps(obj).encode('utf-8', 'replace')
+
+    if len(payload) > MAX_PAYLOAD_LENGTH:
+        obj = shrink_object(json.loads(payload))
+        payload = json.dumps(obj).encode('utf-8', 'replace')
+
+    return payload
 
 
 def fully_qualified_class_name(obj):

@@ -7,18 +7,13 @@ import sys
 import threading
 import traceback
 
-try:
-    import json
-except ImportError:
-    import simplejson as json
-
 import bugsnag
-from bugsnag.utils import sanitize_object
+from bugsnag.utils import sanitize_object, json_encode
 from bugsnag.utils import fully_qualified_class_name as class_name
 from bugsnag.utils import package_version
 
 def deliver(payload, url):
-    payload = json.dumps(payload).encode('utf-8', 'replace')
+    payload = json_encode(payload)
     req = Request(url, payload, {
         'Content-Type': 'application/json'
     })
