@@ -483,6 +483,28 @@ A string to use to group errors using your own custom grouping algorithm.
 bugsnag.notify(e, grouping_hash="/path/to/file.py:30|RuntimeError")
 ```
 
+Before Notify Callbacks
+-----------------------
+
+If you need to modify the payload before sending it to bugsnag you can register a
+before-notify callback:
+
+```
+def callback(notification):
+
+    # if you return False, the notification will not be sent to
+    # Bugsnag. (see ignore_classes for simple cases)
+    if isinstance(notification.exception, KeyboardInterrupt):
+        return False
+
+    # You can set properties of the notification and
+    # add your own custom meta-data.
+    notification.user = {"id": current_user.id, "name": current_user.name, "email": current_user.email}
+    notification.add_tab("account", {"paying": current_user.acccount.is_paying()}
+
+bugsnag.before_notify(callback)
+```
+
 Reporting Bugs or Feature Requests
 ----------------------------------
 
