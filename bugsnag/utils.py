@@ -65,13 +65,13 @@ def shrink_object(obj):
 
 def json_encode(obj):
 
-    payload = json.dumps(obj).encode('utf-8', 'replace')
+    payload = json.dumps(obj)
 
     if len(payload) > MAX_PAYLOAD_LENGTH:
         obj = shrink_object(json.loads(payload))
-        payload = json.dumps(obj).encode('utf-8', 'replace')
+        payload = json.dumps(obj)
 
-    return payload
+    return payload.encode('utf-8', 'replace')
 
 
 def fully_qualified_class_name(obj):
