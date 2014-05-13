@@ -11,7 +11,6 @@ from bugsnag.middleware import MiddlewareStack, DefaultMiddleware
 
 threadlocal = threading.local()
 
-
 class _BaseConfiguration(object):
     def get(self, name, overrides=None):
         """
@@ -47,7 +46,7 @@ class Configuration(_BaseConfiguration):
         self.project_root = os.getcwd()
         self.app_version = None
         self.params_filters = ["password", "password_confirmation"]
-        self.ignore_classes = ["KeyboardInterrupt"]
+        self.ignore_classes = ["KeyboardInterrupt", "django.http.Http404"]
         self.endpoint = "notify.bugsnag.com"
 
         self.middleware = MiddlewareStack()
