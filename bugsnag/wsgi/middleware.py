@@ -1,4 +1,4 @@
-from werkzeug.wrappers import Request
+from webob import Request
 
 import bugsnag
 from bugsnag.wsgi import request_path
@@ -14,10 +14,10 @@ def add_wsgi_request_data_to_notification(notification):
     notification.context = "%s %s" % (request.method, request_path(environ))
     notification.set_user(id=request.remote_addr)
     notification.add_tab("request", {
-                "url": request.base_url,
+                "url": request.path_url,
                 "headers": dict(request.headers),
                 "cookies": dict(request.cookies),
-                "params": dict(request.args),
+                "params": dict(request.params),
             })
     notification.add_tab("environment", dict(request.environ))
 
