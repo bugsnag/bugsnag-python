@@ -3,44 +3,13 @@ from __future__ import division, print_function, absolute_import
 import bugsnag
 import bugsnag.django
 
-def get_user_id(request):
-    return request.META['REMOTE_ADDR']
-
-
-def is_development_server(request):
-    server = request.META.get('wsgi.file_wrapper', None)
-
-    if server is None:
-        return False
-
-    return server.__module__ == 'django.core.servers.basehttp'
-
-
 class BugsnagMiddleware(object):
     def __init__(self):
         bugsnag.django.configure()
 
     # pylint: disable-msg=R0201
     def process_request(self, request):
-        if is_development_server(request):
-            bugsnag.configure(release_stage="development")
-
-        try:
-            bugsnag.configure_request(
-                context=request.path,
-                user_id=get_user_id(request),
-                session_data=dict(request.session),
-                request_data={
-                    'path': request.path,
-                    'encoding': request.encoding,
-                    'params': dict(request.REQUEST),
-                    'url': request.build_absolute_uri(),
-                },
-                environment_data=dict(request.META),
-            )
-
-        except Exception as exc:
-            bugsnag.log("Error in request middleware: %s" % exc)
+        bugsnag.configure_request(django_request=request)
 
         return None
 

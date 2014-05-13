@@ -5,16 +5,16 @@ import bugsnag
 
 class BugsnagRequestHandler(RequestHandler):
     def _handle_request_exception(self, exc):
-        # Set the request info
-        bugsnag.configure_request(
-            user_id=self.request.remote_ip,
-            context=self._get_context(),
-            request_data={
+
+        options = {
+            "user": {"id": self.request.remote_ip},
+            "context": self._get_context(),
+            "request": {
                 "url": self.request.full_url(),
                 "method": self.request.method,
                 "arguments": self.request.arguments,
-            },
-        )
+            }
+        }
 
         # Notify bugsnag, unless it's an HTTPError that we specifically want to ignore
         should_notify_bugsnag = True
@@ -22,8 +22,9 @@ class BugsnagRequestHandler(RequestHandler):
             ignore_status_codes = self.bugsnag_ignore_status_codes()
             if ignore_status_codes and exc.status_code in ignore_status_codes:
                 should_notify_bugsnag = False
+
         if should_notify_bugsnag:
-            bugsnag.auto_notify(exc)
+            bugsnag.auto_notify(exc, **options)
 
         # Call the parent handler
         RequestHandler._handle_request_exception(self, exc)

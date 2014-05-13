@@ -6,10 +6,10 @@ import os
 import socket
 
 from bugsnag.utils import fully_qualified_class_name
+from bugsnag.middleware import MiddlewareStack, DefaultMiddleware
 
 
 threadlocal = threading.local()
-
 
 class _BaseConfiguration(object):
     def get(self, name, overrides=None):
@@ -26,9 +26,8 @@ class _BaseConfiguration(object):
         """
         Set one or more configuration settings.
         """
-        for name, value in list(options.items()):
-            if hasattr(self, name):
-                setattr(self, name, value)
+        for name, value in options.items():
+            setattr(self, name, value)
 
         return self
 
@@ -47,8 +46,12 @@ class Configuration(_BaseConfiguration):
         self.project_root = os.getcwd()
         self.app_version = None
         self.params_filters = ["password", "password_confirmation"]
-        self.ignore_classes = []
+        self.ignore_classes = ["KeyboardInterrupt", "django.http.Http404"]
         self.endpoint = "notify.bugsnag.com"
+
+        self.middleware = MiddlewareStack()
+        self.middleware.append(DefaultMiddleware)
+
         if not os.getenv("DYNO"):
             self.hostname = socket.gethostname()
         else:
@@ -65,7 +68,6 @@ class Configuration(_BaseConfiguration):
     def get_endpoint(self):
         proto = "https" if self.use_ssl else "http"
         return "%s://%s" % (proto, self.endpoint)
-
 
 class RequestConfiguration(_BaseConfiguration):
     """
@@ -94,8 +96,12 @@ class RequestConfiguration(_BaseConfiguration):
 
     def __init__(self):
         self.context = None
-        self.user_id = None
         self.grouping_hash = None
+        self.user = {}
+        self.meta_data = {}
+
+        # legacy fields
+        self.user_id = None
         self.extra_data = {}
         self.request_data = {}
         self.environment_data = {}

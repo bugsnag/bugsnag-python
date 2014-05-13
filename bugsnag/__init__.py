@@ -3,9 +3,7 @@ import sys
 from bugsnag.configuration import Configuration, RequestConfiguration
 from bugsnag.notification import Notification
 
-
 configuration = Configuration()
-
 
 def configure(**options):
     """
@@ -52,6 +50,13 @@ def auto_notify(exception, **options):
     if configuration.auto_notify:
         notify(exception, severity="error", **options)
 
+def before_notify(callback):
+    """
+    Add a callback to be called before bugsnag is notified
+
+    This can be used to alter the notification before sending it to Bugsnag.
+    """
+    configuration.middleware.before_notify(callback)
 
 def log(message):
     """
