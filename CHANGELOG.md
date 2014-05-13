@@ -1,6 +1,13 @@
 Changelog
 =========
 
+2.0.0
+-----
+-   Read request-local settings in bugsnag.notify
+-   Add support for before_notify callbacks
+-   Avoid truncating values when unnecessary
+-   Send user data to bugsnag for django
+
 1.5.0
 -----
 -   Send 'severity' of error to Bugsnag
