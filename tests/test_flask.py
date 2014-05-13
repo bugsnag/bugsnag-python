@@ -1,6 +1,8 @@
 import os
 import socket
+import sys
 from webtest import TestApp
+from nose.plugins.skip import SkipTest
 from nose.tools import eq_, assert_raises
 from mock import MagicMock, patch
 
@@ -16,6 +18,7 @@ class SentinalError(RuntimeError):
 
 @patch('bugsnag.notification.deliver')
 def test_bugsnag_middleware_working(deliver):
+    if (3,0) <= sys.version_info < (3,3): raise SkipTest
 
     app = Flask("working")
     @app.route("/hello")
@@ -31,6 +34,7 @@ def test_bugsnag_middleware_working(deliver):
 
 @patch('bugsnag.notification.deliver')
 def test_bugsnag_crash(deliver):
+    if (3,0) <= sys.version_info < (3,3): raise SkipTest
 
     app = Flask("crashing")
     @app.route("/hello")
@@ -47,6 +51,7 @@ def test_bugsnag_crash(deliver):
 
 @patch('bugsnag.notification.deliver')
 def test_bugsnag_notify(deliver):
+    if (3,0) <= sys.version_info < (3,3): raise SkipTest
 
     app = Flask("notifying")
     @app.route("/hello")
@@ -61,9 +66,9 @@ def test_bugsnag_notify(deliver):
     payload = deliver.call_args[0][0]
     eq_(payload['events'][0]['metaData']['request']['url'], 'http://localhost/hello')
 
-
 @patch('bugsnag.notification.deliver')
 def test_bugsnag_custom_data(deliver):
+    if (3,0) <= sys.version_info < (3,3): raise SkipTest
 
     meta_data = [{"hello":{"world":"once"}}, {"again":{"hello":"world"}}]
 
