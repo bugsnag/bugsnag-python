@@ -15,7 +15,7 @@ from setuptools import setup, find_packages
 setup(
     name='bugsnag',
     version='2.0.0',
-    description='Official Python notifier for Bugsnag (https://bugsnag.com).',
+    description='Automatic error monitoring for django, flask, etc. (https://bugsnag.com).',
     long_description=__doc__,
     author='Simon Maynard',
     author_email='simon@bugsnag.com',
