@@ -3,23 +3,12 @@ from __future__ import division, print_function, absolute_import
 import bugsnag
 import bugsnag.django
 
-def is_development_server(request):
-    server = request.META.get('wsgi.file_wrapper', None)
-
-    if server is None:
-        return False
-
-    return server.__module__ == 'django.core.servers.basehttp'
-
 class BugsnagMiddleware(object):
     def __init__(self):
         bugsnag.django.configure()
 
     # pylint: disable-msg=R0201
     def process_request(self, request):
-        if is_development_server(request):
-            bugsnag.configure(release_stage="development")
-
         bugsnag.configure_request(django_request=request)
 
         return None
