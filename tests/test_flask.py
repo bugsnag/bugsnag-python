@@ -1,3 +1,7 @@
+import sys
+from nose.plugins.skip import SkipTest
+if (3,0) <= sys.version_info < (3,3): raise SkipTest("Flask is incompatible with python3 3.0 - 3.2")
+
 import os
 import socket
 from webtest import TestApp
@@ -16,7 +20,6 @@ class SentinalError(RuntimeError):
 
 @patch('bugsnag.notification.deliver')
 def test_bugsnag_middleware_working(deliver):
-
     app = Flask("working")
     @app.route("/hello")
     def hello():
@@ -31,7 +34,6 @@ def test_bugsnag_middleware_working(deliver):
 
 @patch('bugsnag.notification.deliver')
 def test_bugsnag_crash(deliver):
-
     app = Flask("crashing")
     @app.route("/hello")
     def hello():
@@ -47,7 +49,6 @@ def test_bugsnag_crash(deliver):
 
 @patch('bugsnag.notification.deliver')
 def test_bugsnag_notify(deliver):
-
     app = Flask("notifying")
     @app.route("/hello")
     def hello():
@@ -61,10 +62,8 @@ def test_bugsnag_notify(deliver):
     payload = deliver.call_args[0][0]
     eq_(payload['events'][0]['metaData']['request']['url'], 'http://localhost/hello')
 
-
 @patch('bugsnag.notification.deliver')
 def test_bugsnag_custom_data(deliver):
-
     meta_data = [{"hello":{"world":"once"}}, {"again":{"hello":"world"}}]
 
     app = Flask("custom")

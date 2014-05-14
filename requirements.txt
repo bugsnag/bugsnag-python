@@ -1,6 +1,6 @@
 tornado
 flask
-werkzeug
+webob
 blinker
 django
 celery
