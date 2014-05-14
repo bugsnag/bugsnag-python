@@ -1,7 +1,3 @@
-import sys
-from nose.plugins.skip import SkipTest
-if (3,0) <= sys.version_info < (3,3): raise SkipTest("Flask is incompatible with python3 3.0 - 3.2")
-
 from bugsnag.six import u
 from bugsnag.utils import json_encode, sanitize_object
 from nose.tools import eq_
@@ -31,5 +27,5 @@ def test_sanitize_object():
     assert("things" in sane_dict["list"])
 
 def test_json_encode():
-    payload = {"a": u"a" * 512 * 1024}
+    payload = {"a": u("a") * 512 * 1024}
     eq_(json_encode(payload), ('{"a": "' + 'a' * 1024 + '"}').encode('utf-8', 'replace'))
