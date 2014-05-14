@@ -36,5 +36,5 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Topic :: Software Development'
     ],
-    install_requires=["werkzeug", "blinker"],
+    install_requires=["webob", "blinker"],
 )

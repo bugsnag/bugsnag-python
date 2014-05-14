@@ -1,4 +1,5 @@
 import sys
+from bugsnag.six import u
 from bugsnag.utils import json_encode, sanitize_object
 from nose.tools import eq_
 from nose.plugins.skip import SkipTest
@@ -15,9 +16,9 @@ def test_sanitize_object():
         },
         "bad_utf8": "a test of \xe9 char",
         "list": ["list", "of", "things"],
-        "unicode": u"string",
+        "unicode": u("string"),
         "obj": Exception(),
-        "valid_unicode": u"\u2603",
+        "valid_unicode": u("\u2603"),
     }
 
     # Sanitize our object

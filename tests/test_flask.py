@@ -1,8 +1,10 @@
+import sys
+from nose.plugins.skip import SkipTest
+if (2,0) <= sys.version_info < (3,3): raise SkipTest("Flask is incompatible with python3 3.0 - 3.2")
+
 import os
 import socket
-import sys
 from webtest import TestApp
-from nose.plugins.skip import SkipTest
 from nose.tools import eq_, assert_raises
 from mock import MagicMock, patch
 
@@ -18,8 +20,6 @@ class SentinalError(RuntimeError):
 
 @patch('bugsnag.notification.deliver')
 def test_bugsnag_middleware_working(deliver):
-    if (3,0) <= sys.version_info < (3,3): raise SkipTest
-
     app = Flask("working")
     @app.route("/hello")
     def hello():
@@ -34,8 +34,6 @@ def test_bugsnag_middleware_working(deliver):
 
 @patch('bugsnag.notification.deliver')
 def test_bugsnag_crash(deliver):
-    if (3,0) <= sys.version_info < (3,3): raise SkipTest
-
     app = Flask("crashing")
     @app.route("/hello")
     def hello():
@@ -51,8 +49,6 @@ def test_bugsnag_crash(deliver):
 
 @patch('bugsnag.notification.deliver')
 def test_bugsnag_notify(deliver):
-    if (3,0) <= sys.version_info < (3,3): raise SkipTest
-
     app = Flask("notifying")
     @app.route("/hello")
     def hello():
@@ -68,8 +64,6 @@ def test_bugsnag_notify(deliver):
 
 @patch('bugsnag.notification.deliver')
 def test_bugsnag_custom_data(deliver):
-    if (3,0) <= sys.version_info < (3,3): raise SkipTest
-
     meta_data = [{"hello":{"world":"once"}}, {"again":{"hello":"world"}}]
 
     app = Flask("custom")
