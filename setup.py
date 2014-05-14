@@ -36,5 +36,20 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Topic :: Software Development'
     ],
-    install_requires=["webob", "blinker"],
+    test_suite='nose.collector',
+    install_requires=['webob'],
+    tests_require=[
+      'tornado',
+      'flask',
+      'webob',
+      'blinker',
+      'django',
+      'celery',
+      'webtest',
+      'mock',
+      'nose',
+    ],
+    extras_require={
+        'flask': ['flask', 'blinker']
+    },
 )
