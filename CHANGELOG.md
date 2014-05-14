@@ -1,6 +1,10 @@
 Changelog
 =========
 
+2.0.1
+-----
+-   Now works on Python 3.2
+
 2.0.0
 -----
 -   Read request-local settings in bugsnag.notify
