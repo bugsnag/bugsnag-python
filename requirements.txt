@@ -1,9 +1,0 @@
-tornado
-flask
-webob
-blinker
-django
-celery
-WebTest
-mock
-nose
