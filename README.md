@@ -387,7 +387,7 @@ address of the connection.
 
 
 ```python
-bugsnag.configure_request(user={"id":"bob-hoskins", name: "Bob Hoskins", email: "foo@bar.com"})
+bugsnag.configure_request(user={"id":"bob-hoskins", "name": "Bob Hoskins", "email": "foo@bar.com"})
 ```
 
 (The legacy parameter `user_id` acts as though you set a user hash with just the id property).
