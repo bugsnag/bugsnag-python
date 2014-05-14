@@ -1,6 +1,6 @@
 import sys
 from nose.plugins.skip import SkipTest
-if (2,0) <= sys.version_info < (3,3): raise SkipTest("Flask is incompatible with python3 3.0 - 3.2")
+if (3,0) <= sys.version_info < (3,3): raise SkipTest("Flask is incompatible with python3 3.0 - 3.2")
 
 import os
 import socket
