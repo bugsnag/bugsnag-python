@@ -6,6 +6,7 @@ import os
 import sys
 import threading
 import traceback
+import logging
 
 import bugsnag
 from bugsnag.utils import sanitize_object, json_encode
