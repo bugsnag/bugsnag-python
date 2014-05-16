@@ -154,6 +154,7 @@ class Notification(object):
             trace = traceback.extract_stack()
 
         bugsnag_module_path = os.path.dirname(bugsnag.__file__)
+        logging_module_path = os.path.dirname(logging.__file__)
 
         lib_root = self.config.get("lib_root")
         if lib_root and lib_root[-1] != os.sep:
@@ -169,6 +170,9 @@ class Notification(object):
             in_project = False
 
             if file_name.startswith(bugsnag_module_path):
+                continue
+
+            if file_name.startswith(logging_module_path):
                 continue
 
             if lib_root and file_name.startswith(lib_root):
