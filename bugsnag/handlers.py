@@ -27,5 +27,21 @@ class BugsnagHandler(logging.Handler):
         if record.exc_info:
             bugsnag.notify(record.exc_info, severity=severity)
         else:
-            exc = Exception(record.message)
-            bugsnag.notify(exc, severity=severity)
+            # Only extract a few specific fields, as we don't want to
+            # repeat data already being sent over the wire (such as exc)
+            record_fields = ['asctime', 'created', 'levelname', 'levelno', 'msecs',
+                'name', 'process', 'processName', 'relativeCreated', 'thread',
+                'threadName', ]
+
+            extra_data = dict([ ( field, getattr(record, field) ) 
+                for field in record_fields ])
+
+            # Create exception type dynamically, to prevent bugsnag.handlers
+            # being prepended to the exception name due to class name
+            # detection in utils. Because we are messing with the module
+            # internals, we don't really want to expose this class anywhere
+            exc_type = type('LogMessage', (Exception, ), {})
+            exc = exc_type(record.message)
+            exc.__module__ = '__main__'
+            
+            bugsnag.notify(exc, severity=severity, extra_data=extra_data)
