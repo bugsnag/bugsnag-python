@@ -40,8 +40,9 @@ class BugsnagHandler(logging.Handler):
             # being prepended to the exception name due to class name
             # detection in utils. Because we are messing with the module
             # internals, we don't really want to expose this class anywhere
-            exc_type = type('LogMessage', (Exception, ), {})
+            level_name = record.levelname if record.levelname else "Message"
+            exc_type = type('Log'+level_name, (Exception, ), {})
             exc = exc_type(record.message)
             exc.__module__ = '__main__'
-            
+
             bugsnag.notify(exc, severity=severity, extra_data=extra_data)
