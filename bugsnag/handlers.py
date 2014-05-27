@@ -17,6 +17,8 @@ class BugsnagHandler(logging.Handler):
             bugsnag.configuration.api_key = api_key
 
     def emit(self, record):
+        # Severity is not a one-to-one mapping, as there are only
+        # a fixed number of severity levels available server side
         if record.levelname.lower() in ['error', 'critical']:
             severity = 'error'
         elif record.levelname.lower() in ['warning', ]:
@@ -24,18 +26,18 @@ class BugsnagHandler(logging.Handler):
         else:
             severity = 'info'
 
+        # Only extract a few specific fields, as we don't want to
+        # repeat data already being sent over the wire (such as exc)
+        record_fields = ['asctime', 'created', 'levelname', 'levelno', 'msecs',
+            'name', 'process', 'processName', 'relativeCreated', 'thread',
+            'threadName', ]
+
+        extra_data = dict([ ( field, getattr(record, field) ) 
+            for field in record_fields ])
+
         if record.exc_info:
-            bugsnag.notify(record.exc_info, severity=severity)
+            bugsnag.notify(record.exc_info, severity=severity, extra_data=extra_data)
         else:
-            # Only extract a few specific fields, as we don't want to
-            # repeat data already being sent over the wire (such as exc)
-            record_fields = ['asctime', 'created', 'levelname', 'levelno', 'msecs',
-                'name', 'process', 'processName', 'relativeCreated', 'thread',
-                'threadName', ]
-
-            extra_data = dict([ ( field, getattr(record, field) ) 
-                for field in record_fields ])
-
             # Create exception type dynamically, to prevent bugsnag.handlers
             # being prepended to the exception name due to class name
             # detection in utils. Because we are messing with the module
@@ -46,3 +48,4 @@ class BugsnagHandler(logging.Handler):
             exc.__module__ = '__main__'
 
             bugsnag.notify(exc, severity=severity, extra_data=extra_data)
+
