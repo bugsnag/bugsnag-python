@@ -27,8 +27,12 @@ def deliver(payload, url):
                 bugsnag.log("Notification to %s failed, status %d" % (url, status))
 
         except Exception:
-            bugsnag.log("Notification to %s failed" % (req.get_full_url()))
-            print((traceback.format_exc()))
+            try:
+                bugsnag.log("Notification to %s failed" % (req.get_full_url()))
+                print((traceback.format_exc()))
+            except Exception:
+                print(("[BUGSNAG] error in request thread exception handler."))
+                pass
 
     threading.Thread(target=request).start()
 

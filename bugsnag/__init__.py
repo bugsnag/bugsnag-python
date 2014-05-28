@@ -30,17 +30,24 @@ def notify(exception, **options):
     """
     Notify bugsnag of an exception.
     """
-    if isinstance(exception, (list, tuple)):
-        # Exception tuples, eg. from sys.exc_info
-        if not "traceback" in options:
-            options["traceback"] = exception[2]
+    try:
+        if isinstance(exception, (list, tuple)):
+            # Exception tuples, eg. from sys.exc_info
+            if not "traceback" in options:
+                options["traceback"] = exception[2]
 
-        Notification(exception[1], configuration,
-                     RequestConfiguration.get_instance(), **options).deliver()
-    else:
-        # Exception objects
-        Notification(exception, configuration,
-                     RequestConfiguration.get_instance(), **options).deliver()
+            Notification(exception[1], configuration,
+                        RequestConfiguration.get_instance(), **options).deliver()
+        else:
+            # Exception objects
+            Notification(exception, configuration,
+                        RequestConfiguration.get_instance(), **options).deliver()
+    except Exception:
+        try:
+            bugsnag.log("Notification failed")
+            print((traceback.format_exc()))
+        except Exception:
+            print(("[BUGSNAG] error in exception handler"))
 
 
 def auto_notify(exception, **options):
@@ -74,7 +81,12 @@ def warn(message):
 
 # Hook into all uncaught exceptions
 def __bugsnag_excepthook(exctype, exception, traceback):
-    auto_notify(exception, traceback=traceback)
+    try:
+        auto_notify(exception, traceback=traceback)
+    except:
+        print(("[BUGSNAG] Error in excepthook, probably shutting down."))
+        pass
+
     _old_excepthook(exctype, exception, traceback)
 
 _old_excepthook = sys.excepthook
