@@ -2,7 +2,7 @@ from webob import Request
 
 import bugsnag
 from bugsnag.wsgi import request_path
-from bugsnag.six import advance_iterator, Iterator
+from bugsnag.six import advance_iterator
 
 def add_wsgi_request_data_to_notification(notification):
     if not hasattr(notification.request_config, "wsgi_environ"):
@@ -22,7 +22,7 @@ def add_wsgi_request_data_to_notification(notification):
     notification.add_tab("environment", dict(request.environ))
 
 
-class WrappedWSGIApp(Iterator):
+class WrappedWSGIApp(object):
     """
     Wraps a running WSGI app and sends all exceptions to bugsnag.
     """
@@ -33,19 +33,16 @@ class WrappedWSGIApp(Iterator):
         bugsnag.configure_request(wsgi_environ=self.environ)
 
         try:
-            self.app = iter(application(environ, start_response))
+            self.app = application(environ, start_response)
         except Exception as e:
             bugsnag.auto_notify(e)
             raise
 
     def __iter__(self):
-        return self
-
-    def __next__(self):
         try:
-            return advance_iterator(self.app)
-        except StopIteration:
-            raise
+            for response in self.app:
+                yield response
+
         except Exception as e:
             bugsnag.auto_notify(e)
             raise

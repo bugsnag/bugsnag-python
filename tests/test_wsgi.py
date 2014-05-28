@@ -119,3 +119,27 @@ def test_bugsnag_middleware_respects_meta_data(deliver):
     eq_(deliver.call_count, 1)
     payload = deliver.call_args[0][0]
     eq_(payload['events'][0]['metaData']['account'], {"paying": "True"})
+
+
+@patch('bugsnag.notification.deliver')
+def test_bugsnag_middleware_closes_iterables(deliver):
+
+    class CrashOnCloseIterable(object):
+
+        def __init__(self, environ, start_response):
+            start_response("200 OK", [('Content-Type','text/plain; charset=utf-8')])
+
+        def __iter__(self):
+            yield 'OK'
+
+        def close(self):
+            raise SentinalError("oops")
+
+
+    app = TestApp(BugsnagMiddleware(CrashOnCloseIterable))
+
+    assert_raises(SentinalError, lambda: app.get('/beans'))
+
+    eq_(deliver.call_count, 1)
+    payload = deliver.call_args[0][0]
+    eq_(payload['events'][0]['metaData']['environment']['PATH_INFO'], '/beans')
