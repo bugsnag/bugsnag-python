@@ -45,47 +45,6 @@ How to Install
     )
     ```
 
-1.  (optional) Add support for capturing logging events, as explained [here](https://docs.djangoproject.com/en/dev/topics/logging/#examples), into `settings.py`;
-
-    ```python
-    LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': True,
-        
-        'root': {
-            'level': 'INFO',
-            'handlers': ['console', 'bugsnag'],
-        },
-
-        'formatters': {
-            'console': {
-                'format': '[%(asctime)s][%(levelname)s] %(name)s %(filename)s:%(funcName)s:%(lineno)d | %(message)s',
-                'datefmt': '%H:%M:%S',
-                },
-            },
-
-        'handlers': {
-            'console': {
-                'level': 'DEBUG',
-                'class': 'logging.StreamHandler',
-                'formatter': 'console'
-            },
-            'bugsnag': {
-                'level': 'INFO',
-                'class': 'bugsnag.handlers.BugsnagHandler',
-            },
-        },
-
-        'loggers': {
-            'django.db.backends': {
-                'level': 'ERROR',
-                'handlers': ['console'],
-                'propagate': False,
-            },
-        }
-    }
-    ```
-
 ### Flask Apps
 
 1.  Install the Bugsnag Notifier
@@ -266,6 +225,34 @@ bugsnag.notify(Exception("Something broke!"),
     extra_data={"request_id": 12345, "message_id": 854},
 )
 ```
+
+### Using the logging framework
+
+You can also hook Bugsnag up to Python's [logging
+framework](https://docs.python.org/2/library/logging.html) so that anything of
+level error or above is logged to Bugsnag.
+
+For example, in django, you can use this configuration in your settings.py. For
+other apps and frameworks, you can configure the handler as appropriate.
+
+    ```python
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+
+        'root': {
+            'level': 'ERROR',
+            'handlers': ['bugsnag'],
+        },
+
+        'handlers': {
+            'bugsnag': {
+                'level': 'INFO',
+                'class': 'bugsnag.handlers.BugsnagHandler',
+            },
+        }
+    }
+    ```
 
 Configuration
 -------------
