@@ -1,6 +1,12 @@
 Changelog
 =========
 
+2.0.2
+-----
+-   Better logging support
+-   More robustness for notifies during shutdown
+-   Call close() on WSGI apps that are only iterable, not iterators
+
 2.0.1
 -----
 -   Now works on Python 3.2
