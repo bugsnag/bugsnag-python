@@ -3,7 +3,7 @@ from __future__ import division, print_function, absolute_import
 import logging
 import bugsnag
 
-class BugsnagHandler(logging.Handler):
+class BugsnagHandler(logging.Handler, object):
     def __init__(self, api_key=None):
         super(BugsnagHandler, self).__init__()
         self.api_key = api_key
