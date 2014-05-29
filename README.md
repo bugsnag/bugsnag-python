@@ -15,6 +15,7 @@ capturing exceptions from your applications.
 How to Install
 --------------
 
+
 ### Django Apps
 
 1.  Install the Bugsnag Notifier
@@ -42,6 +43,47 @@ How to Install
         ...
         "bugsnag.django.middleware.BugsnagMiddleware"
     )
+    ```
+
+1.  (optional) Add support for capturing logging events, as explained [here](https://docs.djangoproject.com/en/dev/topics/logging/#examples), into `settings.py`;
+
+    ```python
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': True,
+        
+        'root': {
+            'level': 'INFO',
+            'handlers': ['console', 'bugsnag'],
+        },
+
+        'formatters': {
+            'console': {
+                'format': '[%(asctime)s][%(levelname)s] %(name)s %(filename)s:%(funcName)s:%(lineno)d | %(message)s',
+                'datefmt': '%H:%M:%S',
+                },
+            },
+
+        'handlers': {
+            'console': {
+                'level': 'DEBUG',
+                'class': 'logging.StreamHandler',
+                'formatter': 'console'
+            },
+            'bugsnag': {
+                'level': 'INFO',
+                'class': 'bugsnag.handlers.BugsnagHandler',
+            },
+        },
+
+        'loggers': {
+            'django.db.backends': {
+                'level': 'ERROR',
+                'handlers': ['console'],
+                'propagate': False,
+            },
+        }
+    }
     ```
 
 ### Flask Apps
