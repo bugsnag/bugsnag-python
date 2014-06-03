@@ -334,7 +334,8 @@ bugsnag.configure(use_ssl = True)
 
 By default, `use_ssl` is set to false.
 
-###project_root
+<!-- Custom anchor for linking from alerts -->
+### project_root <a name="set-project-root"></a>
 
 We mark stacktrace lines as `inProject` if they come from files inside your
 `project_root`.
