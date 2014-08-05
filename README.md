@@ -235,24 +235,24 @@ level error or above is logged to Bugsnag.
 For example, in django, you can use this configuration in your settings.py. For
 other apps and frameworks, you can configure the handler as appropriate.
 
-    ```python
-    LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False,
+```python
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
 
-        'root': {
-            'level': 'ERROR',
-            'handlers': ['bugsnag'],
+    'root': {
+        'level': 'ERROR',
+        'handlers': ['bugsnag'],
+    },
+
+    'handlers': {
+        'bugsnag': {
+            'level': 'INFO',
+            'class': 'bugsnag.handlers.BugsnagHandler',
         },
-
-        'handlers': {
-            'bugsnag': {
-                'level': 'INFO',
-                'class': 'bugsnag.handlers.BugsnagHandler',
-            },
-        }
     }
-    ```
+}
+```
 
 Configuration
 -------------
@@ -520,7 +520,7 @@ Before Notify Callbacks
 If you need to modify the payload before sending it to bugsnag you can register a
 before-notify callback:
 
-```
+```python
 def callback(notification):
 
     # if you return False, the notification will not be sent to
