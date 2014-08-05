@@ -531,7 +531,7 @@ def callback(notification):
     # You can set properties of the notification and
     # add your own custom meta-data.
     notification.user = {"id": current_user.id, "name": current_user.name, "email": current_user.email}
-    notification.add_tab("account", {"paying": current_user.acccount.is_paying()}
+    notification.add_tab("account", {"paying": current_user.acccount.is_paying()})
 
 bugsnag.before_notify(callback)
 ```
