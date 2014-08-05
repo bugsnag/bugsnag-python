@@ -10,7 +10,7 @@ def add_django_request_to_notification(notification):
         return
 
     request = notification.request_config.django_request
-
+    context = notification.context
     notification.context = request.path
 
     if hasattr(request, 'user') and request.user.is_authenticated():
@@ -23,11 +23,14 @@ def add_django_request_to_notification(notification):
     else:
         notification.set_user(id=request.META['REMOTE_ADDR'])
 
-    route = resolve(request.path_info)
-    if route:
-        notification.context = route.url_name
+    if context:
+        notification.context = context
     else:
-        notification.context = "%s %s" % (request.method, request.path_info)
+        route = resolve(request.path_info)
+        if route:
+            notification.context = route.url_name
+        else:
+            notification.context = "%s %s" % (request.method, request.path_info)
 
     notification.add_tab("session", dict(request.session))
     notification.add_tab("request", {
