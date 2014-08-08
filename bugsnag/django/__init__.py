@@ -12,7 +12,8 @@ def add_django_request_to_notification(notification):
     request = notification.request_config.django_request
 
     if notification.context is None:
-        if (route = resolve(request.path_info)):
+        route = resolve(request.path_info)
+        if route:
             notification.context = route.url_name
         else:
             notification.context = "%s %s" % (request.method, request.path_info)
