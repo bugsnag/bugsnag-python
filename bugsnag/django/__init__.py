@@ -11,7 +11,12 @@ def add_django_request_to_notification(notification):
 
     request = notification.request_config.django_request
 
-    notification.context = request.path
+    if notification.context is None:
+        route = resolve(request.path_info)
+        if route:
+            notification.context = route.url_name
+        else:
+            notification.context = "%s %s" % (request.method, request.path_info)
 
     if hasattr(request, 'user') and request.user.is_authenticated():
         try:
@@ -19,15 +24,8 @@ def add_django_request_to_notification(notification):
             notification.set_user(id=request.user.username, email=request.user.email, name=name)
         except Exception as e:
             bugsnag.warn("could not get user data: %s" % e)
-
     else:
         notification.set_user(id=request.META['REMOTE_ADDR'])
-
-    route = resolve(request.path_info)
-    if route:
-        notification.context = route.url_name
-    else:
-        notification.context = "%s %s" % (request.method, request.path_info)
 
     notification.add_tab("session", dict(request.session))
     notification.add_tab("request", {

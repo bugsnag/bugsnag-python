@@ -32,7 +32,9 @@ class DefaultMiddleware(object):
         notification.set_user(id=notification.request_config.user_id)
         notification.set_user(**notification.request_config.user)
         notification.grouping_hash = notification.request_config.get("grouping_hash")
-        notification.context = notification.request_config.get("context")
+
+        if not notification.context:
+            notification.context = notification.request_config.get("context")
 
         for name, dictionary in notification.request_config.meta_data.items():
             notification.add_tab(name, dictionary)
@@ -116,4 +118,3 @@ class MiddlewareStack(object):
             bugsnag.log("Error in exception middleware: %s" % exc)
             # still notify if middleware crashes before notification
             finish(notification)
-
