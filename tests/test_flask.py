@@ -85,3 +85,45 @@ def test_bugsnag_custom_data(deliver):
     payload = deliver.call_args_list[1][0][0]
     eq_(payload['events'][0]['metaData']['hello']['world'], 'once')
     eq_(payload['events'][0]['metaData'].get('again'), None)
+
+
+@patch('bugsnag.notification.deliver')
+def test_bugsnag_includes_posted_json_data(deliver):
+    app = Flask("json_post")
+
+    @app.route("/ajax", methods=["POST"])
+    def hello():
+        raise SentinalError("oops")
+
+    handle_exceptions(app)
+    app.test_client().post(
+        '/ajax', data='{"key": "value"}', content_type='application/json')
+
+    eq_(deliver.call_count, 1)
+    payload = deliver.call_args[0][0]
+    eq_(payload['events'][0]['exceptions'][0]['errorClass'],
+        'test_flask.SentinalError')
+    eq_(payload['events'][0]['metaData']['request']['url'],
+        'http://localhost/ajax')
+    eq_(payload['events'][0]['metaData']['request']['data'], dict(key='value'))
+
+
+@patch('bugsnag.notification.deliver')
+def test_bugsnag_includes_unknown_content_type_posted_data(deliver):
+    app = Flask("form_post")
+
+    @app.route("/form", methods=["PUT"])
+    def hello():
+        raise SentinalError("oops")
+
+    handle_exceptions(app)
+    app.test_client().put(
+        '/form', data='_data', content_type='application/javascript')
+
+    eq_(deliver.call_count, 1)
+    payload = deliver.call_args[0][0]
+    eq_(payload['events'][0]['exceptions'][0]['errorClass'],
+        'test_flask.SentinalError')
+    eq_(payload['events'][0]['metaData']['request']['url'],
+        'http://localhost/form')
+    eq_(payload['events'][0]['metaData']['request']['data'], dict(body='_data'))
