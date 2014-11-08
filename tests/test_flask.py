@@ -18,7 +18,7 @@ class SentinalError(RuntimeError):
 
 @patch('bugsnag.notification.deliver')
 def test_bugsnag_middleware_working(deliver):
-    app = Flask("working")
+    app = Flask("bugsnag")
 
     @app.route("/hello")
     def hello():
@@ -34,7 +34,7 @@ def test_bugsnag_middleware_working(deliver):
 
 @patch('bugsnag.notification.deliver')
 def test_bugsnag_crash(deliver):
-    app = Flask("crashing")
+    app = Flask("bugsnag")
 
     @app.route("/hello")
     def hello():
@@ -51,7 +51,7 @@ def test_bugsnag_crash(deliver):
 
 @patch('bugsnag.notification.deliver')
 def test_bugsnag_notify(deliver):
-    app = Flask("notifying")
+    app = Flask("bugsnag")
 
     @app.route("/hello")
     def hello():
@@ -70,7 +70,7 @@ def test_bugsnag_notify(deliver):
 def test_bugsnag_custom_data(deliver):
     meta_data = [{"hello": {"world": "once"}}, {"again": {"hello": "world"}}]
 
-    app = Flask("custom")
+    app = Flask("bugsnag")
 
     @app.route("/hello")
     def hello():
@@ -94,7 +94,7 @@ def test_bugsnag_custom_data(deliver):
 
 @patch('bugsnag.notification.deliver')
 def test_bugsnag_includes_posted_json_data(deliver):
-    app = Flask("json_post")
+    app = Flask("bugsnag")
 
     @app.route("/ajax", methods=["POST"])
     def hello():
@@ -115,7 +115,7 @@ def test_bugsnag_includes_posted_json_data(deliver):
 
 @patch('bugsnag.notification.deliver')
 def test_bugsnag_includes_unknown_content_type_posted_data(deliver):
-    app = Flask("form_post")
+    app = Flask("bugsnag")
 
     @app.route("/form", methods=["PUT"])
     def hello():
