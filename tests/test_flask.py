@@ -118,7 +118,7 @@ def test_bugsnag_includes_unknown_content_type_posted_data(deliver):
 
     handle_exceptions(app)
     app.test_client().put(
-        '/form', data='_data', content_type='application/javascript')
+        '/form', data='_data', content_type='application/octet-stream')
 
     eq_(deliver.call_count, 1)
     payload = deliver.call_args[0][0]
@@ -126,4 +126,4 @@ def test_bugsnag_includes_unknown_content_type_posted_data(deliver):
         'test_flask.SentinalError')
     eq_(payload['events'][0]['metaData']['request']['url'],
         'http://localhost/form')
-    eq_(payload['events'][0]['metaData']['request']['data'], dict(body='_data'))
+    eq_(payload['events'][0]['metaData']['request']['data']['body'], "b'_data'")
