@@ -2,7 +2,7 @@ import sys
 from nose.plugins.skip import SkipTest
 if (3,0) <= sys.version_info < (3,3): raise SkipTest("Flask is incompatible with python3 3.0 - 3.2")
 
-from nose.tools import eq_
+from nose.tools import eq_, ok_
 from mock import patch
 
 from flask import Flask
@@ -131,4 +131,4 @@ def test_bugsnag_includes_unknown_content_type_posted_data(deliver):
         'test_flask.SentinalError')
     eq_(payload['events'][0]['metaData']['request']['url'],
         'http://localhost/form')
-    eq_(payload['events'][0]['metaData']['request']['data']['body'], "b'_data'")
+    ok_('_data' in payload['events'][0]['metaData']['request']['data']['body'])
