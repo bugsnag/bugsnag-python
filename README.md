@@ -223,6 +223,7 @@ to notify. For example:
 bugsnag.notify(Exception("Something broke!"),
     context="myContext",
     meta_data={"special_info":{"request_id": 12345, "message_id": 854}}
+    )
 ```
 
 ### Using the logging framework
