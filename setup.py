@@ -12,6 +12,18 @@ and solve your bugs as fast as possible.
 
 from setuptools import setup, find_packages
 
+tests_require = [
+  'tornado',
+  'flask',
+  'webob',
+  'blinker',
+  'django',
+  'celery',
+  'webtest',
+  'mock',
+  'nose',
+]
+
 setup(
     name='bugsnag',
     version='2.0.2',
@@ -38,18 +50,9 @@ setup(
     ],
     test_suite='nose.collector',
     install_requires=['webob'],
-    tests_require=[
-      'tornado',
-      'flask',
-      'webob',
-      'blinker',
-      'django',
-      'celery',
-      'webtest',
-      'mock',
-      'nose',
-    ],
+    tests_require=tests_require,
     extras_require={
-        'flask': ['flask', 'blinker']
+        'flask': ['flask', 'blinker'],
+        'tests': tests_require,
     },
 )
