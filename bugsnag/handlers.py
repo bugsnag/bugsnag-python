@@ -29,7 +29,6 @@ class BugsnagHandler(logging.Handler, object):
         for field in record_fields:
             if hasattr(record, field):
                 extra_data[field] = getattr(record, field)
-
         metadata = {"extra":extra_data}
         for tab_name in self.extra_fields:
             metadata[tab_name] = {}
@@ -40,7 +39,7 @@ class BugsnagHandler(logging.Handler, object):
         api_key = self.api_key or bugsnag.configuration.api_key
 
         if record.exc_info:
-            bugsnag.notify(record.exc_info, severity=severity, metadata=metadata, api_key=api_key)
+            bugsnag.notify(record.exc_info, severity=severity, meta_data=metadata, api_key=api_key)
         else:
             # Create exception type dynamically, to prevent bugsnag.handlers
             # being prepended to the exception name due to class name
@@ -51,5 +50,5 @@ class BugsnagHandler(logging.Handler, object):
             exc = exc_type(record.getMessage())
             exc.__module__ = '__main__'
 
-            bugsnag.notify(exc, severity=severity, extra_data=extra_data)
+            bugsnag.notify(exc, severity=severity, meta_data=metadata)
 
