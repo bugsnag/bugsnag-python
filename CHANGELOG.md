@@ -1,6 +1,12 @@
 Changelog
 =========
 
+2.1.0
+-----
+-   Allow custom meta-data when using the Bugsnag log handler (thanks @lwcolton!)
+-   Update flask support for python 3.4 (thanks @stas!)
+-   Show json post body for flask requests (thanks @stas!)
+
 2.0.2
 -----
 -   Better logging support
