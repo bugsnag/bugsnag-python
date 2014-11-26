@@ -161,7 +161,7 @@ class Notification(object):
         bugsnag_module_path = os.path.dirname(bugsnag.__file__)
         logging_module_path = os.path.dirname(logging.__file__)
         exclude_module_paths = [bugsnag_module_path, logging_module_path]
-        user_exclude_modules = self.config.get("traceback_exclude_modules")
+        user_exclude_modules = self.config.get("traceback_exclude_modules") or []
         for exclude_module in user_exclude_modules:
             try:
                 exclude_module_paths.append(exclude_module.__file__)
