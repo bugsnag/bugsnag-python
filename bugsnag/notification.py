@@ -181,13 +181,13 @@ class Notification(object):
             file_name = os.path.abspath(str(line[0]))
             in_project = False
 
-			skip_module = False
+            skip_module = False
             for module_path in exclude_module_paths:
                 if file_name.startswith(module_path):
                     skip_module = True
-					break
-			if skip_module:
-				continue
+                    break
+            if skip_module:
+                continue
 
             if lib_root and file_name.startswith(lib_root):
                 file_name = file_name[len(lib_root):]
