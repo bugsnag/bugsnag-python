@@ -29,7 +29,7 @@ class BugsnagHandler(logging.Handler, object):
         for field in record_fields:
             if hasattr(record, field):
                 extra_data[field] = getattr(record, field)
-        metadata = {"extra":extra_data}
+        metadata = {"extra data":extra_data}
         for tab_name in self.extra_fields:
             metadata[tab_name] = {}
             for field_name in self.extra_fields[tab_name]:
