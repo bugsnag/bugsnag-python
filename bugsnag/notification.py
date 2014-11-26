@@ -160,6 +160,15 @@ class Notification(object):
 
         bugsnag_module_path = os.path.dirname(bugsnag.__file__)
         logging_module_path = os.path.dirname(logging.__file__)
+        exclude_module_paths = [bugsnag_module_path, logging_module_path]
+        user_exclude_modules = self.config.get("traceback_exclude_modules")
+        for exclude_module in user_exclude_modules:
+            try:
+                exclude_module_paths.append(exclude_module.__file__)
+            except:
+                bugsnag.warn("Could not exclude module: %s" % repr(exclude_module))
+                
+            
 
         lib_root = self.config.get("lib_root")
         if lib_root and lib_root[-1] != os.sep:
@@ -174,11 +183,9 @@ class Notification(object):
             file_name = os.path.abspath(str(line[0]))
             in_project = False
 
-            if file_name.startswith(bugsnag_module_path):
-                continue
-
-            if file_name.startswith(logging_module_path):
-                continue
+            for module_path in exclude_module_paths:
+                if file_name.startswith(module_path):
+                    continue
 
             if lib_root and file_name.startswith(lib_root):
                 file_name = file_name[len(lib_root):]
