@@ -48,7 +48,7 @@ def notify(exception, **options):
             print((traceback.format_exc()))
         except Exception:
             print(("[BUGSNAG] error in exception handler"))
-
+            print((traceback.format_exc()))
 
 def auto_notify(exception, **options):
     """
