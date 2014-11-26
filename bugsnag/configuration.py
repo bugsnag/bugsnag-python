@@ -48,6 +48,7 @@ class Configuration(_BaseConfiguration):
         self.params_filters = ["password", "password_confirmation"]
         self.ignore_classes = ["KeyboardInterrupt", "django.http.Http404"]
         self.endpoint = "notify.bugsnag.com"
+        self.traceback_exclude_modules = []
 
         self.middleware = MiddlewareStack()
         self.middleware.append(DefaultMiddleware)
