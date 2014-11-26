@@ -222,8 +222,7 @@ to notify. For example:
 ```python
 bugsnag.notify(Exception("Something broke!"),
     context="myContext",
-    extra_data={"request_id": 12345, "message_id": 854},
-)
+    meta_data={"special_info":{"request_id": 12345, "message_id": 854}}
 ```
 
 ### Using the logging framework
@@ -460,11 +459,6 @@ A dictionary of dictionaries, each of which appears as a tab on the Bugsnag dash
 ```python
 bugsnag.configure_request("metadata":{"account":{"name":"ACME Inc.", "premium": True}})
 ```
-
-The deprecated parameters `session_data`, `environment_data`, `request_data`
-and `extra_data` can be used to set the "session", "environment", "request" and
-"extra" tabs of metadata if needed.
-
 Notification options
 --------------------
 
