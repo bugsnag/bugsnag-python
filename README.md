@@ -377,6 +377,23 @@ bugsnag.configure(ignore_classes = ["django.http.Http404"])
 
 By default, `ignore_classes` is set to `[]`
 
+###traceback_exclude_modules
+
+A list of modules to exclude from tracebacks.  This is useful if
+you are wrapping bugsnag.notifty() in with your own library.
+Normally every traceback would end with that line in
+your logging library, which would cause bugsnag to group all errors
+as occurences of a single error, no matter where they came from in
+your program.  You can use this option to exclude your custom logging
+module from the tracebacks, causing things to be grouped properly.
+Note this list must contain actual modules of type module,
+not strings that are module identifiers.
+
+```python
+import myapp.custom_logging
+bugsnag.configure(traceback_exclude_modules = [myapp.custom_logging])
+```
+
 Per-request Configuration
 -------------------------
 
