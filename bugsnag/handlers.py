@@ -4,7 +4,7 @@ import logging
 import bugsnag
 
 class BugsnagHandler(logging.Handler, object):
-    def __init__(self, api_key=None):
+    def __init__(self, api_key=None, extra_fields={}):
         super(BugsnagHandler, self).__init__()
         self.api_key = api_key
 
@@ -29,10 +29,17 @@ class BugsnagHandler(logging.Handler, object):
             if hasattr(record, field):
                 extra_data[field] = getattr(record, field)
 
+		metadata = {"extra":extra_data}
+		for tab_name in extra_fields:
+			metadata[tab_name] = {}
+			for field_name in extra_fields[tab_name]:
+				if hasattr(record, field_name):
+					metadata[tab_name][field_name] = getattr(record, field_name)
+
         api_key = self.api_key or bugsnag.configuration.api_key
 
         if record.exc_info:
-            bugsnag.notify(record.exc_info, severity=severity, extra_data=extra_data, api_key=api_key)
+            bugsnag.notify(record.exc_info, severity=severity, metadata=metadata, api_key=api_key)
         else:
             # Create exception type dynamically, to prevent bugsnag.handlers
             # being prepended to the exception name due to class name
