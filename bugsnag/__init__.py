@@ -1,4 +1,5 @@
 import sys
+import traceback
 
 from bugsnag.configuration import Configuration, RequestConfiguration
 from bugsnag.notification import Notification
