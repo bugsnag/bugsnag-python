@@ -232,7 +232,39 @@ You can also hook Bugsnag up to Python's [logging
 framework](https://docs.python.org/2/library/logging.html) so that anything of
 level error or above is logged to Bugsnag.
 
-For example, in django, you can use this configuration in your settings.py. For
+Here is a plain Python example:
+
+```python
+import logging
+
+from bugsnag.handlers import BugsnagHandler
+
+#call bugsnag.configure() here
+logger = logging.getLogger("test.logger")
+logger.addHandler(BugsnagHandler())
+```
+
+*extra_fields*
+
+The BugsnagHandler accepts a special keyword argument to its `__init__()`
+function: 'extra_fields'.  This is optional and may be a dictionary of 
+extra attributes to gather from each LogRecord and insert into meta_data
+so they get sent to Bugsnag.  The keys in this dictionary should be tab
+names for where you would like the data displayed in Bugsnag, like the 
+top level keys in meta_data.  The values should be attributes to pull
+off each log record and enter into that meta_data section.  The attributes 
+do not need to exist on the log record, if they don't exist they will
+just be ignored.  Example:
+
+```python
+bs_handler = BugsnagHandler(extra_fields={"some_tab":["context_attribute"]})
+```
+
+This is very useful if you are assigning context-specific attributes
+to your LogRecord objects, as [described in the python logging cookbook](https://docs.python.org/3.4/howto/logging-cookbook.html#using-filters-to-impart-contextual-information).
+
+###Logging Framework + Django
+In django, you can use this configuration in your settings.py. For
 other apps and frameworks, you can configure the handler as appropriate.
 
     ```python
