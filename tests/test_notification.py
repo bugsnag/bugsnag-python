@@ -50,7 +50,7 @@ def test_code_at_start_of_file():
     payload = notification._payload()
 
     code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
-    assert({1: 'try:', 2: '    import sys; raise Exception("start")', 3: 'except Exception, e: start_of_file = sys.exc_info()', 4: '# 4', 5: '# 5', 6: '# 6', 7: '# 7'} == code)
+    assert({1: 'try:', 2: '    import sys; raise Exception("start")', 3: 'except Exception: start_of_file = sys.exc_info()', 4: '# 4', 5: '# 5', 6: '# 6', 7: '# 7'} == code)
 
 def test_code_at_end_of_file():
 
@@ -61,4 +61,4 @@ def test_code_at_end_of_file():
     payload = notification._payload()
 
     code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
-    assert({5: '# 5', 6: '# 6', 7: '# 7', 8: '# 8', 9: 'try:', 10: '    import sys; raise Exception("end")', 11: 'except Exception, e: end_of_file = sys.exc_info()'} == code)
+    assert({5: '# 5', 6: '# 6', 7: '# 7', 8: '# 8', 9: 'try:', 10: '    import sys; raise Exception("end")', 11: 'except Exception: end_of_file = sys.exc_info()'} == code)

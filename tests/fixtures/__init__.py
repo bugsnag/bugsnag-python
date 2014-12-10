@@ -1,6 +1,6 @@
 try:
     import sys; raise Exception("start")
-except Exception, e: start_of_file = sys.exc_info()
+except Exception: start_of_file = sys.exc_info()
 # 4
 # 5
 # 6
@@ -8,4 +8,4 @@ except Exception, e: start_of_file = sys.exc_info()
 # 8
 try:
     import sys; raise Exception("end")
-except Exception, e: end_of_file = sys.exc_info()
+except Exception: end_of_file = sys.exc_info()
