@@ -45,7 +45,6 @@ def test_code_at_start_of_file():
 
     config = Configuration()
     line = inspect.currentframe().f_lineno + 1
-    print fixtures.start_of_file
     notification = Notification(fixtures.start_of_file[1], config, {}, traceback=fixtures.start_of_file[2])
 
     payload = notification._payload()
@@ -62,5 +61,4 @@ def test_code_at_end_of_file():
     payload = notification._payload()
 
     code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
-    print code
     assert({5: '# 5', 6: '# 6', 7: '# 7', 8: '# 8', 9: 'try:', 10: '    import sys; raise Exception("end")', 11: 'except Exception, e: end_of_file = sys.exc_info()'} == code)
