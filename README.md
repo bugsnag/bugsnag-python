@@ -295,7 +295,6 @@ To configure additional Bugsnag settings, pass the settings as named parameters 
 ```python
 bugsnag.configure(
     api_key = "YOUR_API_KEY_HERE",
-    use_ssl = True,
     notify_release_stages = ["production", "development"],
 )
 ```
@@ -306,7 +305,6 @@ your settings.py file. For example:
 ```python
 BUGSNAG = {
     "api_key": "YOUR_API_KEY_HERE",
-    "use_ssl": True,
     "notify_release_stages": ["production", "development"],
 }
 ```
@@ -368,13 +366,14 @@ bugsnag.configure(send_code = False)
 
 ###use_ssl
 
-Enforces all communication with bugsnag.com be made via ssl.
+Enforces all communication with bugsnag.com be made via ssl. To disable
+this, set it to False.
 
 ```python
 bugsnag.configure(use_ssl = True)
 ```
 
-By default, `use_ssl` is set to false.
+By default, `use_ssl` is set to True.
 
 <!-- Custom anchor for linking from alerts -->
 <div id="set-project-root"></div>
