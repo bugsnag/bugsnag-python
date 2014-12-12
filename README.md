@@ -356,6 +356,16 @@ in your application. If you want to stop this from happening, you can set
 bugsnag.configure(auto_notify = False)
 ```
 
+###send_code
+
+By default, we send a few lines of source code to Bugsnag along with
+the exception report. If you want to stop this from happening, you can set
+`send_code`:
+
+```python
+bugsnag.configure(send_code = False)
+```
+
 ###use_ssl
 
 Enforces all communication with bugsnag.com be made via ssl.

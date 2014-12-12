@@ -5,6 +5,7 @@ from bugsnag.six.moves.urllib.request import urlopen, Request
 import os
 import sys
 import threading
+import linecache
 import traceback
 import logging
 
@@ -73,6 +74,7 @@ class Notification(object):
         self.release_stage = get_config("release_stage")
         self.app_version = get_config("app_version")
         self.hostname = get_config("hostname")
+        self.send_code = get_config("send_code")
 
         self.context = options.pop("context", None)
         self.severity = options.pop("severity", "warning")
@@ -200,10 +202,35 @@ class Notification(object):
                 "lineNumber": int(str(line[1])),
                 "method": str(line[2]),
                 "inProject": in_project,
+                "code": self._code_for(file_name, int(str(line[1])))
             })
 
         stacktrace.reverse()
         return stacktrace
+
+
+    def _code_for(self, file_name, line, window_size=7):
+        """
+        Find the code around this line in the file.
+        """
+        if not self.send_code:
+            return None
+
+        try:
+            lines = linecache.getlines(file_name)
+
+            start = max(line - int(window_size / 2), 1)
+            end = start + window_size
+
+            # The last line of the file is len(lines). End of an exclusive range is one greater.
+            if end > len(lines) + 1:
+                end = len(lines) + 1
+                start = max(end - window_size, 1)
+
+            return dict((n, lines[n - 1].rstrip()) for n in range(start, end))
+
+        except:
+            return None
 
     def _payload(self):
         # Fetch the notifier version from the package
