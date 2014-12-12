@@ -62,3 +62,14 @@ def test_code_at_end_of_file():
 
     code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
     assert({5: '# 5', 6: '# 6', 7: '# 7', 8: '# 8', 9: 'try:', 10: '    import sys; raise Exception("end")', 11: 'except Exception: end_of_file = sys.exc_info()'} == code)
+
+def test_code_turned_off():
+    config = Configuration()
+    config.send_code = False
+    notification = Notification(Exception("oops"), config, {}, traceback=fixtures.end_of_file[2])
+
+    payload = notification._payload()
+
+
+    code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
+    assert(None == code)

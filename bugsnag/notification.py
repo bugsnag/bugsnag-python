@@ -74,6 +74,7 @@ class Notification(object):
         self.release_stage = get_config("release_stage")
         self.app_version = get_config("app_version")
         self.hostname = get_config("hostname")
+        self.send_code = get_config("send_code")
 
         self.context = options.pop("context", None)
         self.severity = options.pop("severity", "warning")
@@ -212,6 +213,9 @@ class Notification(object):
         """
         Find the code around this line in the file.
         """
+        if not self.send_code:
+            return None
+
         try:
             lines = linecache.getlines(file_name)
 

@@ -41,6 +41,7 @@ class Configuration(_BaseConfiguration):
         self.release_stage = "production"
         self.notify_release_stages = None
         self.auto_notify = True
+        self.send_code = True
         self.use_ssl = False
         self.lib_root = get_python_lib()
         self.project_root = os.getcwd()
