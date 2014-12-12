@@ -1,6 +1,12 @@
 Changelog
 =========
 
+2.2.0
+-----
+-   Optionally send a snippet of code along with each frame in the stacktrace
+-   Default to https:// for reports.
+
+
 2.1.0
 -----
 -   Allow custom meta-data when using the Bugsnag log handler (thanks @lwcolton!)
