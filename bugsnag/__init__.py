@@ -45,7 +45,7 @@ def notify(exception, **options):
                         RequestConfiguration.get_instance(), **options).deliver()
     except Exception:
         try:
-            bugsnag.log("Notification failed")
+            log("Notification failed")
             print((traceback.format_exc()))
         except Exception:
             print(("[BUGSNAG] error in exception handler"))
