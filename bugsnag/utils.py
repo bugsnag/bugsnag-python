@@ -26,7 +26,7 @@ def sanitize_object(obj, **kwargs):
                 clean_dict[k] = "[FILTERED]"
             else:
                 clean_obj = sanitize_object(v, **kwargs)
-                if clean_obj:
+                if clean_obj is not None:
                     clean_dict[k] = clean_obj
 
         return clean_dict
