@@ -488,6 +488,17 @@ A dictionary of dictionaries, each of which appears as a tab on the Bugsnag dash
 ```python
 bugsnag.configure_request("metadata":{"account":{"name":"ACME Inc.", "premium": True}})
 ```
+
+Per-request metadata
+--------------------
+
+To update the metaData associated with a request you can use `bugsnag.add_metadata_tab`.
+This function will update the tab if it already exists.
+
+```python
+bugsnag.add_metadata_tab("account", {"premium": True})
+```
+
 Notification options
 --------------------
 

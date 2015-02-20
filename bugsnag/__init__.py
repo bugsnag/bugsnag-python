@@ -19,6 +19,17 @@ def configure_request(**options):
     """
     RequestConfiguration.get_instance().configure(**options)
 
+def add_metadata_tab(tab_name, data):
+    """
+    Add metaData to the tab
+
+    bugsnag.add_metadata_tab("user", {"id": "1", "name": "Conrad"})
+    """
+    meta_data = RequestConfiguration.get_instance().meta_data
+    if not tab_name in meta_data:
+        meta_data[tab_name] = {}
+
+    meta_data[tab_name].update(data)
 
 def clear_request_config():
     """

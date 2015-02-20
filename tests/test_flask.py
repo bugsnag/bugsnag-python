@@ -114,6 +114,26 @@ def test_bugsnag_includes_posted_json_data(deliver):
 
 
 @patch('bugsnag.notification.deliver')
+def test_bugsnag_add_metadata_tab(deliver):
+    app = Flask("bugsnag")
+
+    @app.route("/form", methods=["PUT"])
+    def hello():
+        bugsnag.add_metadata_tab("account", {"id": 1, "premium": True})
+        bugsnag.add_metadata_tab("account", {"premium": False})
+        raise SentinalError("oops")
+
+    handle_exceptions(app)
+    app.test_client().put(
+        '/form', data='_data', content_type='application/octet-stream')
+
+    eq_(deliver.call_count, 1)
+    payload = deliver.call_args[0][0]
+    eq_(payload['events'][0]['metaData']['account']['premium'], False)
+
+    eq_(payload['events'][0]['metaData']['account']['id'], 1)
+
+@patch('bugsnag.notification.deliver')
 def test_bugsnag_includes_unknown_content_type_posted_data(deliver):
     app = Flask("bugsnag")
 
