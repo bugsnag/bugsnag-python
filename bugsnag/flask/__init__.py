@@ -8,7 +8,9 @@ def add_flask_request_to_notification(notification):
         return
 
     notification.context = "%s %s" % (request.method, request_path(request.environ))
-    notification.set_user(id=request.remote_addr)
+
+    if 'id' not in notification.user:
+        notification.set_user(id=request.remote_addr)
     notification.add_tab("session", dict(session))
     notification.add_tab("environment", dict(request.environ))
     notification.add_tab("request", {
