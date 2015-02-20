@@ -1,6 +1,11 @@
 Changelog
 =========
 
+2.3.0
+-----
+-   Add add_metadata_tab method
+-   Fix Flask integration overriding user information
+
 2.2.0
 -----
 -   Optionally send a snippet of code along with each frame in the stacktrace
