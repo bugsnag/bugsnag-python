@@ -38,7 +38,7 @@ class Configuration(_BaseConfiguration):
     """
     def __init__(self):
         self.api_key = os.environ.get('BUGSNAG_API_KEY', None)
-        self.release_stage = "production"
+        self.release_stage = os.environ.get("BUGSNAG_RELEASE_STAGE", "production")
         self.notify_release_stages = None
         self.auto_notify = True
         self.send_code = True
