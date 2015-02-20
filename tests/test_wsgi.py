@@ -118,7 +118,7 @@ def test_bugsnag_middleware_respects_meta_data(deliver):
 
     eq_(deliver.call_count, 1)
     payload = deliver.call_args[0][0]
-    eq_(payload['events'][0]['metaData']['account'], {"paying": "True"})
+    eq_(payload['events'][0]['metaData']['account'], {"paying": True})
 
 
 @patch('bugsnag.notification.deliver')

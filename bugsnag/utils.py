@@ -32,6 +32,8 @@ def sanitize_object(obj, **kwargs):
         return clean_dict
     elif any(isinstance(obj, t) for t in (list, set, tuple)):
         return [sanitize_object(x, **kwargs) for x in obj]
+    elif any(isinstance(obj, t) for t in (bool, float, int)):
+        return obj
     else:
         try:
             if isinstance(obj, six.string_types):
