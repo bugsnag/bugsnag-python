@@ -608,22 +608,8 @@ project here:
 
 <https://github.com/bugsnag/bugsnag-python/issues>
 
-
-Contributing
-------------
-
--   [Fork](https://help.github.com/articles/fork-a-repo) the [notifier on github](https://github.com/bugsnag/bugsnag-python)
--   Commit and push until you are happy with your contribution
--   Install [nosetests](https://nose.readthedocs.org/) with `pip install nose`
--   Run the tests:
-
-    ```bash
-    ./setup.py test
-    ```
-
--   [Make a pull request](https://help.github.com/articles/using-pull-requests)
--   Thanks!
-
+We love pull requests. See [CONTRIBUTING.md](https://github.com/bugsnag/bugsnag-python/blob/master/CONTRIBUTING.md) for details
+on how to get set up.
 
 License
 -------
