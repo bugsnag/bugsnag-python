@@ -406,7 +406,7 @@ servers. Any keys which contain these strings will be filtered.
 bugsnag.configure(params_filters = ["credit_card_number"])
 ```
 
-By default, `params_filters` is set to `["password", "password_confirmation"]`
+By default, `params_filters` is set to `["password", "password_confirmation", "cooke", "authorization"]`
 
 ###ignore_classes
 

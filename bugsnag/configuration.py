@@ -46,7 +46,7 @@ class Configuration(_BaseConfiguration):
         self.lib_root = get_python_lib()
         self.project_root = os.getcwd()
         self.app_version = None
-        self.params_filters = ["password", "password_confirmation"]
+        self.params_filters = ["password", "password_confirmation", "cookie", "authorization"]
         self.ignore_classes = ["KeyboardInterrupt", "django.http.Http404"]
         self.endpoint = "notify.bugsnag.com"
         self.traceback_exclude_modules = []

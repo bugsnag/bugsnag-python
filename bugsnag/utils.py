@@ -22,7 +22,7 @@ def sanitize_object(obj, **kwargs):
         clean_dict = {}
         for k, v in six.iteritems(obj):
             # Remove values for keys matching filters
-            if any(f in k for f in filters):
+            if any(f.lower() in k.lower() for f in filters):
                 clean_dict[k] = "[FILTERED]"
             else:
                 clean_obj = sanitize_object(v, **kwargs)
