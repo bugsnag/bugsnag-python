@@ -18,6 +18,22 @@ Running the tests
     ./setup.py test
     ```
 
+Running the example django app
+------------------------------
+
+-  Install bugsnag somewhere the example app can read from it.
+
+    sudo python setup.py install
+
+- Install the rest of the app requirements
+
+    cd example/django
+    pip install -r requirements.txt
+
+- Boot django
+
+    python manage.py runserver
+
 Releasing a new version
 -----------------------
 
