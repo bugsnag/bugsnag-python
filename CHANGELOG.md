@@ -1,6 +1,10 @@
 Changelog
 =========
 
+2.3.1
+-----
+-   Redact HTTP_COOKIE and HTTP_AUTHORIZATION by default
+
 2.3.0
 -----
 -   Add add_metadata_tab method
