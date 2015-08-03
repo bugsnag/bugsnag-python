@@ -263,7 +263,7 @@ bs_handler = BugsnagHandler(extra_fields={"some_tab":["context_attribute"]})
 This is very useful if you are assigning context-specific attributes
 to your LogRecord objects, as [described in the python logging cookbook](https://docs.python.org/3.4/howto/logging-cookbook.html#using-filters-to-impart-contextual-information).
 
-###Logging Framework + Django
+### Logging Framework + Django
 In django, you can use this configuration in your settings.py. For
 other apps and frameworks, you can configure the handler as appropriate.
 
@@ -311,7 +311,7 @@ BUGSNAG = {
 
 The available settings are detailed below.
 
-###api_key
+### api_key
 
 Your Bugsnag API key (required).
 
@@ -319,7 +319,7 @@ Your Bugsnag API key (required).
 bugsnag.configure(api_key = "YOUR_API_KEY_HERE")
 ```
 
-###release_stage
+### release_stage
 
 If you would like to distinguish between errors that happen in different
 stages of the application release process (development, production, etc)
@@ -333,18 +333,17 @@ In Django apps this value is automatically set to "development" if
 the server running is the Django development server. Otherwise the default is
 "production".
 
-###notify_release_stages
+### notify_release_stages
 
-By default, we will only notify Bugsnag of exceptions that happen when
-your `release_stage` is set to be "production". If you would like to
-change which release stages notify Bugsnag of exceptions you can
-set `notify_release_stages`:
+By default, we will notify Bugsnag of exceptions that happen in any
+`release_stage`. If you would like to change which release stages notify
+Bugsnag of exceptions you can set `notify_release_stages`:
 
 ```python
 bugsnag.configure(notify_release_stages = ["production", "development"])
 ```
 
-###auto_notify
+### auto_notify
 
 By default, we will automatically notify Bugsnag of any fatal exceptions
 in your application. If you want to stop this from happening, you can set
@@ -354,7 +353,7 @@ in your application. If you want to stop this from happening, you can set
 bugsnag.configure(auto_notify = False)
 ```
 
-###send_code
+### send_code
 
 By default, we send a few lines of source code to Bugsnag along with
 the exception report. If you want to stop this from happening, you can set
@@ -364,7 +363,7 @@ the exception report. If you want to stop this from happening, you can set
 bugsnag.configure(send_code = False)
 ```
 
-###use_ssl
+### use_ssl
 
 Enforces all communication with bugsnag.com be made via ssl. To disable
 this, set it to False.
@@ -377,6 +376,7 @@ By default, `use_ssl` is set to True.
 
 <!-- Custom anchor for linking from alerts -->
 <div id="set-project-root"></div>
+
 ### project_root
 
 We mark stacktrace lines as `inProject` if they come from files inside your
@@ -386,7 +386,7 @@ We mark stacktrace lines as `inProject` if they come from files inside your
 bugsnag.configure(project_root = "/var/www/myproject")
 ```
 
-###app_version
+### app_version
 
 If you want to track which versions of your application each exception
 happens in, you can set `app_version`. This is set to `None` by default.
@@ -395,7 +395,7 @@ happens in, you can set `app_version`. This is set to `None` by default.
 bugsnag.configure(app_version = "2.5.1")
 ```
 
-###params_filters
+### params_filters
 
 Sets the strings to filter out from the `params` hashes before sending
 them to Bugsnag. Use this if you want to ensure you don't send
@@ -408,7 +408,7 @@ bugsnag.configure(params_filters = ["credit_card_number"])
 
 By default, `params_filters` is set to `["password", "password_confirmation", "cookie", "authorization"]`
 
-###ignore_classes
+### ignore_classes
 
 Sets which exception classes should never be sent to Bugnsag. This feature is
 useful when you have a large number of 404 errors and dont want them all sent
@@ -420,7 +420,7 @@ bugsnag.configure(ignore_classes = ["django.http.Http404"])
 
 By default, `ignore_classes` is set to `[]`
 
-###traceback_exclude_modules
+### traceback_exclude_modules
 
 A list of modules to exclude from tracebacks.  This is useful if
 you are wrapping bugsnag.notifty() in with your own library.
@@ -456,7 +456,7 @@ bugsnag.configure_request(
 
 The available settings are detailed below.
 
-###context
+### context
 
 A string representing what was happening in your application at the time of
 the error. In Django apps, this is automatically set to be the path of the
@@ -466,7 +466,7 @@ current request.
 bugsnag.configure_request(context = "/users")
 ```
 
-###user
+### user
 
 A dictionary of "id", "email", and "name" that are used to identify and search for
 the user in Bugsnag.
@@ -481,7 +481,7 @@ bugsnag.configure_request(user={"id":"bob-hoskins", "name": "Bob Hoskins", "emai
 
 (The legacy parameter `user_id` acts as though you set a user hash with just the id property).
 
-###meta_data
+### meta_data
 
 A dictionary of dictionaries, each of which appears as a tab on the Bugsnag dashboard.
 
@@ -505,7 +505,7 @@ Notification options
 The `Bugsnag.notify` function accepts a large number of keyword arguments. These
 can be used to override configuration or to send more data to bugsnag.
 
-###traceback
+### traceback
 
 The traceback to use for the exception. If omitted this will be read from `sys.exc_info`.
 
@@ -513,7 +513,7 @@ The traceback to use for the exception. If omitted this will be read from `sys.e
 bugsnag.notify(e, sys.exc_info()[2])
 ```
 
-###api_key
+### api_key
 
 Use a specific API key for this notification. (defaults to `bugsnag.configuration.api_key`)
 
@@ -521,7 +521,7 @@ Use a specific API key for this notification. (defaults to `bugsnag.configuratio
 bugsnag.notify(e, api_key="YOUR_API_KEY_HERE")
 ```
 
-###context
+### context
 
 A string representing what was happening in your application at the time of
 the error. In Django apps, this is automatically set to be the path of the
@@ -531,7 +531,7 @@ current request.
 bugsnag.notify(e, context="sign_up")
 ```
 
-###severity
+### severity
 
 You can set the severity of an error in Bugsnag by including the severity option when
 notifying bugsnag of the error,
@@ -546,7 +546,7 @@ Severity is displayed in the dashboard and can be used to filter the error list.
 By default all crashes (or unhandled exceptions) are set to `error` and all
 `bugsnag.notify` calls default to `warning`.
 
-###user
+### user
 
 Information about the user currently using your app. This should be a dictionary
 containing "id", "email" and "name" keys.
@@ -555,7 +555,7 @@ containing "id", "email" and "name" keys.
 bugsnag.notify(e, user={"id":"bob-hoskins", name: "Bob Hoskins", email: "foo@bar.com"})
 ```
 
-###meta_data
+### meta_data
 
 A dictionary of dictionaries. Each dictionary will show up as a tab on Bugsnag.
 
@@ -570,7 +570,7 @@ have done:
 bugsnag.notify(e, {"account":{"name":"ACME Inc.", "premium": True})
 ```
 
-###grouping_hash
+### grouping_hash
 
 A string to use to group errors using your own custom grouping algorithm.
 
