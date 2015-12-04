@@ -608,7 +608,7 @@ project here:
 
 <https://github.com/bugsnag/bugsnag-python/issues>
 
-We love pull requests. See [CONTRIBUTING.md](CONTRIBUTING.md) for details
+We love pull requests. See the [contributing guidelines](CONTRIBUTING.md) for details
 on how to get set up.
 
 License
