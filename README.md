@@ -1,4 +1,4 @@
-Bugsnag Notifier for Python ![build status](https://travis-ci.org/bugsnag/bugsnag-python.svg?branch=master)
+Bugsnag Notifier for Python <img src="https://travis-ci.org/bugsnag/bugsnag-python.svg?branch=master" alt="build status" class="build-status">
 =========================
 
 The Bugsnag Notifier for Python gives you instant notification of exceptions
