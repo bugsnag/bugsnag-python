@@ -42,6 +42,7 @@ class Configuration(_BaseConfiguration):
         self.notify_release_stages = None
         self.auto_notify = True
         self.send_code = True
+        self.async = True
         self.use_ssl = True
         self.lib_root = get_python_lib()
         self.project_root = os.getcwd()
