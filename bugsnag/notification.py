@@ -1,20 +1,20 @@
-from __future__ import division, print_function, absolute_import
+from __future__ import absolute_import, division, print_function
 
-from bugsnag import six
-from bugsnag.six.moves.urllib.request import urlopen, Request
+import linecache
+import logging
 import os
 import sys
 import threading
-import linecache
 import traceback
-import logging
 
 import bugsnag
-from bugsnag.utils import sanitize_object, json_encode
+from bugsnag import six
+from bugsnag.six.moves.urllib.request import Request, urlopen
 from bugsnag.utils import fully_qualified_class_name as class_name
-from bugsnag.utils import package_version
+from bugsnag.utils import json_encode, package_version, sanitize_object
 
-def deliver(payload, url):
+
+def deliver(payload, url, async):
     payload = json_encode(payload)
     req = Request(url, payload, {
         'Content-Type': 'application/json'
@@ -36,7 +36,11 @@ def deliver(payload, url):
                 print(("[BUGSNAG] error in request thread exception handler."))
                 pass
 
-    threading.Thread(target=request).start()
+    t = threading.Thread(target=request)
+    t.start()
+
+    if not async:
+        t.join()
 
 class Notification(object):
     """
@@ -169,7 +173,7 @@ class Notification(object):
                 exclude_module_paths.append(exclude_module.__file__)
             except:
                 bugsnag.warn("Could not exclude module: %s" % repr(exclude_module))
-                
+
         lib_root = self.config.get("lib_root")
         if lib_root and lib_root[-1] != os.sep:
             lib_root += os.sep
@@ -269,7 +273,8 @@ class Notification(object):
     def _send_to_bugsnag(self):
         # Generate the payload and make the request
         url = self.config.get_endpoint()
+        async = self.config.async
+
         bugsnag.log("Notifying %s of exception" % url)
 
-        deliver(self._payload(), url)
-
+        deliver(self._payload(), url, async)
