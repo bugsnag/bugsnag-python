@@ -11,18 +11,18 @@ mobile and desktop applications, helping you to understand and resolve them
 as fast as possible. [Create a free account](http://bugsnag.com) to start
 capturing exceptions from your applications.
 
-
 How to Install
 --------------
 
+You can install bugsnag using pip:
+
+```shell
+$ pip install bugsnag
+```
+
+And then follow the below instructions for adding bugsnag to your Python application.
 
 ### Django Apps
-
-1.  Install the Bugsnag Notifier
-
-    ```bash
-    pip install bugsnag
-    ```
 
 1.  Configure the notifier in your Django `settings.py`:
 
@@ -47,61 +47,43 @@ How to Install
 
 ### Flask Apps
 
-1.  Install the Bugsnag Notifier
+Configure Bugsnag and attach it to Flask's exception handler
 
-    ```bash
-    pip install bugsnag
-    ```
+```python
+# Import bugsnag
+import bugsnag
+from bugsnag.flask import handle_exceptions
 
-1.  Configure Bugsnag and attach it to Flask's exception handler
+# Configure Bugsnag
+bugsnag.configure(
+  api_key = "YOUR_API_KEY_HERE",
+  project_root = "/path/to/your/app",
+)
 
-    ```python
-    # Import bugsnag
-    import bugsnag
-    from bugsnag.flask import handle_exceptions
-
-    # Configure Bugsnag
-    bugsnag.configure(
-      api_key = "YOUR_API_KEY_HERE",
-      project_root = "/path/to/your/app",
-    )
-
-    # Attach Bugsnag to Flask's exception handler
-    app = Flask(__name__)
-    handle_exceptions(app)
-    ```
+# Attach Bugsnag to Flask's exception handler
+app = Flask(__name__)
+handle_exceptions(app)
+```
 
 ### WSGI Apps
 
-1.  Install the Bugsnag Notifier
+Configure Bugsnag and attach the WSGI middleware
 
-    ```bash
-    pip install bugsnag
-    ```
+```python
+# Configure Bugsnag
+import bugsnag
+from bugsnag.wsgi.middleware import BugsnagMiddleware
 
-1.  Configure Bugsnag and attach the WSGI middleware
+bugsnag.configure(
+  api_key = "YOUR_API_KEY_HERE",
+  project_root = "/path/to/your/app",
+)
 
-    ```python
-    # Configure Bugsnag
-    import bugsnag
-    from bugsnag.wsgi.middleware import BugsnagMiddleware
-
-    bugsnag.configure(
-      api_key = "YOUR_API_KEY_HERE",
-      project_root = "/path/to/your/app",
-    )
-
-    # Wrap your WSGI app with Bugsnag
-    application = BugsnagMiddleware(application)
-    ```
+# Wrap your WSGI app with Bugsnag
+application = BugsnagMiddleware(application)
+```
 
 ### Tornado Apps
-
-1.  Install the Bugsnag Notifier
-
-    ```bash
-    pip install bugsnag
-    ```
 
 1.  Configure the notifier when your python app starts
 
@@ -124,13 +106,7 @@ How to Install
 
 ### Bottle Apps
 
-1. Install the Bugsnag notifier
-
-    ```bash
-    pip install bugsnag
-    ```
-
-2. Configure the notifier when your python app starts
+1. Configure the notifier when your python app starts
 
     ```python
     import bugsnag
@@ -140,7 +116,7 @@ How to Install
     )
     ```
 
-3. Add the Bugsnag middleware
+2. Add the Bugsnag middleware
 
     ```python
     import bottle
@@ -155,12 +131,6 @@ How to Install
     ```
 
 ### Celery
-
-1. Install the Bugsnag notifier
-
-    ```bash
-    pip install bugsnag
-    ```
 
 1. Configure the notifier in your worker module
 
@@ -181,22 +151,15 @@ How to Install
 
 ### Other Python Apps
 
-1.  Install the Bugsnag Notifier
+Configure the notifier when your python app starts
 
-    ```bash
-    pip install bugsnag
-    ```
-
-1.  Configure the notifier when your python app starts
-
-    ```python
-    import bugsnag
-    bugsnag.configure(
-      api_key = "YOUR_API_KEY_HERE",
-      project_root = "/path/to/your/app",
-    )
-    ```
-
+```python
+import bugsnag
+bugsnag.configure(
+  api_key = "YOUR_API_KEY_HERE",
+  project_root = "/path/to/your/app",
+)
+```
 
 Sending Handled Exceptions to Bugsnag
 ---------------------------------------
