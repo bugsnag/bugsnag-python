@@ -23,7 +23,7 @@ Running the example django app
 
 -  Install bugsnag somewhere the example app can read from it.
 
-    sudo python setup.py install
+    python setup.py install
 
 - Install the rest of the app requirements
 
@@ -58,7 +58,7 @@ If you're on the core team, you can release Bugsnag as follows:
 * Commit
 
     ```
-    git commit -am v2.x.x 
+    git commit -am v2.x.x
     ```
 
 * Tag the release in git
