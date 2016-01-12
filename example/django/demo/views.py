@@ -1,12 +1,11 @@
-
 import bugsnag
-
 import markdown
-
 from django.http import HttpResponse
 
+
 def index(request):
-    return HttpResponse(markdown.markdown(open('README.md').read()))
+    with open('README.md') as fp:
+        return HttpResponse(markdown.markdown(fp.read()))
 
 def crash(request):
     raise Exception("Bugsnag Django demo says: It crashed! Go check " +
