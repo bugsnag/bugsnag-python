@@ -9,9 +9,4 @@ python:
 
 install: travis_retry pip install -r test-requirements.txt
 
-notifications:
-  hipchat:
-    rooms:
-      secure: d6epHVu66eXiHb86oXH8//Ck4HI0EfEverIHveU4iUVaNF5U3UpQeVCaSMvKVq5AaCTYKH4nAblMt70DS1XxreJ1sIvxOIJnIQ6h1Adbm3fJ5z+VjddLfIPyNqowbmSe1M5Zfb0vwyVM0hHtPA0AmhRd/I5KoxoCP8BELhSaoSo=
-
 script: nosetests
