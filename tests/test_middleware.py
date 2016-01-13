@@ -1,55 +1,56 @@
+import unittest
+
 from nose.tools import eq_
 
 from bugsnag.middleware import MiddlewareStack
 
 
-def test_order_of_middleware():
+class TestMiddleware(unittest.TestCase):
 
-    a = []
+    def test_order_of_middleware(self):
 
-    m = MiddlewareStack()
+        a = []
 
-    m.before_notify(lambda _: a.append(1))
-    m.before_notify(lambda _: a.append(2))
+        m = MiddlewareStack()
 
-    m.after_notify(lambda _: a.append(4))
-    m.after_notify(lambda _: a.append(3))
+        m.before_notify(lambda _: a.append(1))
+        m.before_notify(lambda _: a.append(2))
 
-    m.run(None, lambda: None)
+        m.after_notify(lambda _: a.append(4))
+        m.after_notify(lambda _: a.append(3))
 
-    eq_(a, [1, 2, 3, 4])
+        m.run(None, lambda: None)
 
+        eq_(a, [1, 2, 3, 4])
 
-def test_before_notify_returning_false():
+    def test_before_notify_returning_false(self):
 
-    a = []
+        a = []
 
-    m = MiddlewareStack()
+        m = MiddlewareStack()
 
-    m.before_notify(lambda _: False)
-    m.before_notify(lambda _: a.append(1))
+        m.before_notify(lambda _: False)
+        m.before_notify(lambda _: a.append(1))
 
-    m.run(None, lambda: a.append(2))
+        m.run(None, lambda: a.append(2))
 
-    eq_(a, [])
+        eq_(a, [])
 
+    def test_before_exception_handling(self):
 
-def test_before_exception_handling():
+        a = []
 
-    a = []
+        m = MiddlewareStack()
+        m.before_notify(lambda _: a.penned(1))
+        m.run(None, lambda: a.append(2))
 
-    m = MiddlewareStack()
-    m.before_notify(lambda _: a.penned(1))
-    m.run(None, lambda: a.append(2))
+        eq_(a, [2])
 
-    eq_(a, [2])
+    def test_after_exception_handling(self):
+        a = []
 
+        m = MiddlewareStack()
+        m.after_notify(lambda _: a.penned(1))
+        m.run(None, lambda: a.append(2))
 
-def test_after_exception_handling():
-    a = []
-
-    m = MiddlewareStack()
-    m.after_notify(lambda _: a.penned(1))
-    m.run(None, lambda: a.append(2))
-
-    eq_(a, [2])
+        eq_(a, [2])
