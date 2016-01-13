@@ -3,11 +3,13 @@ from flask import got_request_exception, request, session
 import bugsnag
 from bugsnag.wsgi import request_path
 
+
 def add_flask_request_to_notification(notification):
     if not request:
         return
 
-    notification.context = "%s %s" % (request.method, request_path(request.environ))
+    notification.context = "%s %s" % (request.method,
+                                      request_path(request.environ))
 
     if 'id' not in notification.user:
         notification.set_user(id=request.remote_addr)

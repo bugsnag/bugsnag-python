@@ -1,6 +1,3 @@
-import os
-import socket
-
 from nose.tools import eq_
 
 from bugsnag.middleware import MiddlewareStack
@@ -20,7 +17,8 @@ def test_order_of_middleware():
 
     m.run(None, lambda: None)
 
-    eq_(a, [1,2,3,4])
+    eq_(a, [1, 2, 3, 4])
+
 
 def test_before_notify_returning_false():
 
@@ -35,6 +33,7 @@ def test_before_notify_returning_false():
 
     eq_(a, [])
 
+
 def test_before_exception_handling():
 
     a = []
@@ -44,6 +43,7 @@ def test_before_exception_handling():
     m.run(None, lambda: a.append(2))
 
     eq_(a, [2])
+
 
 def test_after_exception_handling():
     a = []

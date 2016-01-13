@@ -1,6 +1,3 @@
-import os
-import socket
-import json
 import inspect
 
 from bugsnag.configuration import Configuration
@@ -13,14 +10,16 @@ def test_sanitize():
         It should sanitize request data
     """
     config = Configuration()
-    notification = Notification(Exception("oops"), config, {}, request={"params":{"password":"secret"}})
+    notification = Notification(Exception("oops"), config, {},
+                                request={"params": {"password": "secret"}})
 
-    notification.add_tab("request", {"arguments":{"password":"secret"}})
+    notification.add_tab("request", {"arguments": {"password": "secret"}})
 
     payload = notification._payload()
+    request = payload['events'][0]['metaData']['request']
+    assert(request['arguments']['password'] == '[FILTERED]')
+    assert(request['params']['password'] == '[FILTERED]')
 
-    assert(payload['events'][0]['metaData']['request']['arguments']['password'] == '[FILTERED]')
-    assert(payload['events'][0]['metaData']['request']['params']['password'] == '[FILTERED]')
 
 def test_code():
     """
@@ -37,40 +36,50 @@ def test_code():
     assert(code[line - 3] == "    \"\"\"")
     assert(code[line - 2] == "    config = Configuration()")
     assert(code[line - 1] == "    line = inspect.currentframe().f_lineno + 1")
-    assert(code[line + 0] == "    notification = Notification(Exception(\"oops\"), config, {})" )
+    error = "    notification = Notification(Exception(\"oops\"), config, {})"
+    assert(code[line] == error)
     assert(code[line + 1] == "")
     assert(code[line + 2] == "    payload = notification._payload()")
     assert(code[line + 3] == "")
 
+
 def test_code_at_start_of_file():
 
     config = Configuration()
-    line = inspect.currentframe().f_lineno + 1
-    notification = Notification(fixtures.start_of_file[1], config, {}, traceback=fixtures.start_of_file[2])
+    notification = Notification(fixtures.start_of_file[1], config, {},
+                                traceback=fixtures.start_of_file[2])
 
     payload = notification._payload()
 
     code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
-    assert({1: 'try:', 2: '    import sys; raise Exception("start")', 3: 'except Exception: start_of_file = sys.exc_info()', 4: '# 4', 5: '# 5', 6: '# 6', 7: '# 7'} == code)
+    assert({1: 'try:',
+            2: '    import sys; raise Exception("start")',
+            3: 'except Exception: start_of_file = sys.exc_info()',
+            4: '# 4', 5: '# 5', 6: '# 6', 7: '# 7'} == code)
+
 
 def test_code_at_end_of_file():
 
     config = Configuration()
-    line = inspect.currentframe().f_lineno + 1
-    notification = Notification(fixtures.end_of_file[1], config, {}, traceback=fixtures.end_of_file[2])
+    notification = Notification(fixtures.end_of_file[1], config, {},
+                                traceback=fixtures.end_of_file[2])
 
     payload = notification._payload()
 
     code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
-    assert({5: '# 5', 6: '# 6', 7: '# 7', 8: '# 8', 9: 'try:', 10: '    import sys; raise Exception("end")', 11: 'except Exception: end_of_file = sys.exc_info()'} == code)
+    assert({5: '# 5',
+            6: '# 6', 7: '# 7', 8: '# 8', 9: 'try:',
+            10: '    import sys; raise Exception("end")',
+            11: 'except Exception: end_of_file = sys.exc_info()'} == code)
+
 
 def test_code_turned_off():
     config = Configuration()
     config.send_code = False
-    notification = Notification(Exception("oops"), config, {}, traceback=fixtures.end_of_file[2])
+    notification = Notification(Exception("oops"), config, {},
+                                traceback=fixtures.end_of_file[2])
 
     payload = notification._payload()
 
-
     code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
-    assert(None == code)
+    assert(None == code)  # flake8: noqa

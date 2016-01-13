@@ -51,6 +51,7 @@ def sanitize_object(obj, **kwargs):
 
         return string
 
+
 def shrink_object(obj):
     if isinstance(obj, six.string_types):
         return obj[:MAX_STRING_LENGTH]

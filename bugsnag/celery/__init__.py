@@ -3,7 +3,9 @@ from __future__ import division, print_function, absolute_import
 from celery.signals import task_failure
 import bugsnag
 
-def failure_handler(sender, task_id, exception, args, kwargs, traceback, einfo, **kw):
+
+def failure_handler(sender, task_id, exception, args, kwargs, traceback, einfo,
+                    **kw):
     task = {
         "task_id": task_id,
         "args": args,
@@ -11,8 +13,9 @@ def failure_handler(sender, task_id, exception, args, kwargs, traceback, einfo, 
     }
 
     bugsnag.auto_notify(exception, traceback=traceback,
-                              context=sender.name,
-                              extra_data=task)
+                        context=sender.name,
+                        extra_data=task)
+
 
 def connect_failure_handler():
     """
@@ -20,5 +23,3 @@ def connect_failure_handler():
     task_failure signal
     """
     task_failure.connect(failure_handler, weak=False)
-
-

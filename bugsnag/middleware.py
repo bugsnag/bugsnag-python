@@ -1,5 +1,6 @@
 import bugsnag
 
+
 class SimpleMiddleware(object):
     def __init__(self, before=None, after=None):
         self.before = before
@@ -20,31 +21,34 @@ class SimpleMiddleware(object):
 
         return middleware
 
+
 class DefaultMiddleware(object):
     """
-    DefaultMiddleware provides the transformation from request_config into meta-data
-    that has always been supported by bugsnag-python.
+    DefaultMiddleware provides the transformation from request_config into
+    meta-data that has always been supported by bugsnag-python.
     """
     def __init__(self, bugsnag):
         self.bugsnag = bugsnag
 
     def __call__(self, notification):
-        notification.set_user(id=notification.request_config.user_id)
-        notification.set_user(**notification.request_config.user)
-        notification.grouping_hash = notification.request_config.get("grouping_hash")
+        config = notification.request_config
+        notification.set_user(id=config.user_id)
+        notification.set_user(**config.user)
+        notification.grouping_hash = config.get("grouping_hash")
 
         if not notification.context:
-            notification.context = notification.request_config.get("context")
+            notification.context = config.get("context")
 
-        for name, dictionary in notification.request_config.meta_data.items():
+        for name, dictionary in config.meta_data.items():
             notification.add_tab(name, dictionary)
 
-        notification.add_tab("request", notification.request_config.get("request_data"))
-        notification.add_tab("environment", notification.request_config.get("environment_data"))
-        notification.add_tab("session", notification.request_config.get("session_data"))
-        notification.add_tab("extraData", notification.request_config.get("extra_data"))
+        notification.add_tab("request", config.get("request_data"))
+        notification.add_tab("environment", config.get("environment_data"))
+        notification.add_tab("session", config.get("session_data"))
+        notification.add_tab("extraData", config.get("extra_data"))
 
         self.bugsnag(notification)
+
 
 class MiddlewareStack(object):
     """
@@ -88,7 +92,8 @@ class MiddlewareStack(object):
         ...         self.bugsnag = bugsnag
         ...
         ...     def __call__(self, notification):
-        ...         notification.add_tab("request", notification.request_config.get("request")))
+        ...         config = notification.request_config
+        ...         notification.add_tab("request", config.get("request")))
         ...         self.bugsnag(notification)
         ...
         >>> bugsnag.middleware.append(ExampleMiddleware)

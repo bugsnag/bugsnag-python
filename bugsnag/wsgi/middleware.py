@@ -57,6 +57,7 @@ class WrappedWSGIApp(object):
         finally:
             bugsnag.clear_request_config()
 
+
 class BugsnagMiddleware(object):
     """
     Notifies Bugsnag on any unhandled exception that happens while processing

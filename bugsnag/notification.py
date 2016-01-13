@@ -8,7 +8,6 @@ import threading
 import traceback
 
 import bugsnag
-from bugsnag import six
 from bugsnag.six.moves.urllib.request import Request, urlopen
 from bugsnag.utils import fully_qualified_class_name as class_name
 from bugsnag.utils import json_encode, package_version, sanitize_object
@@ -26,7 +25,8 @@ def deliver(payload, url, async):
             status = resp.getcode()
 
             if status != 200:
-                bugsnag.log("Notification to %s failed, status %d" % (url, status))
+                bugsnag.log("Notification to %s failed, status %d" % (url,
+                                                                      status))
 
         except Exception:
             try:
@@ -41,6 +41,7 @@ def deliver(payload, url, async):
 
     if not async:
         t.join()
+
 
 class Notification(object):
     """
@@ -57,12 +58,14 @@ class Notification(object):
 
         exception is the exception being reported.
         config is the global instance of bugsnag.Configuration
-        request_config is the thread-local instance of bugsnag.Configuration (used by middleware)
+        request_config is the thread-local instance of bugsnag.Configuration
+        (used by middleware)
 
         options can be used to override any of the configuration parameters:
             "api_key", "release_stage", "app_version", "hostname"
         and to provide the following top-level notification payload keys:
-            "user", "context", "severity", "grouping_hash", "meta_data", ("user_id")
+            "user", "context", "severity", "grouping_hash", "meta_data",
+            ("user_id")
         or to provide the exception parameter:
             "traceback"
         All other keys will be sent as meta-data to Bugsnag.
@@ -72,7 +75,7 @@ class Notification(object):
         self.config = config
         self.request_config = request_config
 
-        get_config = lambda key: options.pop(key, self.config.get(key))
+        def get_config(key): return options.pop(key, self.config.get(key))
 
         self.api_key = get_config("api_key")
         self.release_stage = get_config("release_stage")
@@ -89,7 +92,8 @@ class Notification(object):
         if "user_id" in options:
             self.user["id"] = options.pop("user_id")
 
-        self.stacktrace = self._generate_stacktrace(self.options.pop("traceback", sys.exc_info()[2]))
+        self.stacktrace = self._generate_stacktrace(
+                self.options.pop("traceback", sys.exc_info()[2]))
         self.grouping_hash = options.pop("grouping_hash", None)
 
         self.meta_data = {}
@@ -123,7 +127,7 @@ class Notification(object):
             exc = traceback.format_exc()
             bugsnag.warn("Notifying Bugsnag failed:\n%s" % (exc))
 
-    def set_user(self,id=None,name=None,email=None):
+    def set_user(self, id=None, name=None, email=None):
         """
         Set user parameters on notification.
         """
@@ -144,16 +148,18 @@ class Notification(object):
         """
         Add a meta-data tab to the notification
 
-        If the tab already exists, the new content will be merged into the existing content.
+        If the tab already exists, the new content will be merged into the
+        existing content.
         """
         if not isinstance(dictionary, dict):
-            self.add_tab("custom", {name:dictionary})
+            self.add_tab("custom", {name: dictionary})
             return
 
         if name not in self.meta_data:
             self.meta_data[name] = {}
 
-        self.meta_data[name].update(sanitize_object(dictionary, filters=self.config.params_filters))
+        self.meta_data[name].update(sanitize_object(dictionary,
+                                    filters=self.config.params_filters))
 
     def _generate_stacktrace(self, tb):
         """
@@ -172,7 +178,8 @@ class Notification(object):
             try:
                 exclude_module_paths.append(exclude_module.__file__)
             except:
-                bugsnag.warn("Could not exclude module: %s" % repr(exclude_module))
+                bugsnag.warn("Could not exclude module: %s" %
+                             repr(exclude_module))
 
         lib_root = self.config.get("lib_root")
         if lib_root and lib_root[-1] != os.sep:
@@ -212,7 +219,6 @@ class Notification(object):
         stacktrace.reverse()
         return stacktrace
 
-
     def _code_for(self, file_name, line, window_size=7):
         """
         Find the code around this line in the file.
@@ -226,7 +232,8 @@ class Notification(object):
             start = max(line - int(window_size / 2), 1)
             end = start + window_size
 
-            # The last line of the file is len(lines). End of an exclusive range is one greater.
+            # The last line of the file is len(lines). End of an
+            # exclusive range is one greater.
             if end > len(lines) + 1:
                 end = len(lines) + 1
                 start = max(end - window_size, 1)
