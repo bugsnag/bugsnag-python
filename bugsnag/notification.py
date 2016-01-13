@@ -14,7 +14,8 @@ from bugsnag.utils import sanitize_object, json_encode
 from bugsnag.utils import fully_qualified_class_name as class_name
 from bugsnag.utils import package_version
 
-def deliver(payload, url):
+
+def deliver(payload, url, async):
     payload = json_encode(payload)
     req = Request(url, payload, {
         'Content-Type': 'application/json'
@@ -36,7 +37,11 @@ def deliver(payload, url):
                 print(("[BUGSNAG] error in request thread exception handler."))
                 pass
 
-    threading.Thread(target=request).start()
+    t = threading.Thread(target=request)
+    t.start()
+
+    if not async:
+        t.join()
 
 class Notification(object):
     """
@@ -169,7 +174,7 @@ class Notification(object):
                 exclude_module_paths.append(exclude_module.__file__)
             except:
                 bugsnag.warn("Could not exclude module: %s" % repr(exclude_module))
-                
+
         lib_root = self.config.get("lib_root")
         if lib_root and lib_root[-1] != os.sep:
             lib_root += os.sep
@@ -269,7 +274,8 @@ class Notification(object):
     def _send_to_bugsnag(self):
         # Generate the payload and make the request
         url = self.config.get_endpoint()
+        async = self.config.asynchronous
+
         bugsnag.log("Notifying %s of exception" % url)
 
-        deliver(self._payload(), url)
-
+        deliver(self._payload(), url, async)
