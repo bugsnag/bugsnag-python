@@ -210,12 +210,12 @@ logger.addHandler(BugsnagHandler())
 *extra_fields*
 
 The BugsnagHandler accepts a special keyword argument to its `__init__()`
-function: 'extra_fields'.  This is optional and may be a dictionary of 
+function: 'extra_fields'.  This is optional and may be a dictionary of
 extra attributes to gather from each LogRecord and insert into meta_data
 so they get sent to Bugsnag.  The keys in this dictionary should be tab
-names for where you would like the data displayed in Bugsnag, like the 
+names for where you would like the data displayed in Bugsnag, like the
 top level keys in meta_data.  The values should be attributes to pull
-off each log record and enter into that meta_data section.  The attributes 
+off each log record and enter into that meta_data section.  The attributes
 do not need to exist on the log record, if they don't exist they will
 just be ignored.  Example:
 
@@ -280,6 +280,15 @@ Your Bugsnag API key (required).
 
 ```python
 bugsnag.configure(api_key = "YOUR_API_KEY_HERE")
+```
+
+### asynchronous
+
+By default, requests are sent asynchronously to Bugsnag. If you would like to
+block until the request is done, you can set `asynchronous`:
+
+```python
+bugsnag.configure(asynchronous=False)
 ```
 
 ### release_stage
