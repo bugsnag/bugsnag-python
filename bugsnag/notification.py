@@ -274,7 +274,7 @@ class Notification(object):
     def _send_to_bugsnag(self):
         # Generate the payload and make the request
         url = self.config.get_endpoint()
-        async = self.config.async
+        async = self.config.asynchronous
 
         bugsnag.log("Notifying %s of exception" % url)
 
