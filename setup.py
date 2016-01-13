@@ -22,6 +22,7 @@ tests_require = [
   'webtest',
   'mock',
   'nose',
+  'flake8'
 ]
 
 setup(

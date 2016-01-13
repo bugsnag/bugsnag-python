@@ -11,12 +11,19 @@ Contributing
 Running the tests
 -----------------
 
--   Install [nosetests](https://nose.readthedocs.org/) with `pip install nose`
--   Run the tests:
+- Install the development dependencies:
 
-    ```bash
-    ./setup.py test
-    ```
+      pip install -r dev_requirements.txt
+
+- Run the tests:
+
+      ./setup.py test
+
+
+- Lint the changes:
+
+      flake8 bugsnag
+
 
 Running the example django app
 ------------------------------
