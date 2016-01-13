@@ -1,11 +1,13 @@
 from django.conf.urls import patterns, include, url
+from demo.views import (index, crash, crash_with_callback, severity, notify,
+                        context, notify_meta)
 
 urlpatterns = patterns('',
-    url(r'^$', 'demo.views.index'),
-    url(r'^crash/$', 'demo.views.crash'),
-    url(r'^crash_with_callback/$', 'demo.views.crash_with_callback'),
-    url(r'^notify/$', 'demo.views.notify'),
-    url(r'^notify_meta/$', 'demo.views.notify_meta'),
-    url(r'^context/$', 'demo.views.context'),
-    url(r'^severity/$', 'demo.views.severity'),
+    url(r'^$', index),
+    url(r'^crash/$', crash),
+    url(r'^crash_with_callback/$', crash_with_callback),
+    url(r'^notify/$', notify),
+    url(r'^notify_meta/$', notify_meta),
+    url(r'^context/$', context),
+    url(r'^severity/$', severity),
 )
