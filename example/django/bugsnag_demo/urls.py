@@ -1,8 +1,8 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import url
 from demo.views import (index, crash, crash_with_callback, severity, notify,
                         context, notify_meta)
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^$', index),
     url(r'^crash/$', crash),
     url(r'^crash_with_callback/$', crash_with_callback),
@@ -10,4 +10,4 @@ urlpatterns = patterns('',
     url(r'^notify_meta/$', notify_meta),
     url(r'^context/$', context),
     url(r'^severity/$', severity),
-)
+]
