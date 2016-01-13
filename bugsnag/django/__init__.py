@@ -31,7 +31,8 @@ def add_django_request_to_notification(notification):
     notification.add_tab("request", {
         'path': request.path,
         'encoding': request.encoding,
-        'params': dict(request.REQUEST),
+        'GET': dict(request.GET),
+        'POST': dict(request.POST),
         'url': request.build_absolute_uri(),
     })
     notification.add_tab("environment", dict(request.META))
