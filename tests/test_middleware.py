@@ -1,7 +1,10 @@
-from bugsnag.middleware import MiddlewareStack
-from nose.tools import eq_
 import os
 import socket
+
+from nose.tools import eq_
+
+from bugsnag.middleware import MiddlewareStack
+
 
 def test_order_of_middleware():
 

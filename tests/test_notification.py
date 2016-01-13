@@ -1,11 +1,12 @@
-from bugsnag.configuration import Configuration
-from bugsnag.notification import Notification
-import fixtures
-
 import os
 import socket
 import json
 import inspect
+
+from bugsnag.configuration import Configuration
+from bugsnag.notification import Notification
+import fixtures
+
 
 def test_sanitize():
     """

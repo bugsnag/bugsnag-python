@@ -1,6 +1,8 @@
+from nose.tools import eq_
+
 from bugsnag.six import u
 from bugsnag.utils import json_encode, sanitize_object
-from nose.tools import eq_
+
 
 def test_sanitize_object():
     filters = ["password", "credit_card"]

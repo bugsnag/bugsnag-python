@@ -1,18 +1,17 @@
-from __future__ import division, print_function, absolute_import
+from __future__ import absolute_import, division, print_function
 
-from bugsnag import six
-from bugsnag.six.moves.urllib.request import urlopen, Request
+import linecache
+import logging
 import os
 import sys
 import threading
-import linecache
 import traceback
-import logging
 
 import bugsnag
-from bugsnag.utils import sanitize_object, json_encode
+from bugsnag import six
+from bugsnag.six.moves.urllib.request import Request, urlopen
 from bugsnag.utils import fully_qualified_class_name as class_name
-from bugsnag.utils import package_version
+from bugsnag.utils import json_encode, package_version, sanitize_object
 
 
 def deliver(payload, url, async):

@@ -1,13 +1,12 @@
-from __future__ import division, print_function, absolute_import
+from __future__ import absolute_import, division, print_function
 
-from distutils.sysconfig import get_python_lib
-import threading
 import os
 import socket
+import threading
+from distutils.sysconfig import get_python_lib
 
+from bugsnag.middleware import DefaultMiddleware, MiddlewareStack
 from bugsnag.utils import fully_qualified_class_name
-from bugsnag.middleware import MiddlewareStack, DefaultMiddleware
-
 
 threadlocal = threading.local()
 
