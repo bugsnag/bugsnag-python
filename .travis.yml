@@ -11,4 +11,4 @@ install: travis_retry pip install -r test-requirements.txt
 
 script:
   - nosetests
-  - flake8 bugsnag
+  - ./scripts/lint.sh
