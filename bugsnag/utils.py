@@ -36,13 +36,13 @@ def sanitize_object(obj, **kwargs):
         return obj
     else:
         try:
-            if isinstance(obj, six.string_types):
-                string = obj
+            if six.PY3 and isinstance(obj, bytes):
+                string = six.text_type(obj, encoding='utf-8', errors='replace')
+            elif six.PY3 or hasattr(obj, '__unicode__'):
+                string = six.text_type(obj)
             else:
-                if six.PY2:
-                    string = unicode(str(obj), errors='replace')
-                else:
-                    string = str(obj)
+                b = bytes(obj)
+                string = six.text_type(b, encoding='utf-8', errors='replace')
 
         except Exception:
             exc = traceback.format_exc()
@@ -50,6 +50,7 @@ def sanitize_object(obj, **kwargs):
             string = "[BADENCODING]"
 
         return string
+
 
 def shrink_object(obj):
     if isinstance(obj, six.string_types):

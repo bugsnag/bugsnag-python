@@ -9,4 +9,6 @@ python:
 
 install: travis_retry pip install -r test-requirements.txt
 
-script: nosetests
+script:
+  - nosetests
+  - ./scripts/lint.sh

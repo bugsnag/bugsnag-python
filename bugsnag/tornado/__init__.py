@@ -1,5 +1,6 @@
 from tornado.web import RequestHandler
 from tornado.web import HTTPError
+
 import bugsnag
 
 
@@ -16,7 +17,8 @@ class BugsnagRequestHandler(RequestHandler):
             }
         }
 
-        # Notify bugsnag, unless it's an HTTPError that we specifically want to ignore
+        # Notify bugsnag, unless it's an HTTPError that we specifically want
+        # to ignore
         should_notify_bugsnag = True
         if type(exc) == HTTPError:
             ignore_status_codes = self.bugsnag_ignore_status_codes()

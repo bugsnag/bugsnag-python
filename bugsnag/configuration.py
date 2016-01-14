@@ -1,15 +1,16 @@
-from __future__ import division, print_function, absolute_import
+from __future__ import absolute_import, division, print_function
 
-from distutils.sysconfig import get_python_lib
-import threading
 import os
 import socket
+import threading
+from distutils.sysconfig import get_python_lib
 
+from bugsnag.middleware import DefaultMiddleware, MiddlewareStack
 from bugsnag.utils import fully_qualified_class_name
-from bugsnag.middleware import MiddlewareStack, DefaultMiddleware
 
 
 threadlocal = threading.local()
+
 
 class _BaseConfiguration(object):
     def get(self, name, overrides=None):
@@ -38,7 +39,8 @@ class Configuration(_BaseConfiguration):
     """
     def __init__(self):
         self.api_key = os.environ.get('BUGSNAG_API_KEY', None)
-        self.release_stage = os.environ.get("BUGSNAG_RELEASE_STAGE", "production")
+        self.release_stage = os.environ.get("BUGSNAG_RELEASE_STAGE",
+                                            "production")
         self.notify_release_stages = None
         self.auto_notify = True
         self.send_code = True
@@ -47,7 +49,8 @@ class Configuration(_BaseConfiguration):
         self.lib_root = get_python_lib()
         self.project_root = os.getcwd()
         self.app_version = None
-        self.params_filters = ["password", "password_confirmation", "cookie", "authorization"]
+        self.params_filters = ["password", "password_confirmation", "cookie",
+                               "authorization"]
         self.ignore_classes = ["KeyboardInterrupt", "django.http.Http404"]
         self.endpoint = "notify.bugsnag.com"
         self.traceback_exclude_modules = []
@@ -71,6 +74,7 @@ class Configuration(_BaseConfiguration):
     def get_endpoint(self):
         proto = "https" if self.use_ssl else "http"
         return "%s://%s" % (proto, self.endpoint)
+
 
 class RequestConfiguration(_BaseConfiguration):
     """

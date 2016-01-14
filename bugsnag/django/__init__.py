@@ -5,6 +5,7 @@ from django.core.urlresolvers import resolve
 
 import bugsnag
 
+
 def add_django_request_to_notification(notification):
     if not hasattr(notification.request_config, "django_request"):
         return
@@ -16,12 +17,15 @@ def add_django_request_to_notification(notification):
         if route:
             notification.context = route.url_name
         else:
-            notification.context = "%s %s" % (request.method, request.path_info)
+            notification.context = "%s %s" % (request.method,
+                                              request.path_info)
 
     if hasattr(request, 'user') and request.user.is_authenticated():
         try:
-            name = " ".join([request.user.first_name or '', request.user.last_name or ''])
-            notification.set_user(id=request.user.username, email=request.user.email, name=name)
+            name = " ".join([request.user.first_name or '',
+                             request.user.last_name or ''])
+            notification.set_user(id=request.user.username,
+                                  email=request.user.email, name=name)
         except Exception as e:
             bugsnag.warn("could not get user data: %s" % e)
     else:
@@ -36,6 +40,7 @@ def add_django_request_to_notification(notification):
         'url': request.build_absolute_uri(),
     })
     notification.add_tab("environment", dict(request.META))
+
 
 def configure():
     # default to development if in DEBUG mode

@@ -2,7 +2,7 @@ from webob import Request
 
 import bugsnag
 from bugsnag.wsgi import request_path
-from bugsnag.six import advance_iterator
+
 
 def add_wsgi_request_data_to_notification(notification):
     if not hasattr(notification.request_config, "wsgi_environ"):
@@ -56,6 +56,7 @@ class WrappedWSGIApp(object):
             raise
         finally:
             bugsnag.clear_request_config()
+
 
 class BugsnagMiddleware(object):
     """

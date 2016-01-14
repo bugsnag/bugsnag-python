@@ -9,6 +9,7 @@ from flask import Flask
 from bugsnag.flask import handle_exceptions
 import bugsnag.notification
 
+
 bugsnag.configuration.api_key = '066f5ad3590596f9aa8d601ea89af845'
 
 

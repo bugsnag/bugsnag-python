@@ -3,6 +3,7 @@ from __future__ import division, print_function, absolute_import
 import bugsnag
 import bugsnag.django
 
+
 class BugsnagMiddleware(object):
     def __init__(self):
         bugsnag.django.configure()
