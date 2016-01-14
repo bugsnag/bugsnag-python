@@ -1,4 +1,4 @@
-from bugsnag.six.moves import urllib
+from six.moves import urllib
 
 
 def request_path(env):

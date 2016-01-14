@@ -50,7 +50,7 @@ setup(
         'Topic :: Software Development'
     ],
     test_suite='nose.collector',
-    install_requires=['webob'],
+    install_requires=['webob', 'six>=1.9,<2'],
     tests_require=tests_require,
     extras_require={
         'flask': ['flask', 'blinker'],

@@ -1,6 +1,6 @@
 from nose.tools import eq_
 
-from bugsnag.six import u
+from six import u
 from bugsnag.utils import json_encode, sanitize_object
 
 

@@ -8,7 +8,7 @@ import threading
 import traceback
 
 import bugsnag
-from bugsnag.six.moves.urllib.request import Request, urlopen
+from six.moves.urllib.request import Request, urlopen
 from bugsnag.utils import fully_qualified_class_name as class_name
 from bugsnag.utils import json_encode, package_version, sanitize_object
 

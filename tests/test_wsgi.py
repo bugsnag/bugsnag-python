@@ -3,7 +3,7 @@ from nose.tools import eq_, assert_raises
 from mock import patch
 
 from bugsnag.wsgi.middleware import BugsnagMiddleware
-from bugsnag.six import Iterator
+from six import Iterator
 import bugsnag.notification
 
 
