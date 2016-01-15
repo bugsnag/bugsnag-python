@@ -1,85 +1,92 @@
 import inspect
+import unittest
 
 from bugsnag.configuration import Configuration
 from bugsnag.notification import Notification
 import fixtures
 
 
-def test_sanitize():
-    """
-        It should sanitize request data
-    """
-    config = Configuration()
-    notification = Notification(Exception("oops"), config, {},
-                                request={"params": {"password": "secret"}})
+class TestNotification(unittest.TestCase):
 
-    notification.add_tab("request", {"arguments": {"password": "secret"}})
+    def test_sanitize(self):
+        """
+            It should sanitize request data
+        """
+        config = Configuration()
+        notification = Notification(Exception("oops"), config, {},
+                                    request={"params": {"password": "secret"}})
 
-    payload = notification._payload()
-    request = payload['events'][0]['metaData']['request']
-    assert(request['arguments']['password'] == '[FILTERED]')
-    assert(request['params']['password'] == '[FILTERED]')
+        notification.add_tab("request", {"arguments": {"password": "secret"}})
 
+        payload = notification._payload()
+        request = payload['events'][0]['metaData']['request']
+        self.assertEqual(request['arguments']['password'], '[FILTERED]')
+        self.assertEqual(request['params']['password'], '[FILTERED]')
 
-def test_code():
-    """
-        It should include code
-    """
-    config = Configuration()
-    line = inspect.currentframe().f_lineno + 1
-    notification = Notification(Exception("oops"), config, {})
+    def test_code(self):
+        """
+            It should include code
+        """
+        config = Configuration()
+        line = inspect.currentframe().f_lineno + 1
+        notification = Notification(Exception("oops"), config, {})
 
-    payload = notification._payload()
+        payload = notification._payload()
 
-    code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
+        code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
+        lvl = "        "
+        self.assertEqual(code[line - 3], lvl + "\"\"\"")
+        self.assertEqual(code[line - 2], lvl + "config = Configuration()")
+        self.assertEqual(code[line - 1],
+                lvl + "line = inspect.currentframe().f_lineno + 1")
+        self.assertEqual(code[line], lvl +
+                "notification = Notification(Exception(\"oops\"), config, {})")
+        self.assertEqual(code[line + 1], "")
+        self.assertEqual(code[line + 2],
+                lvl + "payload = notification._payload()")
+        self.assertEqual(code[line + 3], "")
 
-    assert(code[line - 3] == "    \"\"\"")
-    assert(code[line - 2] == "    config = Configuration()")
-    assert(code[line - 1] == "    line = inspect.currentframe().f_lineno + 1")
-    error = "    notification = Notification(Exception(\"oops\"), config, {})"
-    assert(code[line] == error)
-    assert(code[line + 1] == "")
-    assert(code[line + 2] == "    payload = notification._payload()")
-    assert(code[line + 3] == "")
+    def test_code_at_start_of_file(self):
 
+        config = Configuration()
+        notification = Notification(fixtures.start_of_file[1], config, {},
+                                    traceback=fixtures.start_of_file[2])
 
-def test_code_at_start_of_file():
+        payload = notification._payload()
 
-    config = Configuration()
-    notification = Notification(fixtures.start_of_file[1], config, {},
-                                traceback=fixtures.start_of_file[2])
+        code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
+        self.assertEqual({1: '# flake8: noqa',
+             2: 'try:',
+             3: '    import sys; raise Exception("start")',
+             4: 'except Exception: start_of_file = sys.exc_info()',
+             5: '# 4',
+             6: '# 5',
+             7: '# 6'}, code)
 
-    payload = notification._payload()
+    def test_code_at_end_of_file(self):
 
-    code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
-    assert({1: 'try:',
-            2: '    import sys; raise Exception("start")',
-            3: 'except Exception: start_of_file = sys.exc_info()',
-            4: '# 4', 5: '# 5', 6: '# 6', 7: '# 7'} == code)
+        config = Configuration()
+        notification = Notification(fixtures.end_of_file[1], config, {},
+                                    traceback=fixtures.end_of_file[2])
 
+        payload = notification._payload()
 
-def test_code_at_end_of_file():
+        code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
+        self.assertEqual({6:  '# 5',
+             7:  '# 6',
+             8:  '# 7',
+             9:  '# 8',
+             10: 'try:',
+             11: '    import sys; raise Exception("end")',
+             12: 'except Exception: end_of_file = sys.exc_info()'}, code)
 
-    config = Configuration()
-    notification = Notification(fixtures.end_of_file[1], config, {},
-                                traceback=fixtures.end_of_file[2])
+    def test_code_turned_off(self):
+        config = Configuration()
+        config.send_code = False
+        notification = Notification(Exception("oops"), config, {},
+                                    traceback=fixtures.end_of_file[2])
 
-    payload = notification._payload()
+        payload = notification._payload()
 
-    code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
-    assert({5: '# 5',
-            6: '# 6', 7: '# 7', 8: '# 8', 9: 'try:',
-            10: '    import sys; raise Exception("end")',
-            11: 'except Exception: end_of_file = sys.exc_info()'} == code)
-
-
-def test_code_turned_off():
-    config = Configuration()
-    config.send_code = False
-    notification = Notification(Exception("oops"), config, {},
-                                traceback=fixtures.end_of_file[2])
-
-    payload = notification._payload()
-
-    code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
-    assert(None == code)  # flake8: noqa
+        code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
+        self.assertEqual(code, None)

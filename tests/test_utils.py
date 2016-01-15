@@ -1,35 +1,47 @@
-from nose.tools import eq_
+import unittest
 
 from six import u
 from bugsnag.utils import json_encode, sanitize_object
 
 
-def test_sanitize_object():
-    filters = ["password", "credit_card"]
-    crazy_dict = {
-        "password": "123456",
-        "metadata": {
-            "another_password": "123456",
-            "regular": "text"
-        },
-        "bad_utf8": "a test of \xe9 char",
-        "list": ["list", "of", "things"],
-        "unicode": u("string"),
-        "obj": Exception(),
-        "valid_unicode": u("\u2603"),
-    }
+class TestUtils(unittest.TestCase):
 
-    # Sanitize our object
-    sane_dict = sanitize_object(crazy_dict, filters=filters)
+    def test_sanitize_filters(self):
+        data = {"credit_card": "123213213123", "password": "456", "cake": True}
+        sane_data = sanitize_object(data, filters=["credit_card", "password"])
+        self.assertEqual(sane_data, {"credit_card": "[FILTERED]",
+                                     "password": "[FILTERED]",
+                                     "cake": True})
 
-    # Check the values have been sanitized
-    assert(sane_dict["password"] == "[FILTERED]")
-    assert(sane_dict["metadata"]["another_password"] == "[FILTERED]")
-    assert(sane_dict["metadata"]["regular"] == "text")
-    assert("things" in sane_dict["list"])
+    def test_sanitize_list(self):
+        data = {"list": ["carrots", "apples", "peas"],
+                "passwords": ["abc", "def"]}
+        sane_data = sanitize_object(data, filters=["credit_card", "password"])
+        self.assertEqual(sane_data, {"list": ["carrots", "apples", "peas"],
+                                     "passwords": "[FILTERED]"})
 
+    def test_sanitize_valid_unicode_object(self):
+        data = {"item": u('\U0001f62c')}
+        sane_data = sanitize_object(data, filters=[])
+        self.assertEqual(sane_data, data)
 
-def test_json_encode():
-    payload = {"a": u("a") * 512 * 1024}
-    eq_(json_encode(payload),
-        ('{"a": "' + 'a' * 1024 + '"}').encode('utf-8', 'replace'))
+    def test_sanitize_nested_object_filters(self):
+        data = {"metadata": {"another_password": "My password"}}
+        sane_data = sanitize_object(data, filters=["password"])
+        self.assertEqual(sane_data,
+                         {"metadata": {"another_password": "[FILTERED]"}})
+
+    def test_sanitize_bad_utf8_object(self):
+        data = {"bad_utf8": u("test \xe9")}
+        sane_data = sanitize_object(data, filters=[])
+        self.assertEqual(sane_data, data)
+
+    def test_sanitize_unencoded_object(self):
+        data = {"exc": Exception()}
+        sane_data = sanitize_object(data, filters=[])
+        self.assertEqual(sane_data, {"exc": ""})
+
+    def test_json_encode(self):
+        payload = {"a": u("a") * 512 * 1024}
+        encoded = ('{"a": "' + 'a' * 1024 + '"}').encode('utf-8', 'replace')
+        self.assertEqual(json_encode(payload), encoded)

@@ -1,3 +1,4 @@
+# flake8: noqa
 try:
     import sys; raise Exception("start")
 except Exception: start_of_file = sys.exc_info()
