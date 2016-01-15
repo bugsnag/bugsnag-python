@@ -39,11 +39,8 @@ def sanitize_object(obj, **kwargs):
         try:
             if six.PY3 and isinstance(obj, bytes):
                 string = six.text_type(obj, encoding='utf-8', errors='replace')
-            elif six.PY3 or hasattr(obj, '__unicode__'):
-                string = six.text_type(obj)
             else:
-                b = bytes(obj)
-                string = six.text_type(b, encoding='utf-8', errors='replace')
+                string = six.text_type(obj)
 
         except Exception:
             exc = traceback.format_exc()
