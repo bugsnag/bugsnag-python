@@ -18,7 +18,6 @@ def add_flask_request_to_notification(notification):
     notification.add_tab("request", {
         "url": request.base_url,
         "headers": dict(request.headers),
-        "cookies": dict(request.cookies),
         "params": dict(request.form),
         "data": request.get_json() or dict(body=request.data)
     })
