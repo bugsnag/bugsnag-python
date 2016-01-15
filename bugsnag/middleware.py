@@ -1,3 +1,5 @@
+import traceback
+
 import bugsnag
 
 
@@ -120,6 +122,7 @@ class MiddlewareStack(object):
         try:
             to_call(notification)
         except Exception as exc:
-            bugsnag.log("Error in exception middleware: %s" % exc)
+            template = "Error in exception middleware: %s\n%s"
+            bugsnag.log(template % (exc, traceback.format_exc()))
             # still notify if middleware crashes before notification
             finish(notification)
