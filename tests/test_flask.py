@@ -17,7 +17,7 @@ import bugsnag.notification
 bugsnag.configuration.api_key = '066f5ad3590596f9aa8d601ea89af845'
 
 
-class SentinalError(RuntimeError):
+class SentinelError(RuntimeError):
     pass
 
 
@@ -44,7 +44,7 @@ class TestFlask(unittest.TestCase):
 
         @app.route("/hello")
         def hello():
-            raise SentinalError("oops")
+            raise SentinelError("oops")
 
         handle_exceptions(app)
         app.test_client().get('/hello')
@@ -52,7 +52,7 @@ class TestFlask(unittest.TestCase):
         eq_(deliver.call_count, 1)
         payload = deliver.call_args[0][0]
         eq_(payload['events'][0]['exceptions'][0]['errorClass'],
-            'test_flask.SentinalError')
+            'test_flask.SentinelError')
         eq_(payload['events'][0]['metaData']['request']['url'],
             'http://localhost/hello')
 
@@ -62,7 +62,7 @@ class TestFlask(unittest.TestCase):
 
         @app.route("/hello")
         def hello():
-            bugsnag.notify(SentinalError("oops"))
+            bugsnag.notify(SentinelError("oops"))
             return "OK"
 
         handle_exceptions(app)
@@ -83,7 +83,7 @@ class TestFlask(unittest.TestCase):
         @app.route("/hello")
         def hello():
             bugsnag.configure_request(meta_data=meta_data.pop())
-            raise SentinalError("oops")
+            raise SentinelError("oops")
 
         handle_exceptions(app)
         app.test_client().get('/hello')
@@ -105,7 +105,7 @@ class TestFlask(unittest.TestCase):
 
         @app.route("/ajax", methods=["POST"])
         def hello():
-            raise SentinalError("oops")
+            raise SentinelError("oops")
 
         handle_exceptions(app)
         app.test_client().post(
@@ -114,7 +114,7 @@ class TestFlask(unittest.TestCase):
         eq_(deliver.call_count, 1)
         payload = deliver.call_args[0][0]
         event = payload['events'][0]
-        eq_(event['exceptions'][0]['errorClass'], 'test_flask.SentinalError')
+        eq_(event['exceptions'][0]['errorClass'], 'test_flask.SentinelError')
         eq_(event['metaData']['request']['url'], 'http://localhost/ajax')
         eq_(event['metaData']['request']['data'], dict(key='value'))
 
@@ -126,7 +126,7 @@ class TestFlask(unittest.TestCase):
         def hello():
             bugsnag.add_metadata_tab("account", {"id": 1, "premium": True})
             bugsnag.add_metadata_tab("account", {"premium": False})
-            raise SentinalError("oops")
+            raise SentinelError("oops")
 
         handle_exceptions(app)
         app.test_client().put(
@@ -144,7 +144,7 @@ class TestFlask(unittest.TestCase):
 
         @app.route("/form", methods=["PUT"])
         def hello():
-            raise SentinalError("oops")
+            raise SentinelError("oops")
 
         handle_exceptions(app)
         app.test_client().put(
@@ -154,7 +154,7 @@ class TestFlask(unittest.TestCase):
         payload = deliver.call_args[0][0]
         event = payload['events'][0]
         eq_(event['exceptions'][0]['errorClass'],
-            'test_flask.SentinalError')
+            'test_flask.SentinelError')
         eq_(event['metaData']['request']['url'],
             'http://localhost/form')
         ok_('_data' in event['metaData']['request']['data']['body'])

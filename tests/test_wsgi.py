@@ -12,7 +12,7 @@ import bugsnag.notification
 bugsnag.configuration.api_key = '066f5ad3590596f9aa8d601ea89af845'
 
 
-class SentinalError(RuntimeError):
+class SentinelError(RuntimeError):
     pass
 
 
@@ -37,11 +37,11 @@ class TestWSGI(unittest.TestCase):
 
         class CrashOnStartApp(object):
             def __init__(self, environ, start_response):
-                raise SentinalError("oops")
+                raise SentinelError("oops")
 
         app = TestApp(BugsnagMiddleware(CrashOnStartApp))
 
-        assert_raises(SentinalError, lambda: app.get('/beans'))
+        assert_raises(SentinelError, lambda: app.get('/beans'))
 
         eq_(deliver.call_count, 1)
         payload = deliver.call_args[0][0]
@@ -59,10 +59,10 @@ class TestWSGI(unittest.TestCase):
                 return self
 
             def __next__(self):
-                raise SentinalError("oops")
+                raise SentinelError("oops")
         app = TestApp(BugsnagMiddleware(CrashOnIterApp))
 
-        with self.assertRaises(SentinalError):
+        with self.assertRaises(SentinelError):
             app.get('/beans')
 
         eq_(deliver.call_count, 1)
@@ -83,11 +83,11 @@ class TestWSGI(unittest.TestCase):
                 raise StopIteration()
 
             def close(self):
-                raise SentinalError("oops")
+                raise SentinelError("oops")
 
         app = TestApp(BugsnagMiddleware(CrashOnCloseApp))
 
-        assert_raises(SentinalError, lambda: app.get('/beans'))
+        assert_raises(SentinelError, lambda: app.get('/beans'))
 
         eq_(deliver.call_count, 1)
         payload = deliver.call_args[0][0]
@@ -102,11 +102,11 @@ class TestWSGI(unittest.TestCase):
                 bugsnag.configure_request(
                         user={"id": "5", "email":
                               "me@cirw.in", "name": "conrad"})
-                raise SentinalError("oops")
+                raise SentinelError("oops")
 
         app = TestApp(BugsnagMiddleware(CrashAfterSettingUserId))
 
-        assert_raises(SentinalError, lambda: app.get('/beans'))
+        assert_raises(SentinelError, lambda: app.get('/beans'))
 
         eq_(deliver.call_count, 1)
         payload = deliver.call_args[0][0]
@@ -121,11 +121,11 @@ class TestWSGI(unittest.TestCase):
                                                      {"paying": True}})
 
             def __iter__(self):
-                raise SentinalError("oops")
+                raise SentinelError("oops")
 
         app = TestApp(BugsnagMiddleware(CrashAfterSettingMetaData))
 
-        assert_raises(SentinalError, lambda: app.get('/beans'))
+        assert_raises(SentinelError, lambda: app.get('/beans'))
 
         eq_(deliver.call_count, 1)
         payload = deliver.call_args[0][0]
@@ -144,11 +144,11 @@ class TestWSGI(unittest.TestCase):
                 yield 'OK'
 
             def close(self):
-                raise SentinalError("oops")
+                raise SentinelError("oops")
 
         app = TestApp(BugsnagMiddleware(CrashOnCloseIterable))
 
-        assert_raises(SentinalError, lambda: app.get('/beans'))
+        assert_raises(SentinelError, lambda: app.get('/beans'))
 
         eq_(deliver.call_count, 1)
         payload = deliver.call_args[0][0]
