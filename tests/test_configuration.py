@@ -26,7 +26,7 @@ class TestConfiguration(unittest.TestCase):
         c.endpoint = "localhost:1234"
         eq_(c.get_endpoint(), "http://localhost:1234")
 
-    def test_environment_defaults(self):
+    def test_reads_api_key_from_environ(self):
         os.environ['BUGSNAG_API_KEY'] = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
         c = Configuration()
         self.assertEqual(c.api_key, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
