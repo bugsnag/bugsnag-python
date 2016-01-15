@@ -1,3 +1,6 @@
+twine
+wheel
+
 --index-url https://pypi.python.org/simple/
 
 -e .[tests]

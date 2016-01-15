@@ -58,7 +58,11 @@ If you're on the core team, you can release Bugsnag as follows:
     password: your-pypi-password
     ```
 
-## Doing a release
+* Install the distribution dependencies
+
+      pip install -r dev_requirements.txt
+
+## Making a release
 
 * Update the version number in setup.py
 * Update the CHANGELOG.md, and README.md if necessary
@@ -82,8 +86,7 @@ If you're on the core team, you can release Bugsnag as follows:
 
 * Push the release to PyPI
 
-    ```
-    python setup.py sdist upload
-    ```
+      python setup.py sdist bdist_wheel
+      twine upload dist/*
 
 
