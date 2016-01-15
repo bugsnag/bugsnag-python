@@ -2,8 +2,6 @@ import os
 import socket
 import unittest
 
-from nose.tools import eq_
-
 from bugsnag.configuration import Configuration
 
 
@@ -13,24 +11,24 @@ class TestConfiguration(unittest.TestCase):
         # Test default endpoint with ssl
         c = Configuration()
         c.use_ssl = True
-        eq_(c.get_endpoint(), "https://notify.bugsnag.com")
+        self.assertEqual(c.get_endpoint(), "https://notify.bugsnag.com")
 
         # Test default endpoint without ssl
         c = Configuration()
         c.use_ssl = False
-        eq_(c.get_endpoint(), "http://notify.bugsnag.com")
+        self.assertEqual(c.get_endpoint(), "http://notify.bugsnag.com")
 
         # Test custom endpoint
         c = Configuration()
         c.use_ssl = False
         c.endpoint = "localhost:1234"
-        eq_(c.get_endpoint(), "http://localhost:1234")
+        self.assertEqual(c.get_endpoint(), "http://localhost:1234")
 
     def test_reads_api_key_from_environ(self):
         os.environ['BUGSNAG_API_KEY'] = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
         c = Configuration()
         self.assertEqual(c.api_key, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
-        eq_(c.project_root, os.getcwd())
+        self.assertEqual(c.project_root, os.getcwd())
 
     def test_should_notify(self):
         # Test custom release_stage
@@ -62,7 +60,7 @@ class TestConfiguration(unittest.TestCase):
 
     def test_hostname(self):
         c = Configuration()
-        eq_(c.hostname, socket.gethostname())
+        self.assertEqual(c.hostname, socket.gethostname())
 
         os.environ["DYNO"] = "YES"
         c = Configuration()

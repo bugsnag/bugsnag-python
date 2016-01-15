@@ -1,7 +1,5 @@
 import unittest
 
-from nose.tools import eq_
-
 from bugsnag.middleware import MiddlewareStack
 
 
@@ -21,7 +19,7 @@ class TestMiddleware(unittest.TestCase):
 
         m.run(None, lambda: None)
 
-        eq_(a, [1, 2, 3, 4])
+        self.assertEqual(a, [1, 2, 3, 4])
 
     def test_before_notify_returning_false(self):
 
@@ -34,7 +32,7 @@ class TestMiddleware(unittest.TestCase):
 
         m.run(None, lambda: a.append(2))
 
-        eq_(a, [])
+        self.assertEqual(a, [])
 
     def test_before_exception_handling(self):
 
@@ -44,7 +42,7 @@ class TestMiddleware(unittest.TestCase):
         m.before_notify(lambda _: a.penned(1))
         m.run(None, lambda: a.append(2))
 
-        eq_(a, [2])
+        self.assertEqual(a, [2])
 
     def test_after_exception_handling(self):
         a = []
@@ -53,4 +51,4 @@ class TestMiddleware(unittest.TestCase):
         m.after_notify(lambda _: a.penned(1))
         m.run(None, lambda: a.append(2))
 
-        eq_(a, [2])
+        self.assertEqual(a, [2])

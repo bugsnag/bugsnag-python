@@ -1,7 +1,6 @@
 import unittest
 
 from webtest import TestApp
-from nose.tools import eq_, assert_raises
 from mock import patch
 
 from bugsnag.wsgi.middleware import BugsnagMiddleware
@@ -28,9 +27,9 @@ class TestWSGI(unittest.TestCase):
         app = TestApp(BugsnagMiddleware(BasicWorkingApp))
 
         resp = app.get('/', status=200)
-        eq_(resp.body, b'OK')
+        self.assertEqual(resp.body, b'OK')
 
-        eq_(deliver.call_count, 0)
+        self.assertEqual(deliver.call_count, 0)
 
     @patch('bugsnag.notification.deliver')
     def test_bugsnag_middleware_crash_on_start(self, deliver):
@@ -41,13 +40,14 @@ class TestWSGI(unittest.TestCase):
 
         app = TestApp(BugsnagMiddleware(CrashOnStartApp))
 
-        assert_raises(SentinelError, lambda: app.get('/beans'))
+        self.assertRaises(SentinelError, lambda: app.get('/beans'))
 
-        eq_(deliver.call_count, 1)
+        self.assertEqual(deliver.call_count, 1)
         payload = deliver.call_args[0][0]
-        eq_(payload['events'][0]['context'], 'GET /beans')
-        eq_(payload['events'][0]['metaData']['environment']['PATH_INFO'],
-            '/beans')
+        event = payload['events'][0]
+        self.assertEqual(event['context'], 'GET /beans')
+        self.assertEqual(event['metaData']['environment']['PATH_INFO'],
+                         '/beans')
 
     @patch('bugsnag.notification.deliver')
     def test_bugsnag_middleware_crash_on_iter(self, deliver):
@@ -62,13 +62,12 @@ class TestWSGI(unittest.TestCase):
                 raise SentinelError("oops")
         app = TestApp(BugsnagMiddleware(CrashOnIterApp))
 
-        with self.assertRaises(SentinelError):
-            app.get('/beans')
+        self.assertRaises(SentinelError, lambda: app.get('/beans'))
 
-        eq_(deliver.call_count, 1)
+        self.assertEqual(deliver.call_count, 1)
         payload = deliver.call_args[0][0]
-        eq_(payload['events'][0]['metaData']['environment']['PATH_INFO'],
-            '/beans')
+        environ = payload['events'][0]['metaData']['environment']
+        self.assertEqual(environ['PATH_INFO'], '/beans')
 
     @patch('bugsnag.notification.deliver')
     def test_bugsnag_middleware_crash_on_close(self, deliver):
@@ -87,12 +86,12 @@ class TestWSGI(unittest.TestCase):
 
         app = TestApp(BugsnagMiddleware(CrashOnCloseApp))
 
-        assert_raises(SentinelError, lambda: app.get('/beans'))
+        self.assertRaises(SentinelError, lambda: app.get('/beans'))
 
-        eq_(deliver.call_count, 1)
+        self.assertEqual(deliver.call_count, 1)
         payload = deliver.call_args[0][0]
-        eq_(payload['events'][0]['metaData']['environment']['PATH_INFO'],
-            '/beans')
+        environ = payload['events'][0]['metaData']['environment']
+        self.assertEqual(environ['PATH_INFO'], '/beans')
 
     @patch('bugsnag.notification.deliver')
     def test_bugsnag_middleware_respects_user_id(self, deliver):
@@ -106,11 +105,11 @@ class TestWSGI(unittest.TestCase):
 
         app = TestApp(BugsnagMiddleware(CrashAfterSettingUserId))
 
-        assert_raises(SentinelError, lambda: app.get('/beans'))
+        self.assertRaises(SentinelError, lambda: app.get('/beans'))
 
-        eq_(deliver.call_count, 1)
+        self.assertEqual(deliver.call_count, 1)
         payload = deliver.call_args[0][0]
-        eq_(payload['events'][0]['user']['id'], '5')
+        self.assertEqual(payload['events'][0]['user']['id'], '5')
 
     @patch('bugsnag.notification.deliver')
     def test_bugsnag_middleware_respects_meta_data(self, deliver):
@@ -125,11 +124,12 @@ class TestWSGI(unittest.TestCase):
 
         app = TestApp(BugsnagMiddleware(CrashAfterSettingMetaData))
 
-        assert_raises(SentinelError, lambda: app.get('/beans'))
+        self.assertRaises(SentinelError, lambda: app.get('/beans'))
 
-        eq_(deliver.call_count, 1)
+        self.assertEqual(deliver.call_count, 1)
         payload = deliver.call_args[0][0]
-        eq_(payload['events'][0]['metaData']['account'], {"paying": True})
+        event = payload['events'][0]
+        self.assertEqual(event['metaData']['account'], {"paying": True})
 
     @patch('bugsnag.notification.deliver')
     def test_bugsnag_middleware_closes_iterables(self, deliver):
@@ -148,9 +148,9 @@ class TestWSGI(unittest.TestCase):
 
         app = TestApp(BugsnagMiddleware(CrashOnCloseIterable))
 
-        assert_raises(SentinelError, lambda: app.get('/beans'))
+        self.assertRaises(SentinelError, lambda: app.get('/beans'))
 
-        eq_(deliver.call_count, 1)
+        self.assertEqual(deliver.call_count, 1)
         payload = deliver.call_args[0][0]
-        eq_(payload['events'][0]['metaData']['environment']['PATH_INFO'],
-            '/beans')
+        environ = payload['events'][0]['metaData']['environment']
+        self.assertEqual(environ['PATH_INFO'], '/beans')

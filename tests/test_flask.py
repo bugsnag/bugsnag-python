@@ -6,7 +6,6 @@ if (3, 0) <= sys.version_info < (3, 3):  # noqa
 
 import unittest
 
-from nose.tools import eq_, ok_
 from mock import patch
 from flask import Flask
 
@@ -34,9 +33,9 @@ class TestFlask(unittest.TestCase):
         handle_exceptions(app)
 
         resp = app.test_client().get('/hello')
-        eq_(resp.data, b'OK')
+        self.assertEqual(resp.data, b'OK')
 
-        eq_(deliver.call_count, 0)
+        self.assertEqual(deliver.call_count, 0)
 
     @patch('bugsnag.notification.deliver')
     def test_bugsnag_crash(self, deliver):
@@ -49,12 +48,12 @@ class TestFlask(unittest.TestCase):
         handle_exceptions(app)
         app.test_client().get('/hello')
 
-        eq_(deliver.call_count, 1)
+        self.assertEqual(deliver.call_count, 1)
         payload = deliver.call_args[0][0]
-        eq_(payload['events'][0]['exceptions'][0]['errorClass'],
-            'test_flask.SentinelError')
-        eq_(payload['events'][0]['metaData']['request']['url'],
-            'http://localhost/hello')
+        self.assertEqual(payload['events'][0]['exceptions'][0]['errorClass'],
+                         'test_flask.SentinelError')
+        self.assertEqual(payload['events'][0]['metaData']['request']['url'],
+                         'http://localhost/hello')
 
     @patch('bugsnag.notification.deliver')
     def test_bugsnag_notify(self, deliver):
@@ -68,10 +67,10 @@ class TestFlask(unittest.TestCase):
         handle_exceptions(app)
         app.test_client().get('/hello')
 
-        eq_(deliver.call_count, 1)
+        self.assertEqual(deliver.call_count, 1)
         payload = deliver.call_args[0][0]
-        eq_(payload['events'][0]['metaData']['request']['url'],
-            'http://localhost/hello')
+        self.assertEqual(payload['events'][0]['metaData']['request']['url'],
+                         'http://localhost/hello')
 
     @patch('bugsnag.notification.deliver')
     def test_bugsnag_custom_data(self, deliver):
@@ -89,15 +88,17 @@ class TestFlask(unittest.TestCase):
         app.test_client().get('/hello')
         app.test_client().get('/hello')
 
-        eq_(deliver.call_count, 2)
+        self.assertEqual(deliver.call_count, 2)
 
         payload = deliver.call_args_list[0][0][0]
-        eq_(payload['events'][0]['metaData'].get('hello'), None)
-        eq_(payload['events'][0]['metaData']['again']['hello'], 'world')
+        event = payload['events'][0]
+        self.assertEqual(event['metaData'].get('hello'), None)
+        self.assertEqual(event['metaData']['again']['hello'], 'world')
 
         payload = deliver.call_args_list[1][0][0]
-        eq_(payload['events'][0]['metaData']['hello']['world'], 'once')
-        eq_(payload['events'][0]['metaData'].get('again'), None)
+        event = payload['events'][0]
+        self.assertEqual(event['metaData']['hello']['world'], 'once')
+        self.assertEqual(event['metaData'].get('again'), None)
 
     @patch('bugsnag.notification.deliver')
     def test_bugsnag_includes_posted_json_data(self, deliver):
@@ -111,12 +112,15 @@ class TestFlask(unittest.TestCase):
         app.test_client().post(
             '/ajax', data='{"key": "value"}', content_type='application/json')
 
-        eq_(deliver.call_count, 1)
+        self.assertEqual(deliver.call_count, 1)
         payload = deliver.call_args[0][0]
         event = payload['events'][0]
-        eq_(event['exceptions'][0]['errorClass'], 'test_flask.SentinelError')
-        eq_(event['metaData']['request']['url'], 'http://localhost/ajax')
-        eq_(event['metaData']['request']['data'], dict(key='value'))
+        self.assertEqual(event['exceptions'][0]['errorClass'],
+                         'test_flask.SentinelError')
+        self.assertEqual(event['metaData']['request']['url'],
+                         'http://localhost/ajax')
+        self.assertEqual(event['metaData']['request']['data'],
+                         dict(key='value'))
 
     @patch('bugsnag.notification.deliver')
     def test_bugsnag_add_metadata_tab(self, deliver):
@@ -132,11 +136,11 @@ class TestFlask(unittest.TestCase):
         app.test_client().put(
             '/form', data='_data', content_type='application/octet-stream')
 
-        eq_(deliver.call_count, 1)
+        self.assertEqual(deliver.call_count, 1)
         payload = deliver.call_args[0][0]
-        eq_(payload['events'][0]['metaData']['account']['premium'], False)
-
-        eq_(payload['events'][0]['metaData']['account']['id'], 1)
+        event = payload['events'][0]
+        self.assertEqual(event['metaData']['account']['premium'], False)
+        self.assertEqual(event['metaData']['account']['id'], 1)
 
     @patch('bugsnag.notification.deliver')
     def test_bugsnag_includes_unknown_content_type_posted_data(self, deliver):
@@ -150,11 +154,12 @@ class TestFlask(unittest.TestCase):
         app.test_client().put(
             '/form', data='_data', content_type='application/octet-stream')
 
-        eq_(deliver.call_count, 1)
+        self.assertEqual(deliver.call_count, 1)
         payload = deliver.call_args[0][0]
         event = payload['events'][0]
-        eq_(event['exceptions'][0]['errorClass'],
-            'test_flask.SentinelError')
-        eq_(event['metaData']['request']['url'],
-            'http://localhost/form')
-        ok_('_data' in event['metaData']['request']['data']['body'])
+        self.assertEqual(event['exceptions'][0]['errorClass'],
+                         'test_flask.SentinelError')
+        self.assertEqual(event['metaData']['request']['url'],
+                         'http://localhost/form')
+        body = event['metaData']['request']['data']['body']
+        self.assertTrue('_data' in body)

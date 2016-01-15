@@ -1,8 +1,6 @@
 import inspect
 import unittest
 
-from nose.tools import eq_
-
 from bugsnag.configuration import Configuration
 from bugsnag.notification import Notification
 import fixtures
@@ -22,8 +20,8 @@ class TestNotification(unittest.TestCase):
 
         payload = notification._payload()
         request = payload['events'][0]['metaData']['request']
-        eq_(request['arguments']['password'], '[FILTERED]')
-        eq_(request['params']['password'], '[FILTERED]')
+        self.assertEqual(request['arguments']['password'], '[FILTERED]')
+        self.assertEqual(request['params']['password'], '[FILTERED]')
 
     def test_code(self):
         """
@@ -37,14 +35,16 @@ class TestNotification(unittest.TestCase):
 
         code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
         lvl = "        "
-        eq_(code[line - 3], lvl + "\"\"\"")
-        eq_(code[line - 2], lvl + "config = Configuration()")
-        eq_(code[line - 1], lvl + "line = inspect.currentframe().f_lineno + 1")
-        eq_(code[line], lvl +
-            "notification = Notification(Exception(\"oops\"), config, {})")
-        eq_(code[line + 1], "")
-        eq_(code[line + 2], lvl + "payload = notification._payload()")
-        eq_(code[line + 3], "")
+        self.assertEqual(code[line - 3], lvl + "\"\"\"")
+        self.assertEqual(code[line - 2], lvl + "config = Configuration()")
+        self.assertEqual(code[line - 1],
+                lvl + "line = inspect.currentframe().f_lineno + 1")
+        self.assertEqual(code[line], lvl +
+                "notification = Notification(Exception(\"oops\"), config, {})")
+        self.assertEqual(code[line + 1], "")
+        self.assertEqual(code[line + 2],
+                lvl + "payload = notification._payload()")
+        self.assertEqual(code[line + 3], "")
 
     def test_code_at_start_of_file(self):
 
@@ -55,7 +55,7 @@ class TestNotification(unittest.TestCase):
         payload = notification._payload()
 
         code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
-        eq_({1: '# flake8: noqa',
+        self.assertEqual({1: '# flake8: noqa',
              2: 'try:',
              3: '    import sys; raise Exception("start")',
              4: 'except Exception: start_of_file = sys.exc_info()',
@@ -72,7 +72,7 @@ class TestNotification(unittest.TestCase):
         payload = notification._payload()
 
         code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
-        eq_({6:  '# 5',
+        self.assertEqual({6:  '# 5',
              7:  '# 6',
              8:  '# 7',
              9:  '# 8',
