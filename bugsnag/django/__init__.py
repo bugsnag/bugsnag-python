@@ -1,5 +1,6 @@
 from __future__ import division, print_function, absolute_import
 
+import six
 from django.conf import settings
 from django.core.urlresolvers import resolve
 
@@ -22,10 +23,10 @@ def add_django_request_to_notification(notification):
 
     if hasattr(request, 'user') and request.user.is_authenticated():
         try:
-            name = " ".join([request.user.first_name or '',
-                             request.user.last_name or ''])
-            notification.set_user(id=request.user.username,
-                                  email=request.user.email, name=name)
+            name = request.user.get_full_name()
+            email = getattr(request.user, 'email', None)
+            username = six.text_type(request.user.get_username())
+            notification.set_user(id=username, email=email, name=name)
         except Exception as e:
             bugsnag.warn("could not get user data: %s" % e)
     else:
