@@ -1,6 +1,34 @@
 Changelog
 =========
 
+## 2.4.0 (2016-01-18)
+
+### Enhancements
+
+* Add synchronous upload mode
+  [Tuomas Peippo](https://github.com/tume)
+  [#67](https://github.com/bugsnag/bugsnag-python/pull/67)
+  [#71](https://github.com/bugsnag/bugsnag-python/pull/71)
+
+* Add stacktraces to middleware exception logging
+  [Delisa Mason](https://github.com/kattrali)
+  [#77](https://github.com/bugsnag/bugsnag-python/pull/77)
+
+* Remove cookie logging from WSGI and Flask configurations
+  [Delisa Mason](https://github.com/kattrali)
+
+### Bug Fixes
+
+* Remove use of deprecated `request.REQUEST` attribute in favor of `GET`/`POST`
+  [Delisa Mason](https://github.com/kattrali)
+  [#69](https://github.com/bugsnag/bugsnag-python/pull/69)
+
+* Fix user attribute logging for Django custom authentication setups
+  [Delisa Mason](https://github.com/kattrali)
+  [#76](https://github.com/bugsnag/bugsnag-python/pull/76)
+  [#78](https://github.com/bugsnag/bugsnag-python/pull/78)
+
+
 2.3.1
 -----
 -   Redact HTTP_COOKIE and HTTP_AUTHORIZATION by default
