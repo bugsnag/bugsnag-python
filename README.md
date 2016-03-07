@@ -409,6 +409,14 @@ import myapp.custom_logging
 bugsnag.configure(traceback_exclude_modules = [myapp.custom_logging])
 ```
 
+### proxy_host
+Proxies all communication with bugsnag.com via `proxy_host`.
+
+```python
+bugsnag.configure(proxy_host = 'http://proxy:3128')
+```
+
+
 Per-request Configuration
 -------------------------
 
