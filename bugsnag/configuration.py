@@ -58,6 +58,8 @@ class Configuration(_BaseConfiguration):
         self.middleware = MiddlewareStack()
         self.middleware.append(DefaultMiddleware)
 
+        self.proxy_host = None
+
         if not os.getenv("DYNO"):
             self.hostname = socket.gethostname()
         else:

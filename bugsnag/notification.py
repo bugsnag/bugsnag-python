@@ -8,18 +8,31 @@ import threading
 import traceback
 
 import bugsnag
-from six.moves.urllib.request import Request, urlopen
+from six.moves.urllib.request import (
+    Request,
+    urlopen,
+    ProxyHandler,
+    build_opener,
+    install_opener
+)
 from bugsnag.utils import fully_qualified_class_name as class_name
 from bugsnag.utils import json_encode, package_version, sanitize_object
 
 
-def deliver(payload, url, async):
+def deliver(payload, url, async, proxy_host):
     payload = json_encode(payload)
     req = Request(url, payload, {
         'Content-Type': 'application/json'
     })
 
     def request():
+        if proxy_host:
+            proxy = ProxyHandler({
+                'https': proxy_host,
+                'http': proxy_host
+            })
+            opener = build_opener(proxy)
+            install_opener(opener)
         try:
             resp = urlopen(req)
             status = resp.getcode()
@@ -284,4 +297,4 @@ class Notification(object):
 
         bugsnag.log("Notifying %s of exception" % url)
 
-        deliver(self._payload(), url, async)
+        deliver(self._payload(), url, async, self.config.proxy_host)
