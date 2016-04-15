@@ -89,4 +89,7 @@ If you're on the core team, you can release Bugsnag as follows:
       python setup.py sdist bdist_wheel
       twine upload dist/*
 
+## Update docs.bugsnag.com
+
+Update the setup guides for Python (and its frameworks) with any new content.
 
