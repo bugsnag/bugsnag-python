@@ -1,6 +1,13 @@
 Changelog
 =========
 
+## Master
+
+### Bug Fixes
+
+* Fixes an issue where the package version is marked as "unknown".
+
+
 ## 2.4.0 (2016-01-18)
 
 ### Enhancements
