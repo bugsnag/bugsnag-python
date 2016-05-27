@@ -258,7 +258,7 @@ class Notification(object):
 
     def _payload(self):
         # Fetch the notifier version from the package
-        notifier_version = package_version("bugsnag_python") or "unknown"
+        notifier_version = package_version("bugsnag") or "unknown"
 
         # Construct the payload dictionary
         return {
