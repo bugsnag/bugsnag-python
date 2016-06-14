@@ -32,7 +32,8 @@ def add_django_request_to_notification(notification):
     else:
         notification.set_user(id=request.META['REMOTE_ADDR'])
 
-    notification.add_tab("session", dict(request.session))
+    if getattr(request, "session", None):
+        notification.add_tab("session", dict(request.session))
     notification.add_tab("request", {
         'path': request.path,
         'encoding': request.encoding,
