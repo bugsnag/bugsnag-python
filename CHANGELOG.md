@@ -1,12 +1,22 @@
 Changelog
 =========
 
-## Master
+## 2.5.0 (2016-06-14)
+
+### Enhancements
+
+* Add support for proxied connections to Bugsnag
+  [Tomas Edwardsson](https://github.com/tomas-edwardsson)
+  [#79](https://github.com/bugsnag/bugsnag-python/pull/79)
 
 ### Bug Fixes
 
-* Fixes an issue where the package version is marked as "unknown".
+* Fix an issue where the package version is marked as "unknown"
+  [Kyle Fuller](https://github.com/kylef)
+  [#83](https://github.com/bugsnag/bugsnag-python/pull/83)
 
+* Fix an issue where request metadata is not sent when not using
+  SessionMiddleware in Django
 
 ## 2.4.0 (2016-01-18)
 
