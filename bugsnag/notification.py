@@ -23,17 +23,17 @@ def deliver(payload, url, async, proxy_host):
     })
 
     def request():
-        if proxy_host:
-            proxies = ProxyHandler({
-                'https': proxy_host,
-                'http': proxy_host
-            })
+        def urllib_request():
+            if proxy_host:
+                proxies = ProxyHandler({
+                    'https': proxy_host,
+                    'http': proxy_host
+                })
 
-            opener = build_opener(proxies)
-        else:
-            opener = build_opener()
+                opener = build_opener(proxies)
+            else:
+                opener = build_opener()
 
-        try:
             resp = opener.open(req)
             status = resp.getcode()
 
@@ -41,6 +41,29 @@ def deliver(payload, url, async, proxy_host):
                 bugsnag.logger.warning(
                     'Notification to %s failed, status %d' % (url, status))
 
+        def requests_request():
+            if proxy_host:
+                proxy = {
+                    'https': proxy_host,
+                    'http': proxy_host
+                }
+                r = requests.post(url, data=payload, proxies=proxy)
+            else:
+                r = requests.post(url, data=payload)
+
+            status = r.status_code
+
+            if status != requests.codes.ok:
+                bugsnag.logger.warning(
+                    'Notification to %s failed, status %d' % (url, status))
+
+        try:
+            try:
+                import requests
+            except ImportError:
+                urllib_request()
+            else:
+                requests_request()
         except Exception:
             bugsnag.logger.exception(
                 'Failed to send notification to %s' % url)
