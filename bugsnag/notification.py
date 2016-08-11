@@ -8,6 +8,7 @@ import threading
 import traceback
 
 import bugsnag
+
 from six.moves.urllib.request import (
     Request,
     ProxyHandler,
@@ -15,6 +16,13 @@ from six.moves.urllib.request import (
 )
 from bugsnag.utils import fully_qualified_class_name as class_name
 from bugsnag.utils import SanitizingJSONEncoder, package_version
+try:
+    if sys.version_info is not (3, 2):
+        raise ImportError("Skip loading on 3.2")
+
+    import requests
+except ImportError:
+    requests = None
 
 
 def deliver(payload, url, async, proxy_host):
@@ -58,12 +66,10 @@ def deliver(payload, url, async, proxy_host):
                     'Notification to %s failed, status %d' % (url, status))
 
         try:
-            try:
-                import requests
-            except ImportError:
-                urllib_request()
-            else:
+            if requests is not None:
                 requests_request()
+            else:
+                urllib_request()
         except Exception:
             bugsnag.logger.exception(
                 'Failed to send notification to %s' % url)
