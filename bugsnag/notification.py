@@ -47,9 +47,9 @@ def deliver(payload, url, async, proxy_host):
                     'https': proxy_host,
                     'http': proxy_host
                 }
-                r = requests.post(url, data=payload, proxies=proxy)
+                r = requests.post(url, json=payload, proxies=proxy)
             else:
-                r = requests.post(url, data=payload)
+                r = requests.post(url, json=payload)
 
             status = r.status_code
 
