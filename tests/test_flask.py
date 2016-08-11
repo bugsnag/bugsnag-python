@@ -51,7 +51,7 @@ class TestFlask(unittest.TestCase):
         self.assertEqual(deliver.call_count, 1)
         payload = deliver.call_args[0][0]
         self.assertEqual(payload['events'][0]['exceptions'][0]['errorClass'],
-                         'test_flask.SentinelError')
+                         'tests.test_flask.SentinelError')
         self.assertEqual(payload['events'][0]['metaData']['request']['url'],
                          'http://localhost/hello')
 
@@ -116,7 +116,7 @@ class TestFlask(unittest.TestCase):
         payload = deliver.call_args[0][0]
         event = payload['events'][0]
         self.assertEqual(event['exceptions'][0]['errorClass'],
-                         'test_flask.SentinelError')
+                         'tests.test_flask.SentinelError')
         self.assertEqual(event['metaData']['request']['url'],
                          'http://localhost/ajax')
         self.assertEqual(event['metaData']['request']['data'],
@@ -158,7 +158,7 @@ class TestFlask(unittest.TestCase):
         payload = deliver.call_args[0][0]
         event = payload['events'][0]
         self.assertEqual(event['exceptions'][0]['errorClass'],
-                         'test_flask.SentinelError')
+                         'tests.test_flask.SentinelError')
         self.assertEqual(event['metaData']['request']['url'],
                          'http://localhost/form')
         body = event['metaData']['request']['data']['body']
