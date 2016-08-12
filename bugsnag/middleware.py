@@ -41,7 +41,12 @@ class DefaultMiddleware(object):
             notification.context = config.get("context")
 
         for name, dictionary in config.meta_data.items():
-            notification.add_tab(name, dictionary)
+            if name in notification.meta_data:
+                for key, value in dictionary.items():
+                    if key not in notification.meta_data[name]:
+                        notification.meta_data[name][key] = value
+            else:
+                notification.add_tab(name, dictionary)
 
         notification.add_tab("request", config.get("request_data"))
         notification.add_tab("environment", config.get("environment_data"))
