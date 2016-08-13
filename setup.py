@@ -22,7 +22,7 @@ tests_require = [
 
 setup(
     name='bugsnag',
-    version='2.5.0',
+    version='2.5.1',
     description='Automatic error monitoring for django, flask, etc.',
     long_description=__doc__,
     author='Simon Maynard',

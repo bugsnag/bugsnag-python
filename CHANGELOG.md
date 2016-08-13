@@ -1,6 +1,13 @@
 Changelog
 =========
 
+## 2.5.1 (2016-08-12)
+
+### Bug Fixes
+
+* Fix setting `api_key` and `grouping_hash` from `notify()` or `before_notify()`
+* Fix merge behavior when overriding metadata from `notify()`
+
 ## 2.5.0 (2016-06-14)
 
 ### Enhancements
