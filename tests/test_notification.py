@@ -3,7 +3,7 @@ import unittest
 
 from bugsnag.configuration import Configuration
 from bugsnag.notification import Notification
-import fixtures
+from tests import fixtures
 
 
 class TestNotification(unittest.TestCase):

@@ -90,7 +90,6 @@ class Notification(object):
 
         def get_config(key): return options.pop(key, self.config.get(key))
 
-        self.api_key = get_config("api_key")
         self.release_stage = get_config("release_stage")
         self.app_version = get_config("app_version")
         self.hostname = get_config("hostname")
@@ -108,6 +107,7 @@ class Notification(object):
         self.stacktrace = self._generate_stacktrace(
                 self.options.pop("traceback", sys.exc_info()[2]))
         self.grouping_hash = options.pop("grouping_hash", None)
+        self.api_key = options.pop("api_key", get_config("api_key"))
 
         self.meta_data = {}
         for name, tab in options.pop("meta_data", {}).items():
@@ -262,7 +262,7 @@ class Notification(object):
 
         # Construct the payload dictionary
         return {
-            "apiKey": self.config.api_key,
+            "apiKey": self.api_key,
             "notifier": {
                 "name": self.NOTIFIER_NAME,
                 "url": self.NOTIFIER_URL,

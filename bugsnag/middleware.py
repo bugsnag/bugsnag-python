@@ -36,13 +36,17 @@ class DefaultMiddleware(object):
         config = notification.request_config
         notification.set_user(id=config.user_id)
         notification.set_user(**config.user)
-        notification.grouping_hash = config.get("grouping_hash")
 
         if not notification.context:
             notification.context = config.get("context")
 
         for name, dictionary in config.meta_data.items():
-            notification.add_tab(name, dictionary)
+            if name in notification.meta_data:
+                for key, value in dictionary.items():
+                    if key not in notification.meta_data[name]:
+                        notification.meta_data[name][key] = value
+            else:
+                notification.add_tab(name, dictionary)
 
         notification.add_tab("request", config.get("request_data"))
         notification.add_tab("environment", config.get("environment_data"))

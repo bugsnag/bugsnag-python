@@ -13,14 +13,9 @@ and solve your bugs as fast as possible.
 from setuptools import setup, find_packages
 
 tests_require = [
-  'tornado',
   'flask',
-  'webob',
   'blinker',
-  'django',
-  'celery',
   'webtest',
-  'mock',
   'nose',
   'flake8'
 ]
