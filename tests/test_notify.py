@@ -1,4 +1,8 @@
+# -*- coding: utf8 -*-
+
 import unittest
+
+from six import u
 
 import bugsnag
 from tests.utils import FakeBugsnagServer, ScaryException
@@ -175,12 +179,49 @@ class TestBugsnag(unittest.TestCase):
         self.assertEqual('tests.utils.ScaryException', exception['errorClass'])
 
     def test_notify_error_message(self):
-        bugsnag.notify(ScaryException('unexpected failover'))
+        bugsnag.notify(ScaryException(u('unexpécted failover')))
         self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
-        self.assertEqual('unexpected failover', exception['message'])
+        self.assertEqual(u('unexpécted failover'), exception['message'])
+
+    def test_notify_unicode_metadata(self):
+        bins = (u('\x98\x00\x00\x00\t\x81\x19\x1b\x00\x00\x00\x00\xd4\x07\x00'
+                  '\x00\x00\x00\x00\x00R\x00\x00\x00\x00\x00\xff\xff\xff\xffe'
+                  '\x00\x00\x00\x02project\x00%\x00\x00\x00f65f051b-d762-5983'
+                  '-838b-a05aadc06a5\x00\x02uid\x00%\x00\x00\x001bab969f-7b30'
+                  '-459a-adee-917b9e028eed\x00\x00'))
+        self_class = 'tests.test_notify.TestBugsnag'
+        bugsnag.notify(Exception('free food'),
+                       meta_data={'payload': {
+                         'project': u('∆πåß∂ƒ'),
+                         'filename': u('DISPOSITIFS DE SÉCURITÉ.pdf'),
+                         u('♥♥i'): u('♥♥♥♥♥♥'),
+                         'src_name': u('☻☻☻☻☻ RDC DISPOSITIFS DE SÉCURTÉ.pdf'),
+                         u('accénted'): u('☘☘☘éééé@me.com'),
+                         'class': self.__class__,
+                         'another_class': dict,
+                         'self': self,
+                         'var': bins
+                       }})
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertEqual(u('∆πåß∂ƒ'), event['metaData']['payload']['project'])
+        self.assertEqual(u('♥♥♥♥♥♥'),
+                         event['metaData']['payload'][u('♥♥i')])
+        self.assertEqual(u('DISPOSITIFS DE SÉCURITÉ.pdf'),
+                         event['metaData']['payload']['filename'])
+        self.assertEqual(u('☻☻☻☻☻ RDC DISPOSITIFS DE SÉCURTÉ.pdf'),
+                         event['metaData']['payload']['src_name'])
+        self.assertEqual(u('☘☘☘éééé@me.com'),
+                         event['metaData']['payload'][u('accénted')])
+        self.assertEqual('test_notify_unicode_metadata (%s)' % self_class,
+                         event['metaData']['payload']['self'])
+        self.assertEqual(bins, event['metaData']['payload']['var'])
+        self.assertEqual("<class 'tests.test_notify.TestBugsnag'>",
+                         event['metaData']['payload']['class'])
 
     def test_notify_stacktrace(self):
         samples.call_bugsnag_nested()
