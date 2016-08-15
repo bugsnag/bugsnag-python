@@ -24,7 +24,7 @@ class TestBugsnag(unittest.TestCase):
                           release_stage='dev',
                           async=False)
 
-    def shutDown(self):
+    def tearDown(self):
         bugsnag.configuration = bugsnag.Configuration()
         bugsnag.configuration.api_key = 'some key'
 
