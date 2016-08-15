@@ -23,7 +23,8 @@ def sanitize_object(obj, **kwargs):
         clean_dict = {}
         for k, v in six.iteritems(obj):
             # Remove values for keys matching filters
-            if any(f.lower() in k.lower() for f in filters):
+            is_string = isinstance(k, six.string_types)
+            if is_string and any(f.lower() in k.lower() for f in filters):
                 clean_dict[k] = "[FILTERED]"
             else:
                 clean_obj = sanitize_object(v, **kwargs)
@@ -34,6 +35,8 @@ def sanitize_object(obj, **kwargs):
     elif any(isinstance(obj, t) for t in (list, set, tuple)):
         return [sanitize_object(x, **kwargs) for x in obj]
     elif any(isinstance(obj, t) for t in (bool, float, int)):
+        return obj
+    elif obj is None:
         return obj
     else:
         try:

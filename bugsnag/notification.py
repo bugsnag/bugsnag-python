@@ -259,7 +259,6 @@ class Notification(object):
     def _payload(self):
         # Fetch the notifier version from the package
         notifier_version = package_version("bugsnag") or "unknown"
-
         # Construct the payload dictionary
         return {
             "apiKey": self.api_key,
@@ -268,27 +267,31 @@ class Notification(object):
                 "url": self.NOTIFIER_URL,
                 "version": notifier_version,
             },
-            "events": [{
-                "payloadVersion": self.PAYLOAD_VERSION,
-                "severity": self.severity,
-                "releaseStage": self.release_stage,
-                "appVersion": self.app_version,
-                "context": self.context,
-                "groupingHash": self.grouping_hash,
-                "exceptions": [{
-                    "errorClass": class_name(self.exception),
-                    "message": str(self.exception),
-                    "stacktrace": self.stacktrace,
-                }],
-                "metaData": self.meta_data,
-                "user": self.user,
-                "device": {
-                    "hostname": self.hostname
-                },
-                "projectRoot": self.config.get("project_root"),
-                "libRoot": self.config.get("lib_root")
-            }]
+            "events": [self._event_payload()]
         }
+
+    def _event_payload(self):
+        event_dict = {
+            "payloadVersion": self.PAYLOAD_VERSION,
+            "severity": self.severity,
+            "releaseStage": self.release_stage,
+            "appVersion": self.app_version,
+            "context": self.context,
+            "groupingHash": self.grouping_hash,
+            "exceptions": [{
+                "errorClass": class_name(self.exception),
+                "message": self.exception,
+                "stacktrace": self.stacktrace,
+            }],
+            "metaData": self.meta_data,
+            "user": self.user,
+            "device": {
+                "hostname": self.hostname
+            },
+            "projectRoot": self.config.get("project_root"),
+            "libRoot": self.config.get("lib_root")
+        }
+        return sanitize_object(event_dict, filters=self.config.params_filters)
 
     def _send_to_bugsnag(self):
         # Generate the payload and make the request
