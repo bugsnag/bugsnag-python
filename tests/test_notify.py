@@ -132,6 +132,39 @@ class TestBugsnag(unittest.TestCase):
         self.assertEqual('purple', event['metaData']['food']['corn'])
         self.assertEqual(3, event['metaData']['food']['beans'])
 
+    def test_notify_metadata_filter(self):
+        bugsnag.configure(params_filters=['apple', 'grape'])
+        bugsnag.notify(ScaryException('unexpected failover'),
+                       apple='four', cantaloupe='green')
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertEqual('[FILTERED]', event['metaData']['custom']['apple'])
+        self.assertEqual('green', event['metaData']['custom']['cantaloupe'])
+
+    def test_notify_before_notify_modifying_api_key(self):
+
+        def callback(report):
+            report.api_key = 'sandwich'
+
+        bugsnag.before_notify(callback)
+        bugsnag.notify(ScaryException('unexpected failover'))
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        self.assertEqual('sandwich', json_body['apiKey'])
+
+    def test_notify_before_notify_modifying_metadata(self):
+
+        def callback(report):
+            report.meta_data['foo'] = {'sandwich': 'bar'}
+
+        bugsnag.before_notify(callback)
+        bugsnag.notify(ScaryException('unexpected failover'))
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertEqual('bar', event['metaData']['foo']['sandwich'])
+
     def test_notify_configured_lib_root(self):
         bugsnag.configure(lib_root='/the/basement')
         bugsnag.notify(ScaryException('unexpected failover'))
