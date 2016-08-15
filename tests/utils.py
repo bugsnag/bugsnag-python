@@ -34,7 +34,7 @@ class FakeBugsnagServer(object):
         self.server = BaseHTTPServer.HTTPServer((self.host, self.port),
                                                 Handler)
         self.server.timeout = 0.5
-        self.thread = Thread(target=self.server.serve_forever)
+        self.thread = Thread(target=self.server.serve_forever, args=(0.1,))
         self.thread.daemon = True
         self.thread.start()
 
