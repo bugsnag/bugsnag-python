@@ -1,8 +1,4 @@
-try:
-    import json
-except ImportError:
-    import simplejson as json
-
+import json
 from threading import Thread
 
 from six.moves import BaseHTTPServer

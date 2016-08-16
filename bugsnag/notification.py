@@ -16,12 +16,11 @@ from six.moves.urllib.request import (
     install_opener
 )
 from bugsnag.utils import fully_qualified_class_name as class_name
-from bugsnag.utils import json_encode, package_version, sanitize_object
+from bugsnag.utils import SanitizingJSONEncoder, package_version
 
 
 def deliver(payload, url, async, proxy_host):
-    payload = json_encode(payload)
-    req = Request(url, payload, {
+    req = Request(url, payload.encode('utf-8', 'replace'), {
         'Content-Type': 'application/json'
     })
 
@@ -171,8 +170,7 @@ class Notification(object):
         if name not in self.meta_data:
             self.meta_data[name] = {}
 
-        self.meta_data[name].update(sanitize_object(dictionary,
-                                    filters=self.config.params_filters))
+        self.meta_data[name].update(dictionary)
 
     def _generate_stacktrace(self, tb):
         """
@@ -260,38 +258,37 @@ class Notification(object):
         # Fetch the notifier version from the package
         notifier_version = package_version("bugsnag") or "unknown"
         # Construct the payload dictionary
-        return {
+        filters = self.config.params_filters
+        encoder = SanitizingJSONEncoder(separators=(',', ':'),
+                                        keyword_filters=filters)
+        return encoder.encode({
             "apiKey": self.api_key,
             "notifier": {
                 "name": self.NOTIFIER_NAME,
                 "url": self.NOTIFIER_URL,
                 "version": notifier_version,
             },
-            "events": [self._event_payload()]
-        }
-
-    def _event_payload(self):
-        event_dict = {
-            "payloadVersion": self.PAYLOAD_VERSION,
-            "severity": self.severity,
-            "releaseStage": self.release_stage,
-            "appVersion": self.app_version,
-            "context": self.context,
-            "groupingHash": self.grouping_hash,
-            "exceptions": [{
-                "errorClass": class_name(self.exception),
-                "message": self.exception,
-                "stacktrace": self.stacktrace,
-            }],
-            "metaData": self.meta_data,
-            "user": self.user,
-            "device": {
-                "hostname": self.hostname
-            },
-            "projectRoot": self.config.get("project_root"),
-            "libRoot": self.config.get("lib_root")
-        }
-        return sanitize_object(event_dict, filters=self.config.params_filters)
+            "events": [{
+                "payloadVersion": self.PAYLOAD_VERSION,
+                "severity": self.severity,
+                "releaseStage": self.release_stage,
+                "appVersion": self.app_version,
+                "context": self.context,
+                "groupingHash": self.grouping_hash,
+                "exceptions": [{
+                    "errorClass": class_name(self.exception),
+                    "message": self.exception,
+                    "stacktrace": self.stacktrace,
+                }],
+                "metaData": self.meta_data,
+                "user": self.user,
+                "device": {
+                    "hostname": self.hostname
+                },
+                "projectRoot": self.config.get("project_root"),
+                "libRoot": self.config.get("lib_root")
+            }]
+        })
 
     def _send_to_bugsnag(self):
         # Generate the payload and make the request
