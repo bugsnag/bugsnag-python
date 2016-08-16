@@ -93,8 +93,9 @@ class TestFlask(unittest.TestCase):
             raise SentinelError("oops")
 
         handle_exceptions(app)
-        app.test_client().get('/hello')
-        app.test_client().get('/hello')
+        with app.test_client() as client:
+            client.get('/hello')
+            client.get('/hello')
         self.server.shutdown()
 
         payload = self.server.received[0]['json_body']

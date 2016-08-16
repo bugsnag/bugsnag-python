@@ -1,8 +1,4 @@
-try:
-    import json
-except ImportError:
-    import simplejson as json
-
+import json
 from threading import Thread
 
 from six.moves import BaseHTTPServer
@@ -34,7 +30,7 @@ class FakeBugsnagServer(object):
         self.server = BaseHTTPServer.HTTPServer((self.host, self.port),
                                                 Handler)
         self.server.timeout = 0.5
-        self.thread = Thread(target=self.server.serve_forever)
+        self.thread = Thread(target=self.server.serve_forever, args=(0.1,))
         self.thread.daemon = True
         self.thread.start()
 

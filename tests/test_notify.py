@@ -1,4 +1,8 @@
+# -*- coding: utf8 -*-
+
 import unittest
+
+from six import u
 
 import bugsnag
 from tests.utils import FakeBugsnagServer, ScaryException
@@ -20,7 +24,7 @@ class TestBugsnag(unittest.TestCase):
                           release_stage='dev',
                           async=False)
 
-    def shutDown(self):
+    def tearDown(self):
         bugsnag.configuration = bugsnag.Configuration()
         bugsnag.configuration.api_key = 'some key'
 
@@ -128,6 +132,39 @@ class TestBugsnag(unittest.TestCase):
         self.assertEqual('purple', event['metaData']['food']['corn'])
         self.assertEqual(3, event['metaData']['food']['beans'])
 
+    def test_notify_metadata_filter(self):
+        bugsnag.configure(params_filters=['apple', 'grape'])
+        bugsnag.notify(ScaryException('unexpected failover'),
+                       apple='four', cantaloupe='green')
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertEqual('[FILTERED]', event['metaData']['custom']['apple'])
+        self.assertEqual('green', event['metaData']['custom']['cantaloupe'])
+
+    def test_notify_before_notify_modifying_api_key(self):
+
+        def callback(report):
+            report.api_key = 'sandwich'
+
+        bugsnag.before_notify(callback)
+        bugsnag.notify(ScaryException('unexpected failover'))
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        self.assertEqual('sandwich', json_body['apiKey'])
+
+    def test_notify_before_notify_modifying_metadata(self):
+
+        def callback(report):
+            report.meta_data['foo'] = {'sandwich': 'bar'}
+
+        bugsnag.before_notify(callback)
+        bugsnag.notify(ScaryException('unexpected failover'))
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertEqual('bar', event['metaData']['foo']['sandwich'])
+
     def test_notify_configured_lib_root(self):
         bugsnag.configure(lib_root='/the/basement')
         bugsnag.notify(ScaryException('unexpected failover'))
@@ -174,13 +211,120 @@ class TestBugsnag(unittest.TestCase):
         exception = event['exceptions'][0]
         self.assertEqual('tests.utils.ScaryException', exception['errorClass'])
 
-    def test_notify_error_message(self):
+    def test_notify_recursive_metadata_dict(self):
+        a = {'foo': 'bar'}
+        a['baz'] = a
+        bugsnag.add_metadata_tab('a', a)
         bugsnag.notify(ScaryException('unexpected failover'))
         self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
+        self.assertEqual('bar', event['metaData']['a']['foo'])
+        self.assertEqual('[RECURSIVE]', event['metaData']['a']['baz']['baz'])
+
+    def test_notify_recursive_metadata_array(self):
+        a = ['foo', 'bar']
+        a.append(a)
+        bugsnag.add_metadata_tab('a', {'b': a})
+        bugsnag.notify(ScaryException('unexpected failover'))
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertEqual(['foo', 'bar', '[RECURSIVE]'],
+                         event['metaData']['a']['b'])
+
+    def test_notify_metadata_bool_value(self):
+        bugsnag.notify(ScaryException('unexpected failover'),
+                       value=True, value2=False)
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertEqual(True, event['metaData']['custom']['value'])
+        self.assertEqual(False, event['metaData']['custom']['value2'])
+
+    def test_notify_metadata_complex_value(self):
+        bugsnag.notify(ScaryException('unexpected failover'),
+                       value=(5+0j), value2=(13+3.4j))
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertEqual('(5+0j)', event['metaData']['custom']['value'])
+        self.assertEqual('(13+3.4j)', event['metaData']['custom']['value2'])
+
+    def test_notify_metadata_set_value(self):
+        bugsnag.notify(ScaryException('unexpected failover'),
+                       value=set([6, "cow", "gravy"]))
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        value = event['metaData']['custom']['value']
+        self.assertEqual(3, len(value))
+        self.assertTrue(6 in value)
+        self.assertTrue("cow" in value)
+        self.assertTrue("gravy" in value)
+
+    def test_notify_metadata_tuple_value(self):
+        bugsnag.notify(ScaryException('unexpected failover'),
+                       value=(3, "cow", "gravy"))
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertEqual([3, "cow", "gravy"],
+                         event['metaData']['custom']['value'])
+
+    def test_notify_metadata_integer_value(self):
+        bugsnag.notify(ScaryException('unexpected failover'),
+                       value=5, value2=-13)
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertEqual(5, event['metaData']['custom']['value'])
+        self.assertEqual(-13, event['metaData']['custom']['value2'])
+
+    def test_notify_error_message(self):
+        bugsnag.notify(ScaryException(u('unexpécted failover')))
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
         exception = event['exceptions'][0]
-        self.assertEqual('unexpected failover', exception['message'])
+        self.assertEqual(u('unexpécted failover'), exception['message'])
+
+    def test_notify_unicode_metadata(self):
+        bins = (u('\x98\x00\x00\x00\t\x81\x19\x1b\x00\x00\x00\x00\xd4\x07\x00'
+                  '\x00\x00\x00\x00\x00R\x00\x00\x00\x00\x00\xff\xff\xff\xffe'
+                  '\x00\x00\x00\x02project\x00%\x00\x00\x00f65f051b-d762-5983'
+                  '-838b-a05aadc06a5\x00\x02uid\x00%\x00\x00\x001bab969f-7b30'
+                  '-459a-adee-917b9e028eed\x00\x00'))
+        self_class = 'tests.test_notify.TestBugsnag'
+        bugsnag.notify(Exception('free food'),
+                       meta_data={'payload': {
+                         'project': u('∆πåß∂ƒ'),
+                         'filename': u('DISPOSITIFS DE SÉCURITÉ.pdf'),
+                         u('♥♥i'): u('♥♥♥♥♥♥'),
+                         'src_name': u('☻☻☻☻☻ RDC DISPOSITIFS DE SÉCURTÉ.pdf'),
+                         u('accénted'): u('☘☘☘éééé@me.com'),
+                         'class': self.__class__,
+                         'another_class': dict,
+                         'self': self,
+                         'var': bins
+                       }})
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertEqual(u('∆πåß∂ƒ'), event['metaData']['payload']['project'])
+        self.assertEqual(u('♥♥♥♥♥♥'),
+                         event['metaData']['payload'][u('♥♥i')])
+        self.assertEqual(u('DISPOSITIFS DE SÉCURITÉ.pdf'),
+                         event['metaData']['payload']['filename'])
+        self.assertEqual(u('☻☻☻☻☻ RDC DISPOSITIFS DE SÉCURTÉ.pdf'),
+                         event['metaData']['payload']['src_name'])
+        self.assertEqual(u('☘☘☘éééé@me.com'),
+                         event['metaData']['payload'][u('accénted')])
+        self.assertEqual('test_notify_unicode_metadata (%s)' % self_class,
+                         event['metaData']['payload']['self'])
+        self.assertEqual(bins, event['metaData']['payload']['var'])
+        self.assertEqual("<class 'tests.test_notify.TestBugsnag'>",
+                         event['metaData']['payload']['class'])
 
     def test_notify_stacktrace(self):
         samples.call_bugsnag_nested()
