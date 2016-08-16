@@ -18,8 +18,13 @@ MAX_STRING_LENGTH = 1024
 
 def sanitize_object(obj, **kwargs):
     filters = kwargs.get("filters", [])
+    ignored = kwargs.get("ignored", [])
+    kwargs["ignored"] = ignored
 
+    if id(obj) in ignored:
+        return "[RECURSIVE]"
     if isinstance(obj, dict):
+        ignored.append(id(obj))
         clean_dict = {}
         for k, v in six.iteritems(obj):
             # Remove values for keys matching filters
@@ -33,6 +38,7 @@ def sanitize_object(obj, **kwargs):
 
         return clean_dict
     elif any(isinstance(obj, t) for t in (list, set, tuple)):
+        ignored.append(id(obj))
         return [sanitize_object(x, **kwargs) for x in obj]
     elif any(isinstance(obj, t) for t in (bool, float, int)):
         return obj

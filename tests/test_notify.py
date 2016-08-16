@@ -211,6 +211,28 @@ class TestBugsnag(unittest.TestCase):
         exception = event['exceptions'][0]
         self.assertEqual('tests.utils.ScaryException', exception['errorClass'])
 
+    def test_notify_recursive_metadata_dict(self):
+        a = {'foo': 'bar'}
+        a['baz'] = a
+        bugsnag.add_metadata_tab('a', a)
+        bugsnag.notify(ScaryException('unexpected failover'))
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertEqual('bar', event['metaData']['a']['foo'])
+        self.assertEqual('[RECURSIVE]', event['metaData']['a']['baz']['baz'])
+
+    def test_notify_recursive_metadata_array(self):
+        a = ['foo', 'bar']
+        a.append(a)
+        bugsnag.add_metadata_tab('a', {'b': a})
+        bugsnag.notify(ScaryException('unexpected failover'))
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertEqual(['foo', 'bar', '[RECURSIVE]'],
+                         event['metaData']['a']['b'])
+
     def test_notify_error_message(self):
         bugsnag.notify(ScaryException(u('unexpécted failover')))
         self.server.shutdown()
