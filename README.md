@@ -1,6 +1,6 @@
 # Bugsnag exception reporter for Python
 [![Build status](https://travis-ci.org/bugsnag/bugsnag-python.svg?branch=master)](https://travis-ci.org/bugsnag/bugsnag-python)
-[![Documentation](https://img.shields.io/badge/documentation-latest-blue.svg)](http://docs.bugsnag.com/platforms/python/)
+[![Documentation](https://img.shields.io/badge/documentation-latest-blue.svg)](https://docs.bugsnag.com/platforms/python/)
 
 The Bugsnag exception reporter for Python automatically detects and reports
 exceptions thrown your **Django**, **WSGI**, **Tornado**, **Flask** or
@@ -20,15 +20,15 @@ sent to your Bugsnag project.
 
 1. [Create a Bugsnag account](https://bugsnag.com)
 2. Complete the instructions in the
-   [integration guide](http://docs.bugsnag.com/platforms/python/)
+   [integration guide](https://docs.bugsnag.com/platforms/python/)
 3. Report handled exceptions using
    [`bugsnag.notify()`](https://docs.bugsnag.com/platforms/python/reporting-handled-errors/)
 4. Customize your integration using the
-   [configuration options](http://docs.bugsnag.com/platforms/python/configuration-options/)
+   [configuration options](https://docs.bugsnag.com/platforms/python/configuration-options/)
 
 ## Support
 
-* Check out the [configuration options](http://docs.bugsnag.com/platforms/python/configuration-options)
+* Check out the [configuration options](https://docs.bugsnag.com/platforms/python/configuration-options/)
 * [Search open and closed issues](https://github.com/bugsnag/bugsnag-python/issues?utf8=✓&q=is%3Aissue) for similar problems
 * [Report a bug or request a feature](https://github.com/bugsnag/bugsnag-python/issues/new)
 
