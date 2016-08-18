@@ -22,7 +22,7 @@ sent to your Bugsnag project.
 2. Complete the instructions in the
    [integration guide](http://docs.bugsnag.com/platforms/python/)
 3. Report handled exceptions using
-   [`bugsnag.notify()`](http://docs.bugsnag.com/platforms/python/reporting-handled-exceptions/)
+   [`bugsnag.notify()`](https://docs.bugsnag.com/platforms/python/reporting-handled-errors/)
 4. Customize your integration using the
    [configuration options](http://docs.bugsnag.com/platforms/python/configuration-options/)
 
