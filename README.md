@@ -36,12 +36,10 @@ sent to your Bugsnag project.
 ## Contributing
 
 All contributors are welcome! For information on how to build, test,
-and release `bugsnag-python`, see our
-[contributing guide](https://github.com/bugsnag/bugsnag-python/blob/master/CONTRIBUTING.md).
+and release, see our [contributing guide](CONTRIBUTING.md).
 
 
 ## License
 
 The Bugsnag Python library is free software released under the MIT License.
-See [LICENSE.txt](https://github.com/bugsnag/bugsnag-python/blob/master/LICENSE.txt)
-for details.
+See [LICENSE.txt](LICENSE.txt)for details.
