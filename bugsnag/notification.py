@@ -40,9 +40,10 @@ def deliver(payload, url, async, proxy_host):
                 bugsnag.log("Notification to %s failed, status %d" % (url,
                                                                       status))
 
-        except Exception:
+        except Exception as e:
             try:
-                bugsnag.log("Notification to %s failed" % (req.get_full_url()))
+                msg = "Notification to %s failed: %s" % (req.get_full_url(), e)
+                bugsnag.log(msg)
                 print((traceback.format_exc()))
             except Exception:
                 print(("[BUGSNAG] error in request thread exception handler."))
