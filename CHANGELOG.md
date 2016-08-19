@@ -1,6 +1,16 @@
 Changelog
 =========
 
+## 2.5.2 (2016-08-19)
+
+### Enhancements
+
+* Log exception message when notifications fail to send
+
+### Bug Fixes
+
+* Improve recursion handling in metadata parsing
+
 ## 2.5.1 (2016-08-12)
 
 ### Bug Fixes
