@@ -1,7 +1,6 @@
 from __future__ import division, print_function, absolute_import
 
 import inspect
-import traceback
 import six
 from json import JSONEncoder
 
@@ -28,7 +27,6 @@ class SanitizingJSONEncoder(JSONEncoder):
 
     def __init__(self, keyword_filters=None, **kwargs):
         self.filters = list(map(str.lower, keyword_filters or []))
-        print(self.filters)
         self.ignored = []
         super(SanitizingJSONEncoder, self).__init__(**kwargs)
 
@@ -53,8 +51,7 @@ class SanitizingJSONEncoder(JSONEncoder):
                 return six.text_type(obj)
 
         except Exception:
-            exc = traceback.format_exc()
-            bugsnag.warn("Could not add object to payload: %s" % exc)
+            bugsnag.logger.exception('Could not add object to payload')
             return self.unencodeable_value
 
     def _sanitize(self, obj, trim_strings):

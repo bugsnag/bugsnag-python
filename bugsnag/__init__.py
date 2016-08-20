@@ -1,8 +1,18 @@
 import types
 import sys
+import logging
 
 from bugsnag.configuration import Configuration, RequestConfiguration
 from bugsnag.notification import Notification
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+handler = logging.StreamHandler(sys.stderr)
+formatter = logging.Formatter(
+    '%(asctime)s - [%(name)s] %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 
 configuration = Configuration()
@@ -60,8 +70,8 @@ def notify(exception, **options):
         except:
             value = '[BADENCODING]'
 
-        warn(('Coercing invalid bugnsag.notify()'
-              'value to RuntimeError: %s') % value)
+        logger.warning('Coercing invalid bugnsag.notify()'
+                       ' value to RuntimeError: %s' % value)
         exception = RuntimeError(value)
 
     Notification(exception, configuration,
@@ -86,27 +96,12 @@ def before_notify(callback):
     configuration.middleware.before_notify(callback)
 
 
-def log(message):
-    """
-    Print a log message with a Bugsnag prefix.
-    """
-    print(("** [Bugsnag] %s" % message))
-
-
-def warn(message):
-    """
-    Print a warning message with a Bugsnag prefix.
-    """
-    sys.stderr.write("** [Bugsnag] WARNING: %s\n" % message)
-
-
 # Hook into all uncaught exceptions
 def __bugsnag_excepthook(exctype, exception, traceback):
     try:
         auto_notify(exception, traceback=traceback)
     except:
-        print(("[BUGSNAG] Error in excepthook, probably shutting down."))
-        pass
+        logger.exception('Error in excepthook, probably shutting down.')
 
     _old_excepthook(exctype, exception, traceback)
 
