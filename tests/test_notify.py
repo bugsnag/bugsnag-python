@@ -1,6 +1,7 @@
 # -*- coding: utf8 -*-
 
 import unittest
+import sys
 
 from six import u
 
@@ -325,6 +326,98 @@ class TestBugsnag(unittest.TestCase):
         event = json_body['events'][0]
         self.assertEqual('(5+0j)', event['metaData']['custom']['value'])
         self.assertEqual('(13+3.4j)', event['metaData']['custom']['value2'])
+
+    def test_notify_non_exception(self):
+        bugsnag.notify(2)
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        exception = event['exceptions'][0]
+        self.assertEqual(1, len(self.server.received))
+        self.assertEqual('RuntimeError', exception['errorClass'])
+        self.assertTrue(repr(2) in exception['message'])
+
+    def test_notify_bad_encoding_exception_tuple(self):
+
+        class BadThings:
+
+            def __repr__(self):
+                raise Exception('nah')
+
+        bugsnag.notify(BadThings())
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        exception = event['exceptions'][0]
+        self.assertEqual('[BADENCODING]', exception['message'])
+
+    def test_notify_single_value_tuple(self):
+        bugsnag.notify((None,))
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        exception = event['exceptions'][0]
+        self.assertEqual(1, len(self.server.received))
+        self.assertEqual('RuntimeError', exception['errorClass'])
+        self.assertTrue(repr(None) in exception['message'])
+
+    def test_notify_invalid_values_tuple(self):
+        bugsnag.notify((None, 2, "foo"))
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        exception = event['exceptions'][0]
+        self.assertEqual(1, len(self.server.received))
+        self.assertEqual('RuntimeError', exception['errorClass'])
+        self.assertTrue(repr(2) in exception['message'])
+
+    def test_notify_exception_tuple_with_traceback_option(self):
+        backtrace = None
+        try:
+            raise ScaryException('foo')
+        except:
+            backtrace = sys.exc_info()[2]
+
+        bugsnag.notify((Exception, Exception("foo")), traceback=backtrace)
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        exception = event['exceptions'][0]
+        stacktrace = exception['stacktrace']
+        self.assertEqual(1, len(self.server.received))
+        self.assertEqual('foo', exception['message'])
+        self.assertEqual('test_notify_exception_tuple_with_traceback_option',
+                         stacktrace[0]['method'])
+
+    def test_notify_exception_tuple_with_traceback(self):
+
+        def send_notify():
+            backtrace = None
+            try:
+                raise ScaryException('foo')
+            except:
+                backtrace = sys.exc_info()[2]
+            bugsnag.notify((Exception, Exception("foo"), backtrace))
+
+        send_notify()
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        exception = event['exceptions'][0]
+        stacktrace = exception['stacktrace']
+        self.assertEqual(1, len(self.server.received))
+        self.assertEqual('foo', exception['message'])
+        self.assertEqual('send_notify',
+                         stacktrace[0]['method'])
+
+    def test_notify_exception_tuple(self):
+        bugsnag.notify((Exception, Exception("foo")))
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        exception = event['exceptions'][0]
+        self.assertEqual(1, len(self.server.received))
+        self.assertEqual('foo', exception['message'])
 
     def test_notify_metadata_set_value(self):
         bugsnag.notify(ScaryException('unexpected failover'),

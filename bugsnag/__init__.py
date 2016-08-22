@@ -1,5 +1,5 @@
+import types
 import sys
-import traceback
 
 from bugsnag.configuration import Configuration, RequestConfiguration
 from bugsnag.notification import Notification
@@ -46,27 +46,27 @@ def notify(exception, **options):
     """
     Notify bugsnag of an exception.
     """
-    try:
-        if isinstance(exception, (list, tuple)):
-            # Exception tuples, eg. from sys.exc_info
-            if "traceback" not in options:
+    if isinstance(exception, (list, tuple)) and len(exception) > 1:
+        # Exception tuples, eg. from sys.exc_info
+        if 'traceback' not in options and len(exception) > 2:
+            if isinstance(exception[2], types.TracebackType):
                 options["traceback"] = exception[2]
 
-            Notification(exception[1], configuration,
-                         RequestConfiguration.get_instance(),
-                         **options).deliver()
-        else:
-            # Exception objects
-            Notification(exception, configuration,
-                         RequestConfiguration.get_instance(),
-                         **options).deliver()
-    except Exception:
+        exception = exception[1]
+
+    if not isinstance(exception, BaseException):
         try:
-            log("Notification failed")
-            print((traceback.format_exc()))
-        except Exception:
-            print(("[BUGSNAG] error in exception handler"))
-            print((traceback.format_exc()))
+            value = repr(exception)
+        except:
+            value = '[BADENCODING]'
+
+        warn(('Coercing invalid bugnsag.notify()'
+              'value to RuntimeError: %s') % value)
+        exception = RuntimeError(value)
+
+    Notification(exception, configuration,
+                 RequestConfiguration.get_instance(),
+                 **options).deliver()
 
 
 def auto_notify(exception, **options):
