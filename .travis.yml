@@ -10,5 +10,8 @@ python:
 install: travis_retry pip install -r dev_requirements.txt
 
 script:
-  - nosetests
+  - nosetests -sv --with-coverage --cover-package=bugsnag
   - ./scripts/lint.sh
+
+after_success:
+  - coveralls
