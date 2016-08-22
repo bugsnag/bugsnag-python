@@ -27,8 +27,8 @@ def add_django_request_to_notification(notification):
             email = getattr(request.user, 'email', None)
             username = six.text_type(request.user.get_username())
             notification.set_user(id=username, email=email, name=name)
-        except Exception as e:
-            bugsnag.warn("could not get user data: %s" % e)
+        except Exception:
+            bugsnag.logger.exception('Could not get user data')
     else:
         notification.set_user(id=request.META['REMOTE_ADDR'])
 

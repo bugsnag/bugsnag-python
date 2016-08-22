@@ -24,8 +24,8 @@ class BugsnagMiddleware(object):
         try:
             bugsnag.auto_notify(exception)
 
-        except Exception as exc:
-            bugsnag.log("Error in exception middleware: %s" % exc)
+        except Exception:
+            bugsnag.logger.exception('Error in exception middleware')
 
         bugsnag.clear_request_config()
 

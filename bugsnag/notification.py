@@ -38,17 +38,12 @@ def deliver(payload, url, async, proxy_host):
             status = resp.getcode()
 
             if status != 200:
-                bugsnag.log("Notification to %s failed, status %d" % (url,
-                                                                      status))
+                bugsnag.logger.warning(
+                    'Notification to %s failed, status %d' % (url, status))
 
-        except Exception as e:
-            try:
-                msg = "Notification to %s failed: %s" % (req.get_full_url(), e)
-                bugsnag.log(msg)
-                print((traceback.format_exc()))
-            except Exception:
-                print(("[BUGSNAG] error in request thread exception handler."))
-                pass
+        except Exception:
+            bugsnag.logger.exception(
+                'Failed to send notification to %s' % url)
 
     t = threading.Thread(target=request)
     t.start()
@@ -128,7 +123,8 @@ class Notification(object):
                 return
 
             if self.api_key is None:
-                bugsnag.log("No API key configured, couldn't notify")
+                bugsnag.logger.warning(
+                    "No API key configured, couldn't notify")
                 return
 
             # Return early if we should ignore exceptions of this type
@@ -138,8 +134,7 @@ class Notification(object):
             self.config.middleware.run(self, self._send_to_bugsnag)
 
         except Exception:
-            exc = traceback.format_exc()
-            bugsnag.warn("Notifying Bugsnag failed:\n%s" % (exc))
+            bugsnag.logger.exception('Notifying Bugsnag failed')
 
     def set_user(self, id=None, name=None, email=None):
         """
@@ -191,8 +186,8 @@ class Notification(object):
             try:
                 exclude_module_paths.append(exclude_module.__file__)
             except:
-                bugsnag.warn("Could not exclude module: %s" %
-                             repr(exclude_module))
+                bugsnag.logger.exception(
+                    'Could not exclude module: %s' % repr(exclude_module))
 
         lib_root = self.config.get("lib_root")
         if lib_root and lib_root[-1] != os.sep:
@@ -294,13 +289,13 @@ class Notification(object):
 
     def _send_to_bugsnag(self):
         if self.api_key is None:
-            bugsnag.log("No API key configured, couldn't notify")
+            bugsnag.logger.warning("No API key configured, couldn't notify")
             return
 
         # Generate the payload and make the request
         url = self.config.get_endpoint()
         async = self.config.asynchronous
 
-        bugsnag.log("Notifying %s of exception" % url)
+        bugsnag.logger.info("Notifying %s of exception" % url)
 
         deliver(self._payload(), url, async, self.config.proxy_host)
