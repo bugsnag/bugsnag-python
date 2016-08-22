@@ -174,6 +174,16 @@ class TestBugsnag(unittest.TestCase):
         event = json_body['events'][0]
         self.assertEqual('bar', event['metaData']['custom']['foo'])
 
+    def test_notify_before_notify_remove_api_key(self):
+
+        def callback(report):
+            report.api_key = None
+
+        bugsnag.before_notify(callback)
+        bugsnag.notify(ScaryException('unexpected failover'))
+        self.server.shutdown()
+        self.assertEqual(0, len(self.server.received))
+
     def test_notify_before_notify_modifying_api_key(self):
 
         def callback(report):

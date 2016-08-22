@@ -293,6 +293,10 @@ class Notification(object):
         })
 
     def _send_to_bugsnag(self):
+        if self.api_key is None:
+            bugsnag.log("No API key configured, couldn't notify")
+            return
+
         # Generate the payload and make the request
         url = self.config.get_endpoint()
         async = self.config.asynchronous
