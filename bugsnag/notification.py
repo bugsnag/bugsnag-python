@@ -10,10 +10,8 @@ import traceback
 import bugsnag
 from six.moves.urllib.request import (
     Request,
-    urlopen,
     ProxyHandler,
-    build_opener,
-    install_opener
+    build_opener
 )
 from bugsnag.utils import fully_qualified_class_name as class_name
 from bugsnag.utils import SanitizingJSONEncoder, package_version
@@ -26,14 +24,17 @@ def deliver(payload, url, async, proxy_host):
 
     def request():
         if proxy_host:
-            proxy = ProxyHandler({
+            proxies = ProxyHandler({
                 'https': proxy_host,
                 'http': proxy_host
             })
-            opener = build_opener(proxy)
-            install_opener(opener)
+
+            opener = build_opener(proxies)
+        else:
+            opener = build_opener()
+
         try:
-            resp = urlopen(req)
+            resp = opener.open(req)
             status = resp.getcode()
 
             if status != 200:
