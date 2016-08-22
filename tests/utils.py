@@ -1,7 +1,28 @@
 import json
+import unittest
 from threading import Thread
 
 from six.moves import BaseHTTPServer
+
+import bugsnag
+
+
+class IntegrationTest(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.server = FakeBugsnagServer()
+
+    def setUp(self):
+        self.server.received = []
+
+    def tearDown(self):
+        bugsnag.configuration = bugsnag.Configuration()
+        bugsnag.configuration.api_key = 'some key'
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.server.shutdown()
 
 
 class FakeBugsnagServer(object):
@@ -10,7 +31,6 @@ class FakeBugsnagServer(object):
     other request information
     """
     host = 'localhost'
-    json_body = None
 
     def __init__(self, port=5555):
         self.received = []

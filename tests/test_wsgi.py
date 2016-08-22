@@ -1,32 +1,26 @@
-import unittest
-
 from webtest import TestApp
 
 from bugsnag.wsgi.middleware import BugsnagMiddleware
 from six import Iterator
 import bugsnag.notification
 import bugsnag
-from tests.utils import FakeBugsnagServer
+from tests.utils import IntegrationTest
 
 
 class SentinelError(RuntimeError):
     pass
 
 
-class TestWSGI(unittest.TestCase):
+class TestWSGI(IntegrationTest):
 
     def setUp(self):
-        self.server = FakeBugsnagServer(5858)
+        super(TestWSGI, self).setUp()
         bugsnag.configure(use_ssl=False,
                           endpoint=self.server.address,
                           api_key='3874876376238728937',
                           notify_release_stages=['dev'],
                           release_stage='dev',
-                          async=False)
-
-    def shutDown(self):
-        bugsnag.configuration = bugsnag.Configuration()
-        bugsnag.configuration.api_key = 'some key'
+                          asynchronous=False)
 
     def test_bugsnag_middleware_working(self):
         def BasicWorkingApp(environ, start_response):
@@ -37,9 +31,8 @@ class TestWSGI(unittest.TestCase):
         app = TestApp(BugsnagMiddleware(BasicWorkingApp))
 
         resp = app.get('/', status=200)
-        self.server.shutdown()
-        self.assertEqual(resp.body, b'OK')
 
+        self.assertEqual(resp.body, b'OK')
         self.assertEqual(0, len(self.server.received))
 
     def test_bugsnag_middleware_crash_on_start(self):
@@ -51,7 +44,6 @@ class TestWSGI(unittest.TestCase):
         app = TestApp(BugsnagMiddleware(CrashOnStartApp))
 
         self.assertRaises(SentinelError, lambda: app.get('/beans'))
-        self.server.shutdown()
 
         self.assertEqual(1, len(self.server.received))
         payload = self.server.received[0]['json_body']
@@ -73,7 +65,6 @@ class TestWSGI(unittest.TestCase):
         app = TestApp(BugsnagMiddleware(CrashOnIterApp))
 
         self.assertRaises(SentinelError, lambda: app.get('/beans'))
-        self.server.shutdown()
 
         self.assertEqual(1, len(self.server.received))
         payload = self.server.received[0]['json_body']
@@ -97,7 +88,6 @@ class TestWSGI(unittest.TestCase):
         app = TestApp(BugsnagMiddleware(CrashOnCloseApp))
 
         self.assertRaises(SentinelError, lambda: app.get('/beans'))
-        self.server.shutdown()
 
         self.assertEqual(1, len(self.server.received))
         payload = self.server.received[0]['json_body']
@@ -116,7 +106,6 @@ class TestWSGI(unittest.TestCase):
         app = TestApp(BugsnagMiddleware(CrashAfterSettingUserId))
 
         self.assertRaises(SentinelError, lambda: app.get('/beans'))
-        self.server.shutdown()
 
         self.assertEqual(1, len(self.server.received))
         payload = self.server.received[0]['json_body']
@@ -135,7 +124,6 @@ class TestWSGI(unittest.TestCase):
         app = TestApp(BugsnagMiddleware(CrashAfterSettingMetaData))
 
         self.assertRaises(SentinelError, lambda: app.get('/beans'))
-        self.server.shutdown()
 
         self.assertEqual(1, len(self.server.received))
         payload = self.server.received[0]['json_body']
@@ -159,7 +147,6 @@ class TestWSGI(unittest.TestCase):
         app = TestApp(BugsnagMiddleware(CrashOnCloseIterable))
 
         self.assertRaises(SentinelError, lambda: app.get('/beans'))
-        self.server.shutdown()
 
         self.assertEqual(1, len(self.server.received))
         payload = self.server.received[0]['json_body']
