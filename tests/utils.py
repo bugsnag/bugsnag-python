@@ -30,11 +30,9 @@ class FakeBugsnagServer(object):
     A server which accepts a single request, recording the JSON payload and
     other request information
     """
-    host = 'localhost'
 
-    def __init__(self, port=5555):
+    def __init__(self):
         self.received = []
-        self.port = port
 
         class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
 
@@ -50,8 +48,7 @@ class FakeBugsnagServer(object):
             def log_request(self, *args):
                 pass
 
-        self.server = BaseHTTPServer.HTTPServer((self.host, self.port),
-                                                Handler)
+        self.server = BaseHTTPServer.HTTPServer(('localhost', 0), Handler)
         self.server.timeout = 0.5
         self.thread = Thread(target=self.server.serve_forever, args=(0.1,))
         self.thread.daemon = True
@@ -59,7 +56,7 @@ class FakeBugsnagServer(object):
 
     @property
     def address(self):
-        return '%s:%d' % (self.host, self.port)
+        return '{0}:{1}'.format(*self.server.server_address)
 
     @property
     def url(self):
