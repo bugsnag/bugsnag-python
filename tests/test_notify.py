@@ -52,6 +52,12 @@ class TestBugsnag(unittest.TestCase):
         event = json_body['events'][0]
         self.assertEqual('dev', event['releaseStage'])
 
+    def test_notify_unconfigured_release_stage(self):
+        bugsnag.configure(release_stage=['pickles'])
+        bugsnag.notify(ScaryException('unexpected failover'))
+        self.server.shutdown()
+        self.assertEqual(0, len(self.server.received))
+
     def test_notify_default_severity(self):
         bugsnag.notify(ScaryException('unexpected failover'))
         self.server.shutdown()
@@ -142,6 +148,32 @@ class TestBugsnag(unittest.TestCase):
         self.assertEqual('[FILTERED]', event['metaData']['custom']['apple'])
         self.assertEqual('green', event['metaData']['custom']['cantaloupe'])
 
+    def test_notify_ignore_class(self):
+        bugsnag.configure(ignore_classes=['tests.utils.ScaryException'])
+        bugsnag.notify(ScaryException('unexpected failover'))
+        self.server.shutdown()
+        self.assertEqual(0, len(self.server.received))
+
+    def test_notify_configured_invalid_api_key(self):
+        bugsnag.configure(api_key=None)
+        bugsnag.notify(ScaryException('unexpected failover'))
+        self.server.shutdown()
+        self.assertEqual(0, len(self.server.received))
+
+    def test_notify_sends_when_before_notify_throws(self):
+
+        def callback(report):
+            report.add_custom_data('foo', 'bar')
+            raise ScaryException('oh no')
+
+        bugsnag.before_notify(callback)
+        bugsnag.notify(ScaryException('unexpected failover'))
+        self.server.shutdown()
+        self.assertEqual(1, len(self.server.received))
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertEqual('bar', event['metaData']['custom']['foo'])
+
     def test_notify_before_notify_modifying_api_key(self):
 
         def callback(report):
@@ -165,6 +197,18 @@ class TestBugsnag(unittest.TestCase):
         event = json_body['events'][0]
         self.assertEqual('bar', event['metaData']['foo']['sandwich'])
 
+    def test_notify_before_notify_add_custom_data(self):
+
+        def callback(report):
+            report.add_custom_data('color', 'green')
+
+        bugsnag.before_notify(callback)
+        bugsnag.notify(ScaryException('unexpected failover'))
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertEqual('green', event['metaData']['custom']['color'])
+
     def test_notify_configured_lib_root(self):
         bugsnag.configure(lib_root='/the/basement')
         bugsnag.notify(ScaryException('unexpected failover'))
@@ -180,6 +224,14 @@ class TestBugsnag(unittest.TestCase):
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('/the/basement', event['projectRoot'])
+
+    def test_notify_invalid_severity(self):
+        bugsnag.notify(ScaryException('unexpected failover'),
+                       severity='debug')
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertEqual('warning', event['severity'])
 
     def test_notify_override_deprecated_user_id(self):
         bugsnag.notify(ScaryException('unexpected failover'),
@@ -210,6 +262,19 @@ class TestBugsnag(unittest.TestCase):
         event = json_body['events'][0]
         exception = event['exceptions'][0]
         self.assertEqual('tests.utils.ScaryException', exception['errorClass'])
+
+    def test_notify_bad_encoding_metadata(self):
+
+        class BadThings:
+
+            def __str__(self):
+                raise Exception('nah')
+
+        bugsnag.notify(ScaryException('unexpected failover'), bad=BadThings())
+        self.server.shutdown()
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertEqual('[BADENCODING]', event['metaData']['custom']['bad'])
 
     def test_notify_recursive_metadata_dict(self):
         a = {'foo': 'bar'}
