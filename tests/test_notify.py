@@ -18,7 +18,7 @@ class TestBugsnag(unittest.TestCase):
         """
         self.server = FakeBugsnagServer()
         bugsnag.configure(use_ssl=False,
-                          endpoint=self.server.url(),
+                          endpoint=self.server.address,
                           api_key='tomatoes',
                           notify_release_stages=['dev'],
                           release_stage='dev',
@@ -359,3 +359,12 @@ class TestBugsnag(unittest.TestCase):
         self.assertEqual('    chain_2()', frames[2]['code']['2'])
         self.assertEqual('', frames[2]['code']['3'])
         self.assertEqual('', frames[2]['code']['4'])
+
+    def test_notify_proxy(self):
+        bugsnag.configure(proxy_host=self.server.url)
+        bugsnag.notify(ScaryException('unexpected failover'))
+        self.server.shutdown()
+
+        self.assertEqual(len(self.server.received), 1)
+        self.assertEqual(self.server.received[0]['method'], 'POST')
+        self.assertEqual(self.server.received[0]['path'], self.server.url)

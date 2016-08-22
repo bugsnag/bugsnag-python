@@ -34,8 +34,13 @@ class FakeBugsnagServer(object):
         self.thread.daemon = True
         self.thread.start()
 
-    def url(self):
+    @property
+    def address(self):
         return '%s:%d' % (self.host, self.port)
+
+    @property
+    def url(self):
+        return 'http://%s' % self.address
 
     def shutdown(self):
         self.server.shutdown()

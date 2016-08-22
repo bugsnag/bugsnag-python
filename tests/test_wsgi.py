@@ -18,7 +18,7 @@ class TestWSGI(unittest.TestCase):
     def setUp(self):
         self.server = FakeBugsnagServer(5858)
         bugsnag.configure(use_ssl=False,
-                          endpoint=self.server.url(),
+                          endpoint=self.server.address,
                           api_key='3874876376238728937',
                           notify_release_stages=['dev'],
                           release_stage='dev',
