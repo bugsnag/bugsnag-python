@@ -27,6 +27,9 @@ class FakeBugsnagServer(object):
                                       'path': handler.path,
                                       'method': handler.command})
 
+            def log_request(self, *args):
+                pass
+
         self.server = BaseHTTPServer.HTTPServer((self.host, self.port),
                                                 Handler)
         self.server.timeout = 0.5
