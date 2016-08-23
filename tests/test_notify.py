@@ -1,6 +1,7 @@
 # -*- coding: utf8 -*-
 
 import sys
+import time
 
 from six import u
 
@@ -19,6 +20,22 @@ class TestBugsnag(IntegrationTest):
                           notify_release_stages=['dev'],
                           release_stage='dev',
                           asynchronous=False)
+
+    def test_asynchronous_notify(self):
+        bugsnag.configure(asynchronous=True)
+        self.server.paused = True
+        bugsnag.notify(ScaryException('unexpected failover'))
+        self.server.paused = False
+
+        start = time.time()
+        while len(self.server.received) == 0:
+            if time.time() > (start + 0.5):
+                raise Exception(
+                        'Timed out while waiting for asynchronous request.')
+
+            time.sleep(0.001)
+
+        self.assertEqual(len(self.server.received), 1)
 
     def test_notify_method(self):
         bugsnag.notify(ScaryException('unexpected failover'))

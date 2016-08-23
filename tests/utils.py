@@ -1,4 +1,5 @@
 import json
+import time
 import unittest
 from threading import Thread
 
@@ -33,10 +34,19 @@ class FakeBugsnagServer(object):
 
     def __init__(self):
         self.received = []
+        self.paused = False
 
         class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
 
             def do_POST(handler):
+                start = time.time()
+
+                while self.paused:
+                    if time.time() > (start + 0.5):
+                        raise Exception('Paused HTTP server timeout')
+
+                    time.sleep(0.001)
+
                 handler.send_response(200)
                 length = int(handler.headers['Content-Length'])
                 raw_body = handler.rfile.read(length).decode('utf-8')
