@@ -45,11 +45,11 @@ def deliver(payload, url, async, proxy_host):
             bugsnag.logger.exception(
                 'Failed to send notification to %s' % url)
 
-    t = threading.Thread(target=request)
-    t.start()
-
-    if not async:
-        t.join()
+    if async:
+        t = threading.Thread(target=request)
+        t.start()
+    else:
+        request()
 
 
 class Notification(object):

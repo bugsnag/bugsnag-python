@@ -1,54 +1,41 @@
 # -*- coding: utf8 -*-
 
-import unittest
 import sys
 
 from six import u
 
 import bugsnag
-from tests.utils import FakeBugsnagServer, ScaryException
+from tests.utils import ScaryException, IntegrationTest
 from tests.fixtures import samples
 
 
-class TestBugsnag(unittest.TestCase):
+class TestBugsnag(IntegrationTest):
 
     def setUp(self):
-        """
-        Initializes the server. The server must be shut down prior to
-        evaluating request information.
-        """
-        self.server = FakeBugsnagServer()
+        super(TestBugsnag, self).setUp()
         bugsnag.configure(use_ssl=False,
                           endpoint=self.server.address,
                           api_key='tomatoes',
                           notify_release_stages=['dev'],
                           release_stage='dev',
-                          async=False)
-
-    def tearDown(self):
-        bugsnag.configuration = bugsnag.Configuration()
-        bugsnag.configuration.api_key = 'some key'
+                          asynchronous=False)
 
     def test_notify_method(self):
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.server.shutdown()
         request = self.server.received[0]
         self.assertEqual('POST', request['method'])
 
     def test_notify_request_count(self):
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.server.shutdown()
         self.assertEqual(1, len(self.server.received))
 
     def test_notify_configured_api_key(self):
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         self.assertEqual('tomatoes', json_body['apiKey'])
 
     def test_notify_configured_release_stage(self):
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('dev', event['releaseStage'])
@@ -56,12 +43,10 @@ class TestBugsnag(unittest.TestCase):
     def test_notify_unconfigured_release_stage(self):
         bugsnag.configure(release_stage=['pickles'])
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.server.shutdown()
         self.assertEqual(0, len(self.server.received))
 
     def test_notify_default_severity(self):
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('warning', event['severity'])
@@ -69,7 +54,6 @@ class TestBugsnag(unittest.TestCase):
     def test_notify_override_severity(self):
         bugsnag.notify(ScaryException('unexpected failover'),
                        severity='info')
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('info', event['severity'])
@@ -77,7 +61,6 @@ class TestBugsnag(unittest.TestCase):
     def test_notify_configured_app_version(self):
         bugsnag.configure(app_version='343.2.10')
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('343.2.10', event['appVersion'])
@@ -85,7 +68,6 @@ class TestBugsnag(unittest.TestCase):
     def test_notify_override_context(self):
         bugsnag.notify(ScaryException('unexpected failover'),
                        context='/some/path')
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('/some/path', event['context'])
@@ -93,7 +75,6 @@ class TestBugsnag(unittest.TestCase):
     def test_notify_override_grouping_hash(self):
         bugsnag.notify(ScaryException('unexpected failover'),
                        grouping_hash='Callout errors')
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('Callout errors', event['groupingHash'])
@@ -103,7 +84,6 @@ class TestBugsnag(unittest.TestCase):
                        user={'name': 'bob',
                              'email': 'mcbob@example.com',
                              'id': '542347329'})
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('bob', event['user']['name'])
@@ -113,7 +93,6 @@ class TestBugsnag(unittest.TestCase):
     def test_notify_configured_hostname(self):
         bugsnag.configure(hostname='I_AM_ROOT')
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('I_AM_ROOT', event['device']['hostname'])
@@ -123,7 +102,6 @@ class TestBugsnag(unittest.TestCase):
         bugsnag.notify(ScaryException('unexpected failover'),
                        meta_data={'food': {'beans': 5},
                                   'skills': {'spear': 6}})
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual(6, event['metaData']['skills']['spear'])
@@ -133,7 +111,6 @@ class TestBugsnag(unittest.TestCase):
     def test_notify_configured_metadata_sections(self):
         bugsnag.add_metadata_tab('food', {'beans': 3, 'corn': 'purple'})
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('purple', event['metaData']['food']['corn'])
@@ -143,7 +120,6 @@ class TestBugsnag(unittest.TestCase):
         bugsnag.configure(params_filters=['apple', 'grape'])
         bugsnag.notify(ScaryException('unexpected failover'),
                        apple='four', cantaloupe='green')
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('[FILTERED]', event['metaData']['custom']['apple'])
@@ -152,13 +128,11 @@ class TestBugsnag(unittest.TestCase):
     def test_notify_ignore_class(self):
         bugsnag.configure(ignore_classes=['tests.utils.ScaryException'])
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.server.shutdown()
         self.assertEqual(0, len(self.server.received))
 
     def test_notify_configured_invalid_api_key(self):
         bugsnag.configure(api_key=None)
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.server.shutdown()
         self.assertEqual(0, len(self.server.received))
 
     def test_notify_sends_when_before_notify_throws(self):
@@ -169,7 +143,6 @@ class TestBugsnag(unittest.TestCase):
 
         bugsnag.before_notify(callback)
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.server.shutdown()
         self.assertEqual(1, len(self.server.received))
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
@@ -182,7 +155,6 @@ class TestBugsnag(unittest.TestCase):
 
         bugsnag.before_notify(callback)
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.server.shutdown()
         self.assertEqual(0, len(self.server.received))
 
     def test_notify_before_notify_modifying_api_key(self):
@@ -192,7 +164,6 @@ class TestBugsnag(unittest.TestCase):
 
         bugsnag.before_notify(callback)
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         self.assertEqual('sandwich', json_body['apiKey'])
 
@@ -203,7 +174,6 @@ class TestBugsnag(unittest.TestCase):
 
         bugsnag.before_notify(callback)
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('bar', event['metaData']['foo']['sandwich'])
@@ -215,7 +185,6 @@ class TestBugsnag(unittest.TestCase):
 
         bugsnag.before_notify(callback)
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('green', event['metaData']['custom']['color'])
@@ -223,7 +192,6 @@ class TestBugsnag(unittest.TestCase):
     def test_notify_configured_lib_root(self):
         bugsnag.configure(lib_root='/the/basement')
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('/the/basement', event['libRoot'])
@@ -231,7 +199,6 @@ class TestBugsnag(unittest.TestCase):
     def test_notify_configured_project_root(self):
         bugsnag.configure(project_root='/the/basement')
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('/the/basement', event['projectRoot'])
@@ -239,7 +206,6 @@ class TestBugsnag(unittest.TestCase):
     def test_notify_invalid_severity(self):
         bugsnag.notify(ScaryException('unexpected failover'),
                        severity='debug')
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('warning', event['severity'])
@@ -247,7 +213,6 @@ class TestBugsnag(unittest.TestCase):
     def test_notify_override_deprecated_user_id(self):
         bugsnag.notify(ScaryException('unexpected failover'),
                        user_id='542347329')
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('542347329', event['user']['id'])
@@ -255,20 +220,17 @@ class TestBugsnag(unittest.TestCase):
     def test_notify_override_api_key(self):
         bugsnag.notify(ScaryException('unexpected failover'),
                        api_key='gravy!')
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         self.assertEqual('gravy!', json_body['apiKey'])
 
     def test_notify_payload_version(self):
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('2', event['payloadVersion'])
 
     def test_notify_error_class(self):
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
@@ -282,7 +244,6 @@ class TestBugsnag(unittest.TestCase):
                 raise Exception('nah')
 
         bugsnag.notify(ScaryException('unexpected failover'), bad=BadThings())
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('[BADENCODING]', event['metaData']['custom']['bad'])
@@ -292,7 +253,6 @@ class TestBugsnag(unittest.TestCase):
         a['baz'] = a
         bugsnag.add_metadata_tab('a', a)
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('bar', event['metaData']['a']['foo'])
@@ -303,7 +263,6 @@ class TestBugsnag(unittest.TestCase):
         a.append(a)
         bugsnag.add_metadata_tab('a', {'b': a})
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual(['foo', 'bar', '[RECURSIVE]'],
@@ -312,7 +271,6 @@ class TestBugsnag(unittest.TestCase):
     def test_notify_metadata_bool_value(self):
         bugsnag.notify(ScaryException('unexpected failover'),
                        value=True, value2=False)
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual(True, event['metaData']['custom']['value'])
@@ -321,7 +279,6 @@ class TestBugsnag(unittest.TestCase):
     def test_notify_metadata_complex_value(self):
         bugsnag.notify(ScaryException('unexpected failover'),
                        value=(5+0j), value2=(13+3.4j))
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('(5+0j)', event['metaData']['custom']['value'])
@@ -329,7 +286,6 @@ class TestBugsnag(unittest.TestCase):
 
     def test_notify_non_exception(self):
         bugsnag.notify(2)
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
@@ -345,7 +301,6 @@ class TestBugsnag(unittest.TestCase):
                 raise Exception('nah')
 
         bugsnag.notify(BadThings())
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
@@ -353,7 +308,6 @@ class TestBugsnag(unittest.TestCase):
 
     def test_notify_single_value_tuple(self):
         bugsnag.notify((None,))
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
@@ -363,7 +317,6 @@ class TestBugsnag(unittest.TestCase):
 
     def test_notify_invalid_values_tuple(self):
         bugsnag.notify((None, 2, "foo"))
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
@@ -379,7 +332,6 @@ class TestBugsnag(unittest.TestCase):
             backtrace = sys.exc_info()[2]
 
         bugsnag.notify((Exception, Exception("foo")), traceback=backtrace)
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
@@ -400,7 +352,6 @@ class TestBugsnag(unittest.TestCase):
             bugsnag.notify((Exception, Exception("foo"), backtrace))
 
         send_notify()
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
@@ -412,7 +363,6 @@ class TestBugsnag(unittest.TestCase):
 
     def test_notify_exception_tuple(self):
         bugsnag.notify((Exception, Exception("foo")))
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
@@ -422,7 +372,6 @@ class TestBugsnag(unittest.TestCase):
     def test_notify_metadata_set_value(self):
         bugsnag.notify(ScaryException('unexpected failover'),
                        value=set([6, "cow", "gravy"]))
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         value = event['metaData']['custom']['value']
@@ -434,7 +383,6 @@ class TestBugsnag(unittest.TestCase):
     def test_notify_metadata_tuple_value(self):
         bugsnag.notify(ScaryException('unexpected failover'),
                        value=(3, "cow", "gravy"))
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual([3, "cow", "gravy"],
@@ -443,7 +391,6 @@ class TestBugsnag(unittest.TestCase):
     def test_notify_metadata_integer_value(self):
         bugsnag.notify(ScaryException('unexpected failover'),
                        value=5, value2=-13)
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual(5, event['metaData']['custom']['value'])
@@ -451,7 +398,6 @@ class TestBugsnag(unittest.TestCase):
 
     def test_notify_error_message(self):
         bugsnag.notify(ScaryException(u('unexpécted failover')))
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
@@ -476,7 +422,6 @@ class TestBugsnag(unittest.TestCase):
                          'self': self,
                          'var': bins
                        }})
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual(u('∆πåß∂ƒ'), event['metaData']['payload']['project'])
@@ -496,7 +441,6 @@ class TestBugsnag(unittest.TestCase):
 
     def test_notify_stacktrace(self):
         samples.call_bugsnag_nested()
-        self.server.shutdown()
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         frames = event['exceptions'][0]['stacktrace']
@@ -531,7 +475,6 @@ class TestBugsnag(unittest.TestCase):
     def test_notify_proxy(self):
         bugsnag.configure(proxy_host=self.server.url)
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.server.shutdown()
 
         self.assertEqual(len(self.server.received), 1)
         self.assertEqual(self.server.received[0]['method'], 'POST')

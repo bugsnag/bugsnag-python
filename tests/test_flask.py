@@ -3,33 +3,28 @@ import sys
 from nose.plugins.skip import SkipTest
 if (3, 0) <= sys.version_info < (3, 3):  # noqa
     raise SkipTest("Flask is incompatible with python3 3.0 - 3.2")
-import unittest
 
 from flask import Flask
 
 from bugsnag.flask import handle_exceptions
 import bugsnag.notification
-from tests.utils import FakeBugsnagServer
+from tests.utils import IntegrationTest
 
 
 class SentinelError(RuntimeError):
     pass
 
 
-class TestFlask(unittest.TestCase):
+class TestFlask(IntegrationTest):
 
     def setUp(self):
-        self.server = FakeBugsnagServer(5435)
+        super(TestFlask, self).setUp()
         bugsnag.configure(use_ssl=False,
                           endpoint=self.server.address,
                           api_key='3874876376238728937',
                           notify_release_stages=['dev'],
                           release_stage='dev',
-                          async=False)
-
-    def shutDown(self):
-        bugsnag.configuration = bugsnag.Configuration()
-        bugsnag.configuration.api_key = 'some key'
+                          asynchronous=False)
 
     def test_bugsnag_middleware_working(self):
         app = Flask("bugsnag")
@@ -42,7 +37,6 @@ class TestFlask(unittest.TestCase):
 
         resp = app.test_client().get('/hello')
         self.assertEqual(resp.data, b'OK')
-        self.server.shutdown()
 
         self.assertEqual(0, len(self.server.received))
 
@@ -55,7 +49,6 @@ class TestFlask(unittest.TestCase):
 
         handle_exceptions(app)
         app.test_client().get('/hello')
-        self.server.shutdown()
 
         self.assertEqual(1, len(self.server.received))
         payload = self.server.received[0]['json_body']
@@ -74,7 +67,6 @@ class TestFlask(unittest.TestCase):
 
         handle_exceptions(app)
         app.test_client().get('/hello')
-        self.server.shutdown()
 
         self.assertEqual(1, len(self.server.received))
         payload = self.server.received[0]['json_body']
@@ -96,7 +88,6 @@ class TestFlask(unittest.TestCase):
         with app.test_client() as client:
             client.get('/hello')
             client.get('/hello')
-        self.server.shutdown()
 
         payload = self.server.received[0]['json_body']
         event = payload['events'][0]
@@ -119,7 +110,6 @@ class TestFlask(unittest.TestCase):
         handle_exceptions(app)
         app.test_client().post(
             '/ajax', data='{"key": "value"}', content_type='application/json')
-        self.server.shutdown()
 
         self.assertEqual(1, len(self.server.received))
         payload = self.server.received[0]['json_body']
@@ -143,7 +133,6 @@ class TestFlask(unittest.TestCase):
         handle_exceptions(app)
         app.test_client().put(
             '/form', data='_data', content_type='application/octet-stream')
-        self.server.shutdown()
 
         self.assertEqual(1, len(self.server.received))
         payload = self.server.received[0]['json_body']
@@ -161,7 +150,6 @@ class TestFlask(unittest.TestCase):
         handle_exceptions(app)
         app.test_client().put(
             '/form', data='_data', content_type='application/octet-stream')
-        self.server.shutdown()
 
         self.assertEqual(1, len(self.server.received))
         payload = self.server.received[0]['json_body']
