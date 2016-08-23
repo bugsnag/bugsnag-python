@@ -1,5 +1,10 @@
+import sys
+
 from bugsnag.configuration import Configuration, RequestConfiguration
 from bugsnag.notification import Notification
+
+
+__all__ = ('Client',)
 
 
 class Client(object):
@@ -9,9 +14,12 @@ class Client(object):
     >>> client = Client(api_key='...')
     """
 
-    def __init__(self, configuration=None, **kwargs):
+    def __init__(self, configuration=None, install_sys_hook=True, **kwargs):
         self.configuration = configuration or Configuration()
         self.configuration.configure(**kwargs)
+
+        if install_sys_hook:
+            self.install_sys_hook()
 
     def context(self, swallow=True, **options):
         """
@@ -52,6 +60,30 @@ class Client(object):
                                     RequestConfiguration.get_instance(),
                                     **options)
         notification.deliver()
+
+    def excepthook(self, exc_type, exc_value, traceback):
+        if self.configuration.auto_notify:
+            self.notify_exc_info(exc_type, exc_value, traceback,
+                                 severity='error')
+
+    def install_sys_hook(self):
+        self.sys_excepthook = sys.excepthook
+
+        def excepthook(*exc_info):
+            self.excepthook(*exc_info)
+
+            if self.sys_excepthook:
+                self.sys_excepthook(*exc_info)
+
+        sys.excepthook = excepthook
+        sys.excepthook.bugsnag_client = self
+
+    def uninstall_sys_hook(self):
+        client = getattr(sys.excepthook, 'bugsnag_client', None)
+
+        if client is self:
+            sys.excepthook = self.sys_excepthook
+            self.sys_excepthook = None
 
 
 class ClientContext(object):
