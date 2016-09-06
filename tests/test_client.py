@@ -71,6 +71,12 @@ class ClientTest(IntegrationTest):
             'key': 'value'
         })
 
+    def test_no_exception_context(self):
+        with self.client.context():
+            pass
+
+        self.assertEqual(len(self.server.received), 0)
+
     # Exception Hook
 
     def test_exception_hook(self):

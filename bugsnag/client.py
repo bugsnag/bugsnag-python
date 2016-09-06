@@ -96,5 +96,7 @@ class ClientContext(object):
         pass
 
     def __exit__(self, *exc_info):
-        self.client.notify_exc_info(*exc_info, **self.options)
+        if any(exc_info):
+            self.client.notify_exc_info(*exc_info, **self.options)
+
         return self.swallow
