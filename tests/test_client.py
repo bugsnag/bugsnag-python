@@ -45,24 +45,24 @@ class ClientTest(IntegrationTest):
 
         self.assertEqual(len(self.server.received), 1)
 
-    # Context
+    # Capture
 
-    def test_notify_context(self):
-        with self.client.context():
-            raise Exception('Testing Notify Context')
+    def test_notify_capture(self):
+        with self.client.capture():
+            raise Exception('Testing Notify Capture')
 
         self.assertEqual(len(self.server.received), 1)
 
-    def test_notify_context_swallow(self):
+    def test_notify_capture_swallow(self):
         with self.assertRaises(Exception):
-            with self.client.context(swallow=False):
-                raise Exception('Testing Notify Context')
+            with self.client.capture(swallow=False):
+                raise Exception('Testing Notify Capture')
 
         self.assertEqual(len(self.server.received), 1)
 
-    def test_notify_context_options(self):
-        with self.client.context(section={'key':'value'}):
-            raise Exception('Testing Notify Context')
+    def test_notify_capture_options(self):
+        with self.client.capture(section={'key':'value'}):
+            raise Exception('Testing Notify Capture')
 
         self.assertEqual(len(self.server.received), 1)
         json_body = self.server.received[0]['json_body']
@@ -71,8 +71,8 @@ class ClientTest(IntegrationTest):
             'key': 'value'
         })
 
-    def test_no_exception_context(self):
-        with self.client.context():
+    def test_no_exception_capture(self):
+        with self.client.capture():
             pass
 
         self.assertEqual(len(self.server.received), 0)
