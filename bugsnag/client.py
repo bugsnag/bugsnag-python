@@ -68,7 +68,6 @@ class Client(object):
                                     **options)
         notification.deliver()
 
-
     def notify_exc_info(self, exc_type, exc_value, traceback, **options):
         """
         Notify bugsnag of an exception via exc_info.

@@ -4,7 +4,7 @@ import logging
 
 from bugsnag.configuration import Configuration, RequestConfiguration
 from bugsnag.notification import Notification
-from bugsnag.client import Client
+from bugsnag.client import Client # noqa
 
 
 logger = logging.getLogger(__name__)

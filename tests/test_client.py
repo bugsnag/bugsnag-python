@@ -4,7 +4,6 @@ from bugsnag import Client, Configuration
 from tests.utils import IntegrationTest, ScaryException
 
 
-
 class ClientTest(IntegrationTest):
     def setUp(self):
         super(ClientTest, self).setUp()
@@ -188,6 +187,7 @@ class ClientTest(IntegrationTest):
         client.sys_excepthook = None
 
         self.hooked = None
+
         def hooked_except_hook(*exc_info):
             self.hooked = exc_info
 
@@ -202,11 +202,12 @@ class ClientTest(IntegrationTest):
 
     def test_installed_except_hook_calls_previous_except_hook(self):
         self.hook_ran = False
+
         def excepthook(*exc_info):
             self.hook_ran = True
         sys.excepthook = excepthook
 
-        client = Client(auto_notify=False)
+        client = Client(auto_notify=False)  # noqa
 
         try:
             raise Exception('Testing excepthook notify')
