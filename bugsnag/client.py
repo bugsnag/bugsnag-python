@@ -21,18 +21,15 @@ class Client(object):
         if install_sys_hook:
             self.install_sys_hook()
 
-    def capture(self, swallow=True, **options):
+    def capture(self, **options):
         """
         Run a block of code within the clients context.
         Any exception raised will be reported to bugsnag.
 
-        The `swallow` option allows you to tell the context to provide the
-        exception back to the caller.
-
         >>> with client.capture():
-        >>>     raise Exception('an exception passed to bugsnag')
+        >>>     raise Exception('an exception passed to bugsnag then reraised')
         """
-        return ClientContext(self, swallow, **options)
+        return ClientContext(self, **options)
 
     def notify(self, exception, **options):
         """
@@ -87,9 +84,8 @@ class Client(object):
 
 
 class ClientContext(object):
-    def __init__(self, client, swallow, **options):
+    def __init__(self, client, **options):
         self.client = client
-        self.swallow = swallow
         self.options = options
 
     def __enter__(self):
@@ -99,4 +95,4 @@ class ClientContext(object):
         if any(exc_info):
             self.client.notify_exc_info(*exc_info, **self.options)
 
-        return self.swallow
+        return False

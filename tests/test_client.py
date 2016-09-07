@@ -48,21 +48,27 @@ class ClientTest(IntegrationTest):
     # Capture
 
     def test_notify_capture(self):
-        with self.client.capture():
-            raise Exception('Testing Notify Capture')
+        try:
+            with self.client.capture():
+                raise Exception('Testing Notify Context')
+        except Exception:
+            pass
 
         self.assertEqual(len(self.server.received), 1)
 
-    def test_notify_capture_swallow(self):
+    def test_notify_capture_raises(self):
         with self.assertRaises(Exception):
-            with self.client.capture(swallow=False):
-                raise Exception('Testing Notify Capture')
+            with self.client.capture():
+                raise Exception('Testing Notify Context')
 
         self.assertEqual(len(self.server.received), 1)
 
     def test_notify_capture_options(self):
-        with self.client.capture(section={'key':'value'}):
-            raise Exception('Testing Notify Capture')
+        try:
+            with self.client.capture(section={'key': 'value'}):
+                raise Exception('Testing Notify Context')
+        except Exception:
+            pass
 
         self.assertEqual(len(self.server.received), 1)
         json_body = self.server.received[0]['json_body']
