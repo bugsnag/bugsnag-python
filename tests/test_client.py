@@ -56,10 +56,12 @@ class ClientTest(IntegrationTest):
         self.assertEqual(len(self.server.received), 1)
 
     def test_notify_capture_raises(self):
-        with self.assertRaises(Exception):
+
+        def foo():
             with self.client.capture():
                 raise Exception('Testing Notify Context')
 
+        self.assertRaises(Exception, foo)
         self.assertEqual(len(self.server.received), 1)
 
     def test_notify_capture_options(self):
@@ -119,8 +121,7 @@ class ClientTest(IntegrationTest):
         def foo():
             raise Exception('Testing Capture Function')
 
-        with self.assertRaises(Exception):
-            foo()
+        self.assertRaises(Exception, foo)
 
         self.assertSentReportCount(1)
 
