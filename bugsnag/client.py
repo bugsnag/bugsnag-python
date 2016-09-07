@@ -1,5 +1,8 @@
 import sys
 
+from functools import wraps
+from types import FunctionType
+
 from bugsnag.configuration import Configuration, RequestConfiguration
 from bugsnag.notification import Notification
 
@@ -21,15 +24,37 @@ class Client(object):
         if install_sys_hook:
             self.install_sys_hook()
 
-    def capture(self, **options):
+    def capture(self, exceptions=None, **options):
         """
         Run a block of code within the clients context.
         Any exception raised will be reported to bugsnag.
 
         >>> with client.capture():
         >>>     raise Exception('an exception passed to bugsnag then reraised')
+
+        The context can optionally include specific types to capture.
+
+        >>> with client.capture((TypeError,)):
+        >>>     raise Exception('an exception which does get captured')
+
+        Alternately, functions can be decorated to capture any
+        exceptions thrown during execution and reraised.
+
+        >>> @client.capture
+        >>> def foo():
+        >>>     raise Exception('an exception passed to bugsnag then reraised')
+
+        The decoration can optionally include specific types to capture.
+
+        >>> @client.capture((TypeError,))
+        >>> def foo():
+        >>>     raise Exception('an exception which does not get captured')
         """
-        return ClientContext(self, **options)
+
+        if isinstance(exceptions, FunctionType):
+            return ClientContext(self, (Exception,))(exceptions)
+
+        return ClientContext(self, exceptions, **options)
 
     def notify(self, exception, **options):
         """
@@ -84,15 +109,25 @@ class Client(object):
 
 
 class ClientContext(object):
-    def __init__(self, client, **options):
+    def __init__(self, client, exception_types=None, **options):
         self.client = client
         self.options = options
+        self.exception_types = exception_types or (Exception,)
+
+    def __call__(self, function):
+        @wraps(function)
+        def decorate(*args, **kwargs):
+            with self:
+                function(*args, **kwargs)
+
+        return decorate
 
     def __enter__(self):
         pass
 
     def __exit__(self, *exc_info):
         if any(exc_info):
-            self.client.notify_exc_info(*exc_info, **self.options)
+            if any(isinstance(exc_info[1], e) for e in self.exception_types):
+                self.client.notify_exc_info(*exc_info, **self.options)
 
         return False

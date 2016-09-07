@@ -25,6 +25,15 @@ class IntegrationTest(unittest.TestCase):
     def tearDownClass(cls):
         cls.server.shutdown()
 
+    def assertSentReportCount(self, count):
+        self.assertEqual(len(self.server.received), count)
+
+    def assertExceptionName(self, received_index, event_index, name):
+        json_body = self.server.received[received_index]['json_body']
+        event = json_body['events'][event_index]
+        exception = event['exceptions'][0]
+        self.assertEqual(exception['errorClass'], name)
+
 
 class FakeBugsnagServer(object):
     """

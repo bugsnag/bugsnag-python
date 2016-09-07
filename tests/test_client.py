@@ -1,7 +1,7 @@
 import sys
 
 from bugsnag import Client, Configuration
-from tests.utils import IntegrationTest
+from tests.utils import IntegrationTest, ScaryException
 
 
 
@@ -77,11 +77,87 @@ class ClientTest(IntegrationTest):
             'key': 'value'
         })
 
+    def test_notify_capture_types(self):
+        try:
+            with self.client.capture((ScaryException,)):
+                raise Exception('Testing Notify Capture Types')
+        except Exception:
+            pass
+
+        self.assertSentReportCount(0)
+
+        try:
+            with self.client.capture((ScaryException,)):
+                raise ScaryException('Testing Notify Capture Types')
+        except Exception:
+            pass
+
+        self.assertSentReportCount(1)
+        self.assertExceptionName(0, 0, 'tests.utils.ScaryException')
+
     def test_no_exception_capture(self):
         with self.client.capture():
             pass
 
         self.assertEqual(len(self.server.received), 0)
+
+    def test_capture_decorator(self):
+
+        @self.client.capture
+        def foo():
+            raise Exception('Testing Capture Function')
+
+        try:
+            foo()
+        except Exception:
+            pass
+
+        self.assertSentReportCount(1)
+
+    def test_capture_decorator_raises(self):
+
+        @self.client.capture
+        def foo():
+            raise Exception('Testing Capture Function')
+
+        with self.assertRaises(Exception):
+            foo()
+
+        self.assertSentReportCount(1)
+
+    def test_capture_decorator_with_types(self):
+
+        @self.client.capture((ScaryException,))
+        def foo(exception_type):
+            raise exception_type('Testing Capture Function with Types')
+
+        try:
+            foo(Exception)
+        except Exception:
+            pass
+
+        self.assertSentReportCount(0)
+
+        try:
+            foo(ScaryException)
+        except Exception:
+            pass
+
+        self.assertSentReportCount(1)
+
+    def test_capture_decorator_with_class_method(self):
+        class Test(object):
+            @self.client.capture()
+            def foo(self):
+                raise Exception()
+
+        try:
+            test = Test()
+            test.foo()
+        except Exception:
+            pass
+
+        self.assertSentReportCount(1)
 
     # Exception Hook
 
