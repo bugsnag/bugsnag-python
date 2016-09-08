@@ -341,21 +341,21 @@ class TestBugsnag(IntegrationTest):
         self.assertEqual('RuntimeError', exception['errorClass'])
         self.assertTrue(repr(2) in exception['message'])
 
-    def test_notify_exception_tuple_with_traceback_option(self):
+    def test_notify_exception_with_traceback_option(self):
         backtrace = None
         try:
             raise ScaryException('foo')
         except:
             backtrace = sys.exc_info()[2]
 
-        bugsnag.notify((Exception, Exception("foo")), traceback=backtrace)
+        bugsnag.notify(Exception("foo"), traceback=backtrace)
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
         stacktrace = exception['stacktrace']
         self.assertEqual(1, len(self.server.received))
         self.assertEqual('foo', exception['message'])
-        self.assertEqual('test_notify_exception_tuple_with_traceback_option',
+        self.assertEqual('test_notify_exception_with_traceback_option',
                          stacktrace[0]['method'])
 
     def test_notify_exception_tuple_with_traceback(self):
@@ -379,12 +379,12 @@ class TestBugsnag(IntegrationTest):
                          stacktrace[0]['method'])
 
     def test_notify_exception_tuple(self):
-        bugsnag.notify((Exception, Exception("foo")))
+        bugsnag.notify((Exception, Exception("foo"), None))
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
         self.assertEqual(1, len(self.server.received))
-        self.assertEqual('foo', exception['message'])
+        self.assertEqual(u("RuntimeError"), exception['errorClass'])
 
     def test_notify_metadata_set_value(self):
         bugsnag.notify(ScaryException('unexpected failover'),

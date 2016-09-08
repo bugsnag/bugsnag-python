@@ -18,8 +18,10 @@ class IntegrationTest(unittest.TestCase):
         self.server.received = []
 
     def tearDown(self):
-        bugsnag.configuration = bugsnag.Configuration()
-        bugsnag.configuration.api_key = 'some key'
+        client = bugsnag.Client()
+        client.configuration.api_key = 'some key'
+        bugsnag.legacy.default_client = client
+        bugsnag.legacy.configuration = client.configuration
 
     @classmethod
     def tearDownClass(cls):
