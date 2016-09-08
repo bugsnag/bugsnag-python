@@ -1,7 +1,7 @@
 Changelog
 =========
 
-## 2.6.0b1 (TBA)
+## 2.6.0b1 (2016-09-08)
 
 ### Enhancements
 
