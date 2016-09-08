@@ -18,12 +18,23 @@ class IntegrationTest(unittest.TestCase):
         self.server.received = []
 
     def tearDown(self):
-        bugsnag.configuration = bugsnag.Configuration()
-        bugsnag.configuration.api_key = 'some key'
+        client = bugsnag.Client()
+        client.configuration.api_key = 'some key'
+        bugsnag.legacy.default_client = client
+        bugsnag.legacy.configuration = client.configuration
 
     @classmethod
     def tearDownClass(cls):
         cls.server.shutdown()
+
+    def assertSentReportCount(self, count):
+        self.assertEqual(len(self.server.received), count)
+
+    def assertExceptionName(self, received_index, event_index, name):
+        json_body = self.server.received[received_index]['json_body']
+        event = json_body['events'][event_index]
+        exception = event['exceptions'][0]
+        self.assertEqual(exception['errorClass'], name)
 
 
 class FakeBugsnagServer(object):

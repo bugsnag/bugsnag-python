@@ -1,6 +1,90 @@
 Changelog
 =========
 
+## 2.6.0b1 (TBA)
+
+### Enhancements
+
+* Support multiple clients in a single environment using `bugsnag.Client`. A new
+  client can be initialized using a `Configuration` or options passed to
+  `Client()`. By default, a client is installed as the system exception hook.
+  To disable this behavior, set `install_sys_hook` to `False`.
+
+  ```python
+  client = Client(api_key='...')
+  ```
+
+  ```python
+  config = Configuration(api_key='...')
+  client = Client(config)
+  ```
+  [Kyle Fuller](https://github.com/kylef)
+  [#101](https://github.com/bugsnag/bugsnag-python/pull/101)
+
+* Support running a block of code within a client's context. Any exception
+  raised will be reported.
+
+  ```python
+  with client.capture():
+      raise Exception('an exception reported to Bugsnag then reraised')
+  ```
+
+  Specific types of exceptions can be captured by adding `exceptions` as a
+  tuple.
+
+  ```python
+  with client.capture((TypeError,)):
+      raise Exception('an exception which does not get captured')
+  ```
+
+  Additional options can be passed to th resulting error report, such as
+  attached metadata or severity.
+
+  ```python
+  with client.capture(account_id='123', severity='info'):
+      raise Exception('failed to validate record')
+  ```
+
+  Functions can be decorated to capture any exceptions thrown during execution.
+
+  ```python
+  @client.capture
+  def foo():
+      raise Exception('an exception passed to Bugsnag then reraised')
+
+  @client.capture((TypeError,))
+  def bar():
+      raise Exception('an exception which does not get captured')
+
+  @client.capture(test_slice='B')
+  def baz():
+      raise Exception('an exception passed to Bugsnag then reraised')
+  ```
+
+  [Kyle Fuller](https://github.com/kylef)
+  [Delisa Mason](https://github.com/kattrali)
+  [#101](https://github.com/bugsnag/bugsnag-python/pull/101)
+
+* Replace existing logging with a logger. Logs from bugsnag can now be
+  controlled by setting the log level of `bugsnag.logger`.
+  [Kyle Fuller](https://github.com/kylef)
+  [#95](https://github.com/bugsnag/bugsnag-python/pull/95)
+
+* Wrap non-Exception objects passed to `notify()` in a `RuntimeError`
+  [Delisa Mason](https://github.com/kattrali)
+  [#98](https://github.com/bugsnag/bugsnag-python/pull/98)
+
+### Bug fixes
+
+* Fix proxy configuration setting a global opener
+  [Kyle Fuller](https://github.com/kylef)
+  [#97](https://github.com/bugsnag/bugsnag-python/pull/97)
+
+* Fix dropped reports during fatal errors occuring before threads join
+  [Delisa Mason](https://github.com/kattrali)
+  [#99](https://github.com/bugsnag/bugsnag-python/pull/99)
+
+
 ## 2.5.2 (2016-08-19)
 
 ### Enhancements
