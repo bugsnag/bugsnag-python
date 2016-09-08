@@ -60,6 +60,28 @@ class ClientTest(IntegrationTest):
         self.assertSentReportCount(0)
         del self.called
 
+    def test_invalid_delivery(self):
+        c = Configuration()
+        c.configure(delivery=44, api_key='abc')
+        client = Client(c)
+        client.notify(Exception('Oh no'))
+
+    def test_failed_delivery(self):
+        c = Configuration()
+        self.called = False
+
+        class FooDelivery:
+
+            def deliver(foo, config, payload):
+                self.called = True
+                raise ScaryException('something gone wrong')
+
+        c.configure(delivery=FooDelivery(), api_key='abc')
+        client = Client(c)
+        client.notify(Exception('Oh no'))
+        self.assertTrue(self.called)
+        del self.called
+
     # Capture
 
     def test_notify_capture(self):
