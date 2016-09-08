@@ -227,3 +227,35 @@ class ClientTest(IntegrationTest):
         self.assertNotEqual(sys.excepthook, excepthook)
         client.uninstall_sys_hook()
         self.assertEqual(sys.excepthook, excepthook)
+
+    # Multiple Clients
+
+    def test_multiple_clients_different_keys(self):
+        client1 = Client(api_key='abc', asynchronous=False, use_ssl=False,
+                         endpoint=self.server.address)
+        client2 = Client(api_key='456', asynchronous=False, use_ssl=False,
+                         endpoint=self.server.address)
+
+        client1.notify(ScaryException('foo'))
+        self.assertSentReportCount(1)
+
+        json_body = self.server.received[0]['json_body']
+
+        client2.notify(ScaryException('bar'))
+        self.assertSentReportCount(2)
+
+        json_body = self.server.received[1]['json_body']
+        self.assertEqual(json_body['apiKey'], '456')
+
+    def test_multiple_clients_one_excepthook(self):
+        def excepthook(*exc_info):
+            pass
+        sys.excepthook = excepthook
+
+        client1 = Client(api_key='abc', asynchronous=False, use_ssl=False,
+                         endpoint=self.server.address)
+        Client(api_key='456', asynchronous=False, use_ssl=False,
+               endpoint=self.server.address, install_sys_hook=False)
+
+        self.assertEqual(client1, sys.excepthook.bugsnag_client)
+        self.assertEqual(client1.sys_excepthook, excepthook)
