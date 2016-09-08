@@ -7,6 +7,7 @@ from distutils.sysconfig import get_python_lib
 
 from bugsnag.middleware import DefaultMiddleware, MiddlewareStack
 from bugsnag.utils import fully_qualified_class_name
+from bugsnag.delivery import create_default_delivery
 
 
 threadlocal = threading.local()
@@ -46,6 +47,7 @@ class Configuration(_BaseConfiguration):
         self.send_code = True
         self.asynchronous = True
         self.use_ssl = True
+        self.delivery = create_default_delivery()
         self.lib_root = get_python_lib()
         self.project_root = os.getcwd()
         self.app_version = None
@@ -67,7 +69,8 @@ class Configuration(_BaseConfiguration):
 
     def should_notify(self):
         return self.notify_release_stages is None or \
-            self.release_stage in self.notify_release_stages
+            (isinstance(self.notify_release_stages, (tuple, list)) and
+             self.release_stage in self.notify_release_stages)
 
     def should_ignore(self, exception):
         return self.ignore_classes is not None and \

@@ -44,6 +44,22 @@ class ClientTest(IntegrationTest):
 
         self.assertEqual(len(self.server.received), 1)
 
+    def test_delivery(self):
+        c = Configuration()
+        self.called = False
+
+        class FooDelivery:
+
+            def deliver(foo, config, payload):
+                self.called = True
+
+        c.configure(delivery=FooDelivery(), api_key='abc')
+        client = Client(c)
+        client.notify(Exception('Oh no'))
+        self.assertTrue(self.called)
+        self.assertSentReportCount(0)
+        del self.called
+
     # Capture
 
     def test_notify_capture(self):

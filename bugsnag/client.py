@@ -6,6 +6,8 @@ from types import FunctionType
 from bugsnag.configuration import Configuration, RequestConfiguration
 from bugsnag.notification import Notification
 
+import bugsnag
+
 
 __all__ = ('Client',)
 
@@ -66,7 +68,7 @@ class Client(object):
         notification = Notification(exception, self.configuration,
                                     RequestConfiguration.get_instance(),
                                     **options)
-        notification.deliver()
+        self.deliver(notification)
 
     def notify_exc_info(self, exc_type, exc_value, traceback, **options):
         """
@@ -80,7 +82,7 @@ class Client(object):
         notification = Notification(exception, self.configuration,
                                     RequestConfiguration.get_instance(),
                                     **options)
-        notification.deliver()
+        self.deliver(notification)
 
     def excepthook(self, exc_type, exc_value, traceback):
         if self.configuration.auto_notify:
@@ -105,6 +107,38 @@ class Client(object):
         if client is self:
             sys.excepthook = self.sys_excepthook
             self.sys_excepthook = None
+
+    def deliver(self, notification):
+        """
+        Deliver the exception notification to Bugsnag.
+        """
+        if not self.should_deliver(notification):
+            return
+
+        def send_payload():
+            if notification.api_key is None:
+                bugsnag.logger.warning(
+                    "No API key configured, couldn't notify")
+                return
+
+            try:
+                self.configuration.delivery.deliver(self.configuration,
+                                                    notification._payload())
+            except Exception as e:
+                bugsnag.logger.exception('Notifying Bugsnag failed', e)
+
+        self.configuration.middleware.run(notification, send_payload)
+
+    def should_deliver(self, notification):
+        # Return early if we shouldn't notify for current release stage
+        if not self.configuration.should_notify():
+            return False
+
+        # Return early if we should ignore exceptions of this type
+        if self.configuration.should_ignore(notification.exception):
+            return False
+
+        return True
 
 
 class ClientContext(object):

@@ -17,7 +17,8 @@ tests_require = [
   'blinker',
   'webtest',
   'nose',
-  'flake8'
+  'flake8',
+  'requests'
 ]
 
 setup(

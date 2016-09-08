@@ -4,81 +4,12 @@ import linecache
 import logging
 import os
 import sys
-import threading
 import traceback
 
 import bugsnag
 
-from six.moves.urllib.request import (
-    Request,
-    ProxyHandler,
-    build_opener
-)
 from bugsnag.utils import fully_qualified_class_name as class_name
 from bugsnag.utils import SanitizingJSONEncoder, package_version
-try:
-    if sys.version_info is not (3, 2):
-        raise ImportError("Skip loading on 3.2")
-
-    import requests
-except ImportError:
-    requests = None
-
-
-def deliver(payload, url, async, proxy_host):
-    req = Request(url, payload.encode('utf-8', 'replace'), {
-        'Content-Type': 'application/json'
-    })
-
-    def request():
-        def urllib_request():
-            if proxy_host:
-                proxies = ProxyHandler({
-                    'https': proxy_host,
-                    'http': proxy_host
-                })
-
-                opener = build_opener(proxies)
-            else:
-                opener = build_opener()
-
-            resp = opener.open(req)
-            status = resp.getcode()
-
-            if status != 200:
-                bugsnag.logger.warning(
-                    'Notification to %s failed, status %d' % (url, status))
-
-        def requests_request():
-            if proxy_host:
-                proxy = {
-                    'https': proxy_host,
-                    'http': proxy_host
-                }
-                r = requests.post(url, json=payload, proxies=proxy)
-            else:
-                r = requests.post(url, json=payload)
-
-            status = r.status_code
-
-            if status != requests.codes.ok:
-                bugsnag.logger.warning(
-                    'Notification to %s failed, status %d' % (url, status))
-
-        try:
-            if requests is not None:
-                requests_request()
-            else:
-                urllib_request()
-        except Exception:
-            bugsnag.logger.exception(
-                'Failed to send notification to %s' % url)
-
-    if async:
-        t = threading.Thread(target=request)
-        t.start()
-    else:
-        request()
 
 
 class Notification(object):
@@ -140,30 +71,6 @@ class Notification(object):
 
         for name, tab in options.items():
             self.add_tab(name, tab)
-
-    def deliver(self):
-        """
-        Deliver the exception notification to Bugsnag.
-        """
-
-        try:
-            # Return early if we shouldn't notify for current release stage
-            if not self.config.should_notify():
-                return
-
-            if self.api_key is None:
-                bugsnag.logger.warning(
-                    "No API key configured, couldn't notify")
-                return
-
-            # Return early if we should ignore exceptions of this type
-            if self.config.should_ignore(self.exception):
-                return
-
-            self.config.middleware.run(self, self._send_to_bugsnag)
-
-        except Exception:
-            bugsnag.logger.exception('Notifying Bugsnag failed')
 
     def set_user(self, id=None, name=None, email=None):
         """
@@ -315,16 +222,3 @@ class Notification(object):
                 "libRoot": self.config.get("lib_root")
             }]
         })
-
-    def _send_to_bugsnag(self):
-        if self.api_key is None:
-            bugsnag.logger.warning("No API key configured, couldn't notify")
-            return
-
-        # Generate the payload and make the request
-        url = self.config.get_endpoint()
-        async = self.config.asynchronous
-
-        bugsnag.logger.info("Notifying %s of exception" % url)
-
-        deliver(self._payload(), url, async, self.config.proxy_host)
