@@ -5,6 +5,7 @@ from types import FunctionType
 
 from bugsnag.configuration import Configuration, RequestConfiguration
 from bugsnag.notification import Notification
+from bugsnag.handlers import BugsnagHandler
 
 import bugsnag
 
@@ -139,6 +140,9 @@ class Client(object):
             return False
 
         return True
+
+    def log_handler(self):
+        return BugsnagHandler(client=self)
 
 
 class ClientContext(object):
