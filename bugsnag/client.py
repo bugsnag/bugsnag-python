@@ -117,7 +117,7 @@ class ClientContext(object):
         @wraps(function)
         def decorate(*args, **kwargs):
             with self:
-                function(*args, **kwargs)
+                return function(*args, **kwargs)
 
         return decorate
 
