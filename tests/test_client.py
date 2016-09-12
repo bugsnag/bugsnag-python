@@ -115,6 +115,14 @@ class ClientTest(IntegrationTest):
 
         self.assertSentReportCount(1)
 
+    def test_capture_decorator_returns_value(self):
+
+        @self.client.capture
+        def foo():
+            return "300"
+
+        self.assertEqual(foo(), "300")
+
     def test_capture_decorator_raises(self):
 
         @self.client.capture
