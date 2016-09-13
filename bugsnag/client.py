@@ -154,8 +154,11 @@ class ClientContext(object):
     def __call__(self, function):
         @wraps(function)
         def decorate(*args, **kwargs):
-            with self:
+            try:
                 return function(*args, **kwargs)
+            except self.exception_types as e:
+                self.client.notify(e, source_func=function, **self.options)
+                raise
 
         return decorate
 
