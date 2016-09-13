@@ -1,7 +1,12 @@
 Changelog
 =========
 
-## TBA
+## 3.0.0b1 (2016-09-13)
+
+This is a major release adding a number of new features and deprecating some
+lesser used parts of the library.
+
+### Enhancements
 
 * Support customizing delivery and sending error reports using
   [requests](http://docs.python-requests.org/en/master/).
@@ -36,10 +41,6 @@ Changelog
   [Graham Campbell](https://github.com/GrahamCampbell)
   [Delisa Mason](https://github.com/kattrali)
   [#86](https://github.com/bugsnag/bugsnag-python/pull/86)
-
-## 2.6.0b1 (2016-09-08)
-
-### Enhancements
 
 * Support multiple clients in a single environment using `bugsnag.Client`. A new
   client can be initialized using a `Configuration` or options passed to
@@ -101,8 +102,45 @@ Changelog
   [Delisa Mason](https://github.com/kattrali)
   [#101](https://github.com/bugsnag/bugsnag-python/pull/101)
 
+* Support creating a log handler from a client, and forwarding logged messages
+  to Bugsnag.
+
+  ```python
+  client = Client(api_key='...')
+  logger = logging.getLogger(__name__)
+
+  logger.addHandler(client.log_handler())
+  ```
+
+  Log messages can also be customized using additional information from the
+  log record and callbacks:
+
+  ```python
+  client = Client(api_key='...')
+  logger = logging.getLogger(__name__)
+  handler = client.log_handler()
+
+  def add_extra_info(record, options):
+      if 'meta_data' not in options:
+          options['meta_data'] = {}
+
+      options['meta_data']['stats'] = {
+        'account_id': record.account_id,
+        'ab_test_slice': record.slice_name
+      }
+
+  handler.add_callback(add_extra_info)
+  logger.addHandler(handler)
+  ```
+
+  `BugsnagHandler` arguments `api_key` and `extra_fields` were deprecated as a
+  part of this change.
+
+  [Delisa Mason](https://github.com/kattrali)
+  [#103](https://github.com/bugsnag/bugsnag-python/pull/103)
+
 * Replace existing logging with a logger. Logs from bugsnag can now be
-  controlled by setting the log level of `bugsnag.logger`.
+  controlled by setting the log level of `logging.getLogger('bugsnag')`.
   [Kyle Fuller](https://github.com/kylef)
   [#95](https://github.com/bugsnag/bugsnag-python/pull/95)
 
