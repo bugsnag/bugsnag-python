@@ -36,6 +36,12 @@ class _BaseConfiguration(object):
         Set one or more configuration settings.
         """
         for name, value in options.items():
+            if name is 'use_ssl':
+                warnings.warn('use_ssl is deprecated in favor of including '
+                              'the protocol in the endpoint property and will '
+                              'be removed in a future release',
+                              DeprecationWarning)
+
             setattr(self, name, value)
 
         return self
