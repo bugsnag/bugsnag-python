@@ -13,7 +13,7 @@ __all__ = (Client, Notification, Configuration, RequestConfiguration,
            clear_request_config, notify, auto_notify, before_notify)
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.WARNING)
 handler = logging.StreamHandler(sys.stderr)
 formatter = logging.Formatter(
     '%(asctime)s - [%(name)s] %(levelname)s - %(message)s')
