@@ -7,21 +7,48 @@ from bugsnag.configuration import Configuration
 
 class TestConfiguration(unittest.TestCase):
 
-    def test_get_endpoint(self):
-        # Test default endpoint with ssl
+    def test_get_endpoint_use_ssl(self):
         c = Configuration()
         c.use_ssl = True
         self.assertEqual(c.get_endpoint(), "https://notify.bugsnag.com")
 
-        # Test default endpoint without ssl
+    def test_get_endpoint_no_use_ssl(self):
         c = Configuration()
         c.use_ssl = False
         self.assertEqual(c.get_endpoint(), "http://notify.bugsnag.com")
 
-        # Test custom endpoint
+    def test_custom_get_endpoint_default_ssl(self):
+        c = Configuration()
+        c.endpoint = "localhost:1234"
+        self.assertEqual(c.get_endpoint(), "https://localhost:1234")
+
+    def test_custom_get_endpoint_use_ssl(self):
+        c = Configuration()
+        c.use_ssl = True
+        c.endpoint = "localhost:1234"
+        self.assertEqual(c.get_endpoint(), "https://localhost:1234")
+
+    def test_custom_get_endpoint_no_use_ssl(self):
         c = Configuration()
         c.use_ssl = False
         c.endpoint = "localhost:1234"
+        self.assertEqual(c.get_endpoint(), "http://localhost:1234")
+
+    def test_full_custom_get_endpoint(self):
+        c = Configuration()
+        c.endpoint = "https://localhost:1234"
+        self.assertEqual(c.get_endpoint(), "https://localhost:1234")
+
+    def test_full_custom_get_endpoint_use_ssl(self):
+        c = Configuration()
+        c.use_ssl = True
+        c.endpoint = "https://localhost:1234"
+        self.assertEqual(c.get_endpoint(), "https://localhost:1234")
+
+    def test_full_custom_get_endpoint_no_use_ssl(self):
+        c = Configuration()
+        c.use_ssl = False
+        c.endpoint = "https://localhost:1234"
         self.assertEqual(c.get_endpoint(), "http://localhost:1234")
 
     def test_reads_api_key_from_environ(self):

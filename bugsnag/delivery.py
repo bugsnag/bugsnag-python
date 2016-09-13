@@ -46,7 +46,11 @@ class UrllibDelivery(Delivery):
     def deliver(self, config, payload):
 
         def request():
-            req = Request(config.get_endpoint(),
+            endpoint = config.endpoint
+            if '://' not in endpoint:
+                endpoint = config.get_endpoint()
+
+            req = Request(endpoint,
                           payload.encode('utf-8', 'replace'),
                           {'Content-Type': 'application/json'})
 
@@ -79,7 +83,10 @@ class RequestsDelivery(Delivery):
     def deliver(self, config, payload):
 
         def request():
-            endpoint = config.get_endpoint()
+            endpoint = config.endpoint
+            if '://' not in endpoint:
+                endpoint = config.get_endpoint()
+
             headers = {'Content-Type': 'application/json'}
             options = {'data': payload, 'headers': headers}
 
