@@ -1,9 +1,11 @@
 twine
 wheel
 
+tox
 nose-cov
 coveralls
+flake8
 
 --index-url https://pypi.python.org/simple/
 
--e .[tests]
+-e .

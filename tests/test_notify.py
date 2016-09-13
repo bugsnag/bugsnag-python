@@ -495,4 +495,5 @@ class TestBugsnag(IntegrationTest):
 
         self.assertEqual(len(self.server.received), 1)
         self.assertEqual(self.server.received[0]['method'], 'POST')
-        self.assertEqual(self.server.received[0]['path'], self.server.url)
+        self.assertEqual(self.server.received[0]['path'].strip('/'),
+                         self.server.url)

@@ -1,6 +1,42 @@
 Changelog
 =========
 
+## TBA
+
+* Support customizing delivery and sending error reports using
+  [requests](http://docs.python-requests.org/en/master/).
+
+  The new `Delivery` class is a generic way of sending a serialized payload to
+  Bugsnag. The `Configuration` class now has a `delivery` property which should
+  be an instance of `Delivery`. By default, if requests is installed, reports
+  are sent via `bugsnag.delivery.RequestsDelivery` rather than
+  `bugsnag.delivery.UrllibDelivery`.
+
+  To enforce using urllib2/urllib3, use `UrllibDelivery`:
+
+  ```python
+  from bugsnag.delivery import UrllibDelivery
+
+  bugsnag.configure(delivery=UrllibDelivery())
+  ```
+
+  To use a custom `Delivery`:
+
+  ```python
+  from bugsnag.delivery import Delivery
+
+  class SomeSpecialDelivery(Delivery):
+
+      def deliver(self, config, payload):
+          send_to_my_queue(config.get_endpoint(), config.proxy_host, payload)
+
+  bugsnag.configure(delivery=SomeSpecialDelivery())
+  ```
+
+  [Graham Campbell](https://github.com/GrahamCampbell)
+  [Delisa Mason](https://github.com/kattrali)
+  [#86](https://github.com/bugsnag/bugsnag-python/pull/86)
+
 ## 2.6.0b1 (2016-09-08)
 
 ### Enhancements

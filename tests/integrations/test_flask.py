@@ -4,7 +4,10 @@ from nose.plugins.skip import SkipTest
 if (3, 0) <= sys.version_info < (3, 3):  # noqa
     raise SkipTest("Flask is incompatible with python3 3.0 - 3.2")
 
-from flask import Flask
+try:
+    from flask import Flask
+except:
+    raise SkipTest("Flask is not installed")
 
 from bugsnag.flask import handle_exceptions
 import bugsnag.notification
@@ -53,7 +56,7 @@ class TestFlask(IntegrationTest):
         self.assertEqual(1, len(self.server.received))
         payload = self.server.received[0]['json_body']
         self.assertEqual(payload['events'][0]['exceptions'][0]['errorClass'],
-                         'tests.test_flask.SentinelError')
+                         'test_flask.SentinelError')
         self.assertEqual(payload['events'][0]['metaData']['request']['url'],
                          'http://localhost/hello')
 
@@ -115,7 +118,7 @@ class TestFlask(IntegrationTest):
         payload = self.server.received[0]['json_body']
         event = payload['events'][0]
         self.assertEqual(event['exceptions'][0]['errorClass'],
-                         'tests.test_flask.SentinelError')
+                         'test_flask.SentinelError')
         self.assertEqual(event['metaData']['request']['url'],
                          'http://localhost/ajax')
         self.assertEqual(event['metaData']['request']['data'],
@@ -155,7 +158,7 @@ class TestFlask(IntegrationTest):
         payload = self.server.received[0]['json_body']
         event = payload['events'][0]
         self.assertEqual(event['exceptions'][0]['errorClass'],
-                         'tests.test_flask.SentinelError')
+                         'test_flask.SentinelError')
         self.assertEqual(event['metaData']['request']['url'],
                          'http://localhost/form')
         body = event['metaData']['request']['data']['body']

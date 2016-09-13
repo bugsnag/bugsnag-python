@@ -17,7 +17,7 @@ Running the tests
 
 - Run the tests:
 
-      ./setup.py test
+      tox
 
 
 - Lint the changes:
