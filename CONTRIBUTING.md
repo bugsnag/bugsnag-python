@@ -69,13 +69,13 @@ If you're on the core team, you can release Bugsnag as follows:
 * Commit
 
     ```
-    git commit -am v2.x.x
+    git commit -am v3.x.x
     ```
 
 * Tag the release in git
 
     ```
-    git tag v2.x.x
+    git tag v3.x.x
     ```
 
 * Push to git
