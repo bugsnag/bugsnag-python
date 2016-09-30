@@ -1,12 +1,15 @@
 from __future__ import division, print_function, absolute_import
 
+from django.utils.deprecation import MiddlewareMixin
+
 import bugsnag
 import bugsnag.django
 
 
-class BugsnagMiddleware(object):
-    def __init__(self):
+class BugsnagMiddleware(MiddlewareMixin):
+    def __init__(self, get_response=None):
         bugsnag.django.configure()
+        super(BugsnagMiddleware, self).__init__(get_response)
 
     # pylint: disable-msg=R0201
     def process_request(self, request):
