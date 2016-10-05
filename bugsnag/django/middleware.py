@@ -1,6 +1,9 @@
 from __future__ import division, print_function, absolute_import
 
-from django.utils.deprecation import MiddlewareMixin
+try:
+    from django.utils.deprecation import MiddlewareMixin
+except ImportError:
+    from bugsnag.django.utils import MiddlewareMixin
 
 import bugsnag
 import bugsnag.django
