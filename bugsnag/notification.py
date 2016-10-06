@@ -5,6 +5,7 @@ import logging
 import os
 import sys
 import traceback
+import inspect
 
 import bugsnag
 
@@ -61,7 +62,8 @@ class Notification(object):
             self.user["id"] = options.pop("user_id")
 
         self.stacktrace = self._generate_stacktrace(
-                self.options.pop("traceback", sys.exc_info()[2]))
+                self.options.pop("traceback", sys.exc_info()[2]),
+                self.options.pop("source_func", None))
         self.grouping_hash = options.pop("grouping_hash", None)
         self.api_key = options.pop("api_key", get_config("api_key"))
 
@@ -105,7 +107,7 @@ class Notification(object):
 
         self.meta_data[name].update(dictionary)
 
-    def _generate_stacktrace(self, tb):
+    def _generate_stacktrace(self, tb, source_func=None):
         """
         Build the stacktrace
         """
@@ -134,6 +136,17 @@ class Notification(object):
             project_root += os.sep
 
         stacktrace = []
+        if source_func is not None:
+            try:
+                source = inspect.getsourcefile(source_func)
+                lines = inspect.getsourcelines(source_func)
+                line = 0
+                if lines is not None and len(lines) > 1:
+                    line = lines[1]
+                trace.insert(0, [source, line, source_func.__name__])
+            except (IOError, TypeError):
+                pass
+
         for line in trace:
             file_name = os.path.abspath(str(line[0]))
             in_project = False

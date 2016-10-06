@@ -153,6 +153,20 @@ class ClientTest(IntegrationTest):
 
         self.assertSentReportCount(1)
 
+    def test_capture_decorator_mismatch(self):
+
+        @self.client.capture
+        def foo():
+            pass
+
+        self.assertRaises(TypeError, foo, 'bar')
+        self.assertSentReportCount(1)
+
+        payload = self.server.received[0]['json_body']
+        file = payload['events'][0]['exceptions'][0]['stacktrace'][0]['file']
+
+        self.assertEqual(file, "test_client.py")
+
     def test_capture_decorator_returns_value(self):
 
         @self.client.capture
