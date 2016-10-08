@@ -1,6 +1,21 @@
 Changelog
 =========
 
+## 3.0.0b2 (2016-10-07)
+
+## Enhancements
+
+* Add compatibility with Django 1.10
+  [Jonny Pickett](https://github.com/jonnypickett)
+  [#108](https://github.com/bugsnag/bugsnag-python/pull/108)
+
+## Bug fixes
+
+* Fix missing error reports when invoking a function decorated with a Bugsnag
+  client using the wrong arguments
+  [Delisa Mason](https://github.com/kattrali)
+  [#110](https://github.com/bugsnag/bugsnag-python/pull/110)
+
 ## 3.0.0b1 (2016-09-13)
 
 This is a major release adding a number of new features and deprecating some
