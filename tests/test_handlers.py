@@ -208,22 +208,35 @@ class HandlersTest(IntegrationTest):
         self.assertEqual(exception['errorClass'], 'tests.utils.ScaryException')
 
     def test_extra_fields(self):
-
-        class FruitFilter(logging.Filter):
-
-            def filter(self, record):
-                record.grapes = 8
-                record.pears = 2
-                record.apricots = 90
-                return True
-
         handler = BugsnagHandler(api_key='new news',
                                  extra_fields={'fruit': ['grapes', 'pears']})
         logger = logging.getLogger(__name__)
         logger.addHandler(handler)
-        logger.addFilter(FruitFilter())
 
-        logger.error('A wild tomato appeared')
+        logger.error('A wild tomato appeared', extra={
+            'grapes': 8, 'pears': 2, 'tomatoes': 1
+        })
+        logger.removeHandler(handler)
+
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertEqual(event['metaData']['fruit'], {
+            'grapes': 8, 'pears': 2
+        })
+
+    def test_client_metadata_fields(self):
+        client = Client(use_ssl=False,
+                        endpoint=self.server.address,
+                        api_key='new news',
+                        asynchronous=False)
+        handler = client.log_handler(
+                extra_fields={'fruit': ['grapes', 'pears']})
+        logger = logging.getLogger(__name__)
+        logger.addHandler(handler)
+
+        logger.error('A wild tomato appeared', extra={
+            'grapes': 8, 'pears': 2, 'tomatoes': 1
+        })
         logger.removeHandler(handler)
 
         json_body = self.server.received[0]['json_body']
@@ -313,16 +326,23 @@ class HandlersTest(IntegrationTest):
     def test_client_add_callback(self, handler, logger):
 
         def some_callback(record, options):
-            options['meta_data']['tab'] = {'key': 'value'}
+            for key in record.meals:
+                options['meta_data'][key] = record.meals[key]
 
         handler.add_callback(some_callback)
-        logger.info('Everything is fine')
+        logger.info('Everything is fine', extra={'meals': {
+            'food': {'fruit': ['pear', 'grape']},
+            'drinks': {'free': 'water'}
+        }})
 
         self.assertSentReportCount(1)
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
-        self.assertEqual(event['metaData']['tab'], {
-            'key': 'value'
+        self.assertEqual(event['metaData']['food'], {
+            'fruit': ['pear', 'grape']
+        })
+        self.assertEqual(event['metaData']['drinks'], {
+            'free': 'water'
         })
 
     @use_client_logger

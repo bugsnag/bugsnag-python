@@ -7,13 +7,16 @@ import bugsnag
 
 
 class BugsnagHandler(logging.Handler, object):
-    def __init__(self, api_key=None, extra_fields=None, client=None):
+    def __init__(self, api_key=None, client=None, extra_fields=None):
         """
         Creates a new handler which sends records to Bugsnag
         """
         super(BugsnagHandler, self).__init__()
         self.client = client
-        self.callbacks = [self.extract_metadata, self.extract_severity]
+        self.custom_metadata_fields = extra_fields
+        self.callbacks = [self.extract_default_metadata,
+                          self.extract_custom_metadata,
+                          self.extract_severity]
 
         if api_key is not None:
             warnings.warn('api_key is deprecated in favor of using a client '
@@ -26,33 +29,11 @@ class BugsnagHandler(logging.Handler, object):
 
             self.add_callback(add_api_key)
 
-        if extra_fields is not None:
-            warnings.warn('extra_fields is deprecated in favor of using a '
-                          'client and changing notification options using '
-                          'add_callback. '
-                          'extra_fields will be removed in a future release.',
-                          DeprecationWarning)
-
-            def add_extra_fields(record, options):
-                if 'meta_data' not in options:
-                    options['meta_data'] = {}
-
-                for section in extra_fields:
-                    if section not in options['meta_data']:
-                        options['meta_data'][section] = {}
-
-                    for field in extra_fields[section]:
-                        if hasattr(record, field):
-                            attr = getattr(record, field)
-                            options['meta_data'][section][field] = attr
-
-            self.add_callback(add_extra_fields)
-
     def emit(self, record):
         """
         Outputs the record to Bugsnag
         """
-        options = {}
+        options = {'meta_data': {}}
 
         for callback in self.callbacks:
             try:
@@ -109,7 +90,27 @@ class BugsnagHandler(logging.Handler, object):
         else:
             options['severity'] = 'info'
 
-    def extract_metadata(self, record, options):
+    def extract_custom_metadata(self, record, options):
+        """
+        Append the contents of selected fields of a record to the metadata
+        of a report
+        """
+        if self.custom_metadata_fields is None:
+            return
+
+        if 'meta_data' not in options:
+            options['meta_data'] = {}
+
+        for section in self.custom_metadata_fields:
+            if section not in options['meta_data']:
+                options['meta_data'][section] = {}
+
+            for field in self.custom_metadata_fields[section]:
+                if hasattr(record, field):
+                    attr = getattr(record, field)
+                    options['meta_data'][section][field] = attr
+
+    def extract_default_metadata(self, record, options):
         """
         Extract log record fields into error report metadata
         """

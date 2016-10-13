@@ -141,8 +141,8 @@ class Client(object):
 
         return True
 
-    def log_handler(self):
-        return BugsnagHandler(client=self)
+    def log_handler(self, extra_fields=None):
+        return BugsnagHandler(client=self, extra_fields=extra_fields)
 
 
 class ClientContext(object):
