@@ -1,27 +1,16 @@
 Changelog
 =========
 
-## 3.0.0b2 (2016-10-07)
+## 3.0.0 (2016-10-31)
+
+This is a major release adding a number of new features and deprecating some
+lesser used parts of the library.
 
 ## Enhancements
 
 * Add compatibility with Django 1.10
   [Jonny Pickett](https://github.com/jonnypickett)
   [#108](https://github.com/bugsnag/bugsnag-python/pull/108)
-
-## Bug fixes
-
-* Fix missing error reports when invoking a function decorated with a Bugsnag
-  client using the wrong arguments
-  [Delisa Mason](https://github.com/kattrali)
-  [#110](https://github.com/bugsnag/bugsnag-python/pull/110)
-
-## 3.0.0b1 (2016-09-13)
-
-This is a major release adding a number of new features and deprecating some
-lesser used parts of the library.
-
-### Enhancements
 
 * Support customizing delivery and sending error reports using
   [requests](http://docs.python-requests.org/en/master/).
@@ -148,8 +137,7 @@ lesser used parts of the library.
   logger.addHandler(handler)
   ```
 
-  `BugsnagHandler` arguments `api_key` and `extra_fields` were deprecated as a
-  part of this change.
+  `BugsnagHandler` argument `api_key` was deprecated as a part of this change.
 
   [Delisa Mason](https://github.com/kattrali)
   [#103](https://github.com/bugsnag/bugsnag-python/pull/103)
@@ -172,6 +160,11 @@ lesser used parts of the library.
 * Fix dropped reports during fatal errors occuring before threads join
   [Delisa Mason](https://github.com/kattrali)
   [#99](https://github.com/bugsnag/bugsnag-python/pull/99)
+
+* Fix missing error reports when invoking a function decorated with a Bugsnag
+  client using the wrong arguments
+  [Delisa Mason](https://github.com/kattrali)
+  [#110](https://github.com/bugsnag/bugsnag-python/pull/110)
 
 
 ## 2.5.2 (2016-08-19)
