@@ -31,7 +31,7 @@ class TestBugsnag(IntegrationTest):
         while len(self.server.received) == 0:
             if time.time() > (start + 0.5):
                 raise Exception(
-                        'Timed out while waiting for asynchronous request.')
+                    'Timed out while waiting for asynchronous request.')
 
             time.sleep(0.001)
 
@@ -295,7 +295,7 @@ class TestBugsnag(IntegrationTest):
 
     def test_notify_metadata_complex_value(self):
         bugsnag.notify(ScaryException('unexpected failover'),
-                       value=(5+0j), value2=(13+3.4j))
+                       value=(5 + 0j), value2=(13 + 3.4j))
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('(5+0j)', event['metaData']['custom']['value'])
@@ -427,18 +427,17 @@ class TestBugsnag(IntegrationTest):
                   '-838b-a05aadc06a5\x00\x02uid\x00%\x00\x00\x001bab969f-7b30'
                   '-459a-adee-917b9e028eed\x00\x00'))
         self_class = 'tests.test_notify.TestBugsnag'
-        bugsnag.notify(Exception('free food'),
-                       meta_data={'payload': {
-                         'project': u('∆πåß∂ƒ'),
-                         'filename': u('DISPOSITIFS DE SÉCURITÉ.pdf'),
-                         u('♥♥i'): u('♥♥♥♥♥♥'),
-                         'src_name': u('☻☻☻☻☻ RDC DISPOSITIFS DE SÉCURTÉ.pdf'),
-                         u('accénted'): u('☘☘☘éééé@me.com'),
-                         'class': self.__class__,
-                         'another_class': dict,
-                         'self': self,
-                         'var': bins
-                       }})
+        bugsnag.notify(Exception('free food'), meta_data={'payload': {
+            'project': u('∆πåß∂ƒ'),
+            'filename': u('DISPOSITIFS DE SÉCURITÉ.pdf'),
+            u('♥♥i'): u('♥♥♥♥♥♥'),
+            'src_name': u('☻☻☻☻☻ RDC DISPOSITIFS DE SÉCURTÉ.pdf'),
+            u('accénted'): u('☘☘☘éééé@me.com'),
+            'class': self.__class__,
+            'another_class': dict,
+            'self': self,
+            'var': bins
+        }})
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual(u('∆πåß∂ƒ'), event['metaData']['payload']['project'])

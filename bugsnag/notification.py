@@ -45,7 +45,8 @@ class Notification(object):
         self.config = config
         self.request_config = request_config
 
-        def get_config(key): return options.pop(key, self.config.get(key))
+        def get_config(key):
+            return options.pop(key, self.config.get(key))
 
         self.release_stage = get_config("release_stage")
         self.app_version = get_config("app_version")
@@ -62,8 +63,8 @@ class Notification(object):
             self.user["id"] = options.pop("user_id")
 
         self.stacktrace = self._generate_stacktrace(
-                self.options.pop("traceback", sys.exc_info()[2]),
-                self.options.pop("source_func", None))
+            self.options.pop("traceback", sys.exc_info()[2]),
+            self.options.pop("source_func", None))
         self.grouping_hash = options.pop("grouping_hash", None)
         self.api_key = options.pop("api_key", get_config("api_key"))
 

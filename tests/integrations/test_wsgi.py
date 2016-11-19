@@ -98,9 +98,11 @@ class TestWSGI(IntegrationTest):
 
         class CrashAfterSettingUserId(object):
             def __init__(self, environ, start_response):
-                bugsnag.configure_request(
-                        user={"id": "5", "email":
-                              "me@cirw.in", "name": "conrad"})
+                bugsnag.configure_request(user={
+                    "id": "5",
+                    "email": "me@cirw.in",
+                    "name": "conrad",
+                })
                 raise SentinelError("oops")
 
         app = TestApp(BugsnagMiddleware(CrashAfterSettingUserId))
