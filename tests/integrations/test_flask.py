@@ -1,14 +1,4 @@
-import sys
-
-from nose.plugins.skip import SkipTest
-if (3, 0) <= sys.version_info < (3, 3):  # noqa
-    raise SkipTest("Flask is incompatible with python3 3.0 - 3.2")
-
-try:
-    from flask import Flask
-except:
-    raise SkipTest("Flask is not installed")
-
+from flask import Flask
 from bugsnag.flask import handle_exceptions
 import bugsnag.notification
 from tests.utils import IntegrationTest
