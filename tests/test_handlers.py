@@ -229,8 +229,9 @@ class HandlersTest(IntegrationTest):
                         endpoint=self.server.address,
                         api_key='new news',
                         asynchronous=False)
-        handler = client.log_handler(
-                extra_fields={'fruit': ['grapes', 'pears']})
+        handler = client.log_handler(extra_fields={
+            'fruit': ['grapes', 'pears']
+        })
         logger = logging.getLogger(__name__)
         logger.addHandler(handler)
 

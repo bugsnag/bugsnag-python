@@ -47,8 +47,8 @@ def notify(exception, **options):
     """
     Notify bugsnag of an exception.
     """
-    if (isinstance(exception, (list, tuple)) and len(exception) == 3
-            and isinstance(exception[2], types.TracebackType)):
+    if (isinstance(exception, (list, tuple)) and len(exception) == 3 and
+            isinstance(exception[2], types.TracebackType)):
         default_client.notify_exc_info(*exception, **options)
     else:
         if not isinstance(exception, BaseException):
