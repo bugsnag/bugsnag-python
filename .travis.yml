@@ -18,6 +18,12 @@ env:
   - TOXENV=py35-wsgi
   - TOXENV=py26-flask
   - TOXENV=py27-flask
+  - TOXENV=py27-django18-django
+  - TOXENV=py27-django19-django
+  - TOXENV=py27-django110-django
+  - TOXENV=py35-django18-django
+  - TOXENV=py35-django19-django
+  - TOXENV=py35-django110-django
   - TOXENV=py35-lint
 
 install: travis_retry pip install coveralls tox
