@@ -26,6 +26,7 @@ class DjangoMiddlewareTests(IntegrationTest):
         payload = self.server.received[0]['json_body']
         event = payload['events'][0]
         self.assertEqual(event['metaData']['request'], {
+            'method': 'GET',
             'url': 'http://testserver/notify/',
             'path': '/notify/',
             'POST': {},
@@ -42,6 +43,7 @@ class DjangoMiddlewareTests(IntegrationTest):
         payload = self.server.received[0]['json_body']
         event = payload['events'][0]
         self.assertEqual(event['metaData']['request'], {
+            'method': 'GET',
             'url': 'http://testserver/crash/',
             'path': '/crash/',
             'POST': {},
