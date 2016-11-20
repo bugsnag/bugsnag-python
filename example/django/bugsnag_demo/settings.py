@@ -24,7 +24,7 @@ DEBUG = True
 
 TEMPLATE_DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -84,4 +84,6 @@ STATIC_URL = '/static/'
 
 BUGSNAG = {
     "api_key": "066f5ad3590596f9aa8d601ea89af845",
+    "endpoint": os.environ.get('BUGSNAG_API', 'https://notify.bugsnag.com'),
+    "asynchronous": False,
 }

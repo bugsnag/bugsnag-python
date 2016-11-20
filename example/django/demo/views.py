@@ -7,9 +7,11 @@ def index(request):
     with open('README.md') as fp:
         return HttpResponse(markdown.markdown(fp.read()))
 
+
 def crash(request):
     raise Exception("Bugsnag Django demo says: It crashed! Go check " +
                     "bugsnag.com for a new notification!")
+
 
 def callback(notification):
     if notification.context == "demo.views.crash_with_callback":
@@ -19,6 +21,7 @@ def callback(notification):
         }
         notification.add_tab("Diagnostics", tab)
 
+
 def crash_with_callback(request):
     bugsnag.before_notify(callback)
     raise Exception(
@@ -27,12 +30,14 @@ def crash_with_callback(request):
         "bugsnag.com for a new notification (see the Diagnostics tab)!"
     )
 
+
 def notify(request):
     msg = "Bugsnag Django demo says: False alarm, your application didn't crash"
-    bugsnag.notify(Exception(msg));
+    bugsnag.notify(Exception(msg))
     return HttpResponse(
         "Bugsnag Django demo says: It didn't crash! But still go check " +
         "<a href=\"bugsnag.com\">bugsnag.com</a> for a new notification.")
+
 
 def notify_meta(request):
     bugsnag.notify(
@@ -44,12 +49,14 @@ def notify_meta(request):
         " <a href=\"bugsnag.com\">bugsnag.com</a> for a new notification. " +
         "Check out the User tab for the meta data")
 
+
 def context(request):
     bugsnag.notify(
         Exception("Bugsnag Django demo says: Changed the context to backgroundJob"),
         context="backgroundJob")
     return HttpResponse(
         "Bugsnag Django demo says: The context of the error is \"backgroundJob\" now")
+
 
 def severity(request):
     bugsnag.notify(
