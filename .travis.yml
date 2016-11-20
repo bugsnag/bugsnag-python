@@ -1,13 +1,26 @@
 language: python
 
-python:
-  - 2.6
-  - 2.7
-  - 3.3
-  - 3.4
-  - 3.5
+env:
+  - TOXENV=py26-test
+  - TOXENV=py27-test
+  - TOXENV=py33-test
+  - TOXENV=py34-test
+  - TOXENV=py35-test
+  - TOXENV=py26-requests-test
+  - TOXENV=py27-requests-test
+  - TOXENV=py33-requests-test
+  - TOXENV=py34-requests-test
+  - TOXENV=py35-requests-test
+  - TOXENV=py26-wsgi
+  - TOXENV=py27-wsgi
+  - TOXENV=py33-wsgi
+  - TOXENV=py34-wsgi
+  - TOXENV=py35-wsgi
+  - TOXENV=py26-flask
+  - TOXENV=py27-flask
+  - TOXENV=py35-lint
 
-install: travis_retry pip install -r dev_requirements.txt
+install: travis_retry pip install coveralls tox
 
 script:
   - tox
