@@ -126,7 +126,7 @@ class Client(object):
                 self.configuration.delivery.deliver(self.configuration,
                                                     notification._payload())
             except Exception as e:
-                bugsnag.logger.exception('Notifying Bugsnag failed', e)
+                bugsnag.logger.exception('Notifying Bugsnag failed %s', e)
 
         self.configuration.middleware.run(notification, send_payload)
 
