@@ -142,6 +142,17 @@ class TestBugsnag(IntegrationTest):
         self.assertEqual('[FILTERED]', event['metaData']['custom']['apple'])
         self.assertEqual('green', event['metaData']['custom']['cantaloupe'])
 
+    def test_notify_payload_matching_filter(self):
+        bugsnag.configure(params_filters=['number'])
+        bugsnag.notify(ScaryException('unexpected failover'),
+                       apple='four', number=76)
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        exception = event['exceptions'][0]
+        self.assertEqual('four', event['metaData']['custom']['apple'])
+        self.assertEqual('[FILTERED]', event['metaData']['custom']['number'])
+        self.assertEqual(148, exception['stacktrace'][0]['lineNumber'])
+
     def test_notify_ignore_class(self):
         bugsnag.configure(ignore_classes=['tests.utils.ScaryException'])
         bugsnag.notify(ScaryException('unexpected failover'))
