@@ -99,17 +99,24 @@ class SanitizingJSONEncoder(JSONEncoder):
 
     def _sanitize_dict(self, obj, trim_strings):
         """
-        Remove any value from the dictionary which match the key filters
+        Trim individual values in an object, applying filtering if the object
+        is a FilterDict
         """
+        if isinstance(obj, FilterDict):
+            obj = self.filter_string_values(obj)
+
         clean_dict = {}
         for key, value in six.iteritems(obj):
-            is_string = isinstance(key, six.string_types)
-            if is_string and any(f in key.lower() for f in self.filters):
-                clean_dict[key] = self.filtered_value
-            else:
-                clean_dict[key] = self._sanitize(value, trim_strings)
+            clean_dict[key] = self._sanitize(value, trim_strings)
 
         return clean_dict
+
+
+class FilterDict(dict):
+    """
+    Object which will be filtered when encoded
+    """
+    pass
 
 
 def fully_qualified_class_name(obj):
