@@ -39,6 +39,31 @@ class SanitizingJSONEncoder(JSONEncoder):
         else:
             return payload
 
+    def filter_string_values(self, obj, ignored=None):
+        """
+        Remove any value from the dictionary which match the key filters
+        """
+        if not ignored:
+            ignored = []
+
+        if id(obj) in ignored:
+            return self.recursive_value
+
+        if isinstance(obj, dict):
+            ignored.append(id(obj))
+
+            clean_dict = {}
+            for key, value in six.iteritems(obj):
+                is_string = isinstance(key, six.string_types)
+                if is_string and any(f in key.lower() for f in self.filters):
+                    clean_dict[key] = self.filtered_value
+                else:
+                    clean_dict[key] = self.filter_string_values(value, ignored)
+
+            return clean_dict
+
+        return obj
+
     def default(self, obj):
         """
         Coerce values to strings if possible, otherwise replace with

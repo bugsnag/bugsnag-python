@@ -55,3 +55,17 @@ class TestUtils(unittest.TestCase):
         expected = {"a": u("a") * 1024}
         encoder = SanitizingJSONEncoder(keyword_filters=[])
         self.assertEqual(json.loads(encoder.encode(payload)), expected)
+
+    def test_filter_dict(self):
+        data = {"metadata": {"another_password": "My password"}}
+        encoder = SanitizingJSONEncoder(keyword_filters=["password"])
+        sane_data = encoder.filter_string_values(data)
+        self.assertEqual(sane_data,
+                         {"metadata": {"another_password": "[FILTERED]"}})
+
+    def test_unfiltered_encode(self):
+        data = {"metadata": {"another_password": "My password"}}
+        encoder = SanitizingJSONEncoder(keyword_filters=["password"],
+                                        filter_encoded=False)
+        sane_data = json.loads(encoder.encode(data))
+        self.assertEqual(sane_data, data)
