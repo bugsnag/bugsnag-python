@@ -1,12 +1,26 @@
 Changelog
 =========
 
+## 3.1.0 (2017-02-24)
+
+### Enhancements
+
+* Show request method for Django apps
+  [Kyle Fuller](https://github.com/kylef)
+  [#115](https://github.com/bugsnag/bugsnag-python/pull/115)
+
+### Bug fixes
+
+* Fix over-filtering of payload data when filters matched payload fields
+  [#116](https://github.com/bugsnag/bugsnag-python/issues/116)
+  [#117](https://github.com/bugsnag/bugsnag-python/pull/117)
+
 ## 3.0.0 (2016-10-31)
 
 This is a major release adding a number of new features and deprecating some
 lesser used parts of the library.
 
-## Enhancements
+### Enhancements
 
 * Add compatibility with Django 1.10
   [Jonny Pickett](https://github.com/jonnypickett)
