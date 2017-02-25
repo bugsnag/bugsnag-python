@@ -10,7 +10,7 @@ import inspect
 import bugsnag
 
 from bugsnag.utils import fully_qualified_class_name as class_name
-from bugsnag.utils import SanitizingJSONEncoder, package_version
+from bugsnag.utils import SanitizingJSONEncoder, FilterDict, package_version
 
 
 class Notification(object):
@@ -227,7 +227,7 @@ class Notification(object):
                     "message": self.exception,
                     "stacktrace": self.stacktrace,
                 }],
-                "metaData": self.meta_data,
+                "metaData": FilterDict(self.meta_data),
                 "user": self.user,
                 "device": {
                     "hostname": self.hostname
