@@ -109,10 +109,11 @@ class Client(object):
             sys.excepthook = self.sys_excepthook
             self.sys_excepthook = None
 
-    def deliver(self, notification):
+    def deliver(self, notification):  # type: (Notification) -> None
         """
         Deliver the exception notification to Bugsnag.
         """
+
         if not self.should_deliver(notification):
             return
 
@@ -130,7 +131,7 @@ class Client(object):
 
         self.configuration.middleware.run(notification, send_payload)
 
-    def should_deliver(self, notification):
+    def should_deliver(self, notification):  # type: (Notification) -> bool
         # Return early if we shouldn't notify for current release stage
         if not self.configuration.should_notify():
             return False

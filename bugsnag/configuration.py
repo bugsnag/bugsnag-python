@@ -80,16 +80,16 @@ class Configuration(_BaseConfiguration):
         else:
             self.hostname = None
 
-    def should_notify(self):
+    def should_notify(self):  # type: () -> bool
         return self.notify_release_stages is None or \
             (isinstance(self.notify_release_stages, (tuple, list)) and
              self.release_stage in self.notify_release_stages)
 
-    def should_ignore(self, exception):
+    def should_ignore(self, exception):  # type: (Exception) -> bool
         return self.ignore_classes is not None and \
             fully_qualified_class_name(exception) in self.ignore_classes
 
-    def get_endpoint(self):
+    def get_endpoint(self):  # type: () -> str
         warnings.warn('get_endpoint and use_ssl are deprecated in favor '
                       'of including the protocol in the endpoint '
                       'configuration option and will be removed in a future '
@@ -113,7 +113,7 @@ class RequestConfiguration(_BaseConfiguration):
     """
 
     @classmethod
-    def get_instance(cls):
+    def get_instance(cls):  # type: () -> RequestConfiguration
         """
         Get this thread's instance of the RequestConfiguration.
         """
