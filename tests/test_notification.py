@@ -6,6 +6,14 @@ from bugsnag.configuration import Configuration
 from bugsnag.notification import Notification
 from tests import fixtures
 
+try:
+    reload  # Python 2.x
+except NameError:
+    try:
+        from importlib import reload  # Python 3.4+
+    except ImportError:
+        from imp import reload  # Python 3.0 - 3.3
+
 
 class TestNotification(unittest.TestCase):
 
