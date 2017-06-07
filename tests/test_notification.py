@@ -109,6 +109,7 @@ class TestNotification(unittest.TestCase):
         py_compile.compile('./fixtures/helpers.py')
 
         from tests.fixtures import helpers
+        reload(helpers)  # The .py variation might be loaded from previous test.
         self.assertTrue(helpers.__file__.endswith('.pyc'))
 
         config = Configuration()
