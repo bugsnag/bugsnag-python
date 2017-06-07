@@ -1,5 +1,6 @@
 import inspect
 import json
+import sys
 import unittest
 
 from bugsnag.configuration import Configuration
@@ -118,7 +119,12 @@ class TestNotification(unittest.TestCase):
 
         from tests.fixtures import helpers
         reload(helpers)  # The .py variation might be loaded from previous test.
-        self.assertTrue(helpers.__file__.endswith('.pyc'))
+
+        if sys.version_info < (3, 0):
+            # Python 2.6 & 2.7 returns the cached file on __file__,
+            # and hence we verify it returns .pyc for these versions
+            # and the code at _generate_stacktrace() handles that.
+            self.assertTrue(helpers.__file__.endswith('.pyc'))
 
         config = Configuration()
         config.traceback_exclude_modules = [helpers]
