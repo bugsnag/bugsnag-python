@@ -91,3 +91,31 @@ class TestNotification(unittest.TestCase):
 
         code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
         self.assertEqual(code, None)
+
+    def test_no_traceback_exclude_modules(self):
+        from tests.fixtures import helpers
+        config = Configuration()
+
+        notification = helpers.invoke_exception_on_other_file(config)
+
+        payload = json.loads(notification._payload())
+        first_traceback = payload['events'][0]['exceptions'][0]['stacktrace'][0]
+
+        self.assertEqual(first_traceback['file'], 'fixtures/helpers.py')
+
+    def test_traceback_exclude_modules(self):
+        # Make sure samples.py is compiling to pyc
+        import py_compile
+        py_compile.compile('./fixtures/helpers.py')
+
+        from tests.fixtures import helpers
+        self.assertTrue(helpers.__file__.endswith('.pyc'))
+
+        config = Configuration()
+        config.traceback_exclude_modules = [helpers]
+
+        notification = helpers.invoke_exception_on_other_file(config)
+
+        payload = json.loads(notification._payload())
+        first_traceback = payload['events'][0]['exceptions'][0]['stacktrace'][0]
+        self.assertEqual(first_traceback['file'], 'test_notification.py')

@@ -123,7 +123,10 @@ class Notification(object):
         user_exclude_modules = self.config.get("traceback_exclude_modules")
         for exclude_module in user_exclude_modules:
             try:
-                exclude_module_paths.append(exclude_module.__file__)
+                module_file = exclude_module.__file__
+                if module_file[-4:] == '.pyc':
+                    module_file = module_file[:-1]
+                exclude_module_paths.append(module_file)
             except:
                 bugsnag.logger.exception(
                     'Could not exclude module: %s' % repr(exclude_module))
