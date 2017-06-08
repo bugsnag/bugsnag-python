@@ -33,6 +33,10 @@ class BugsnagHandler(logging.Handler, object):
         """
         Outputs the record to Bugsnag
         """
+        for path in bugsnag.__path__:
+            if path in record.pathname:
+                return
+
         options = {'meta_data': {}}
 
         for callback in self.callbacks:
