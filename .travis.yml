@@ -47,11 +47,11 @@ matrix:
   - python: 3.5
     env: TOXENV=py35-wsgi
   - python: 3.5
-    env: TOXENV=py27-django18-django
+    env: TOXENV=py35-django18-django
   - python: 3.5
-    env: TOXENV=py27-django19-django
+    env: TOXENV=py35-django19-django
   - python: 3.5
-    env: TOXENV=py27-django110-django
+    env: TOXENV=py35-django110-django
   - python: 3.5
     env: TOXENV=py35-lint
 
