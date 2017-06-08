@@ -1,6 +1,19 @@
 Changelog
 =========
 
+## 3.1.1 (2017-06-08)
+
+### Bug fixes
+
+* Fix possible stack overflow when using a log handler and not specifying an
+  API key
+  [#120](https://github.com/bugsnag/bugsnag-python/pull/120)
+
+* Fix `traceback_excludes_modules` when using compiled Python modules
+  [Kobi Meirson](https://github.com/kobim)
+  [#119](https://github.com/bugsnag/bugsnag-python/pull/119)
+
+
 ## 3.1.0 (2017-02-24)
 
 ### Enhancements
