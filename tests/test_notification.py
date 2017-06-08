@@ -1,10 +1,19 @@
 import inspect
 import json
+import sys
 import unittest
 
 from bugsnag.configuration import Configuration
 from bugsnag.notification import Notification
 from tests import fixtures
+
+try:
+    reload  # Python 2.x
+except NameError:
+    try:
+        from importlib import reload  # Python 3.4+
+    except ImportError:
+        from imp import reload  # Python 3.0 - 3.3
 
 
 class TestNotification(unittest.TestCase):
@@ -91,3 +100,37 @@ class TestNotification(unittest.TestCase):
 
         code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
         self.assertEqual(code, None)
+
+    def test_no_traceback_exclude_modules(self):
+        from tests.fixtures import helpers
+        config = Configuration()
+
+        notification = helpers.invoke_exception_on_other_file(config)
+
+        payload = json.loads(notification._payload())
+        first_traceback = payload['events'][0]['exceptions'][0]['stacktrace'][0]
+
+        self.assertEqual(first_traceback['file'], 'fixtures/helpers.py')
+
+    def test_traceback_exclude_modules(self):
+        # Make sure samples.py is compiling to pyc
+        import py_compile
+        py_compile.compile('./fixtures/helpers.py')
+
+        from tests.fixtures import helpers
+        reload(helpers)  # The .py variation might be loaded from previous test.
+
+        if sys.version_info < (3, 0):
+            # Python 2.6 & 2.7 returns the cached file on __file__,
+            # and hence we verify it returns .pyc for these versions
+            # and the code at _generate_stacktrace() handles that.
+            self.assertTrue(helpers.__file__.endswith('.pyc'))
+
+        config = Configuration()
+        config.traceback_exclude_modules = [helpers]
+
+        notification = helpers.invoke_exception_on_other_file(config)
+
+        payload = json.loads(notification._payload())
+        first_traceback = payload['events'][0]['exceptions'][0]['stacktrace'][0]
+        self.assertEqual(first_traceback['file'], 'test_notification.py')
