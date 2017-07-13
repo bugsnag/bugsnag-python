@@ -11,6 +11,8 @@ matrix:
   - python: 2.6
     env: TOXENV=py26-flask
 
+  - python: "2.7_with_system_site_packages"
+    env: TOXENV=py27-test
   - python: 2.7
     env: TOXENV=py27-test
   - python: 2.7
@@ -62,3 +64,21 @@ script:
 
 after_success:
   - coveralls
+
+before_deploy:
+  - sudo apt-get update
+  - sudo apt-get install python-setuptools debhelper python-all-dev fakeroot
+  - pip install stdeb
+  - python setup.py sdist
+  - py2dsc dist/bugsnag-*.tar.gz
+  - cd deb_dist/bugsnag-* && dpkg-buildpackage -rfakeroot -uc -us && mv ../python-bugsnag_*.deb ../python-bugsnag.deb && cd ../..
+deploy:
+  provider: releases
+  api_key:
+    secure: "JM/zSJAowC1jFKdjk88Um+S/t/OKhqx9Yw7xCfk9INy683z9e8U1z8dIwen+XIFbS+o2JKamU1zL3rZbgOiDQPWetl5cyZCuErzZBmOsegjZTc2ZazQdO90jxYxcnP0faQO9W00uagSDe4NmYoi2dJKSdtKExOzdHDF3qjkLSUc="
+  file: deb_dist/python-bugsnag.deb
+  skip_cleanup: true
+  on:
+    tags: true
+    python: "2.7_with_system_site_packages"
+    condition: "$TOXENV = py27-test"
