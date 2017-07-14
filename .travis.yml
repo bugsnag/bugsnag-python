@@ -67,11 +67,9 @@ after_success:
 
 before_deploy:
   - sudo apt-get update
-  - sudo apt-get install python-setuptools debhelper python-all-dev fakeroot
-  - pip install stdeb
-  - python setup.py sdist
-  - py2dsc dist/bugsnag-*.tar.gz
-  - cd deb_dist/bugsnag-* && dpkg-buildpackage -rfakeroot -uc -us && mv ../python-bugsnag_*.deb ../python-bugsnag.deb && cd ../..
+  - sudo make deb-bootstrap
+  - make deb-build
+  - mv deb_dist/python-bugsnag_*.deb deb_dist/python-bugsnag.deb
 deploy:
   provider: releases
   api_key:
