@@ -4,7 +4,7 @@ This Flask application demonstrates how to use Bugsnag with the Flask web
 framework for Python. Before testing it, open up the `server.py`
 file and configure your API key.
 
-```
+```python
 bugsnag.configure(
     "api_key": "YOUR_API_KEY_HERE"
 )
