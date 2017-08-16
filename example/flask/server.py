@@ -1,10 +1,12 @@
-from flask import Flask, request
+from flask import Flask, request, render_template
+from flaskext.markdown import Markdown
 import bugsnag
 
 # Import platform specific Bugsnag features
 from bugsnag.flask import handle_exceptions
 
 app = Flask(__name__)
+Markdown(app)
 
 # Configure Bugsnag
 bugsnag.configure(
@@ -13,6 +15,10 @@ bugsnag.configure(
 
 # Attach Bugsnag to flasks exception handler
 handle_exceptions(app)
+
+@app.route('/')
+def index():
+    return render_template('index.md')
 
 # Will cause a ZeroDivisionError to be caught by the bugsnag exception handler
 @app.route('/crashzero')
