@@ -153,3 +153,20 @@ class TestFlask(IntegrationTest):
                          'http://localhost/form')
         body = event['metaData']['request']['data']['body']
         self.assertTrue('_data' in body)
+
+    def test_bugsnag_notify_with_custom_context(self):
+        app = Flask("bugsnag")
+
+        @app.route("/hello")
+        def hello():
+            bugsnag.notify(SentinelError("oops"),
+                           context="custom_context_notification_testing")
+            return "OK"
+
+        handle_exceptions(app)
+        app.test_client().get('/hello')
+
+        self.assertEqual(1, len(self.server.received))
+        payload = self.server.received[0]['json_body']
+        self.assertEqual(payload['events'][0]['context'],
+                         'custom_context_notification_testing')
