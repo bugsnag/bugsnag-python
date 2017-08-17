@@ -160,7 +160,7 @@ class TestFlask(IntegrationTest):
         @app.route("/hello")
         def hello():
             bugsnag.notify(SentinelError("oops"),
-                context="custom_context_notification_testing")
+                           context="custom_context_notification_testing")
             return "OK"
 
         handle_exceptions(app)
