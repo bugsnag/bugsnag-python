@@ -16,8 +16,11 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 
-from demo.views import readme
+from demo.views import readme, crash, notify, crashcallback
 
 urlpatterns = [
     url(r'^$', readme),
+    url(r'^celerycrash$', crash),
+    url(r'^celerycallback$', crashcallback),
+    url(r'^celerynotify$', notify)
 ]

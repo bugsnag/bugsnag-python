@@ -41,6 +41,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'bugsnag.django.middleware.BugsnagMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -114,6 +115,11 @@ USE_L10N = True
 
 USE_TZ = True
 
+BUGSNAG = {
+    "api_key": "f35a2472bd230ac0ab0f52715bbdc65d",
+    "endpoint": os.environ.get('BUGSNAG_API', 'https://notify.bugsnag.com'),
+    "asynchronous": False,
+}
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
