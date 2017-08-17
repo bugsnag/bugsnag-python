@@ -116,7 +116,7 @@ USE_L10N = True
 USE_TZ = True
 
 BUGSNAG = {
-    "api_key": "f35a2472bd230ac0ab0f52715bbdc65d",
+    "api_key": "YOUR_API_KEY",
     "endpoint": os.environ.get('BUGSNAG_API', 'https://notify.bugsnag.com'),
     "asynchronous": False,
 }
