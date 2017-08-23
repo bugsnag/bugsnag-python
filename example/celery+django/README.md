@@ -8,6 +8,10 @@ Install dependencies
 pip install -r requirements.txt
 ```
 
+Celery requires a datastore to run, this example uses [redis](https://redis.io), installation instructions for which can be found [here](https://redis.io/topics/quickstart) and an official docker image can be found [here](https://hub.docker.com/_/redis/).
+
+Settings specifying Celery datastore setup can be found in the the ```celery.py``` configuration file.
+
 Django and Celery configuration files can be found in the ```celery_django``` folder.  
 
 ## Configuring Bugsnag and Django
