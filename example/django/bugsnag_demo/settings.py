@@ -39,13 +39,13 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    "bugsnag.django.middleware.BugsnagMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    "bugsnag.django.middleware.BugsnagMiddleware",
+    'django.middleware.clickjacking.XFrameOptionsMiddleware'
 )
 
 ROOT_URLCONF = 'bugsnag_demo.urls'
