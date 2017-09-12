@@ -88,7 +88,10 @@ class Client(object):
     def excepthook(self, exc_type, exc_value, traceback):
         if self.configuration.auto_notify:
             self.notify_exc_info(exc_type, exc_value, traceback,
-                                 severity='error')
+                                 severity='error', unhandled=True,
+                                 severity_reasons={
+                                     'type': 'exception_handler'
+                                 })
 
     def install_sys_hook(self):
         self.sys_excepthook = sys.excepthook
@@ -117,11 +120,16 @@ class Client(object):
         if not self.should_deliver(notification):
             return
 
+        initial_severity = notification.severity
+
         def send_payload():
             if notification.api_key is None:
                 bugsnag.logger.warning(
                     "No API key configured, couldn't notify")
                 return
+
+            if initial_severity != notification.severity:
+                notification.default_severity = False
 
             try:
                 self.configuration.delivery.deliver(self.configuration,
