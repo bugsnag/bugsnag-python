@@ -58,6 +58,10 @@ class Notification(object):
         if self.severity not in self.SUPPORTED_SEVERITIES:
             self.severity = "warning"
 
+        self.unhandled = options.pop("unhandled", False)
+        self.severity_reason = options.pop("severity_reason", None)
+        self.default_severity = True
+
         self.user = options.pop("user", {})
         if "user_id" in options:
             self.user["id"] = options.pop("user_id")
@@ -211,7 +215,7 @@ class Notification(object):
         filters = self.config.params_filters
         encoder = SanitizingJSONEncoder(separators=(',', ':'),
                                         keyword_filters=filters)
-        return encoder.encode({
+        payload = {
             "apiKey": self.api_key,
             "notifier": {
                 "name": self.NOTIFIER_NAME,
@@ -221,6 +225,8 @@ class Notification(object):
             "events": [{
                 "payloadVersion": self.PAYLOAD_VERSION,
                 "severity": self.severity,
+                "unhandled": self.unhandled,
+                "defaultSeverity": self.default_severity,
                 "releaseStage": self.release_stage,
                 "appVersion": self.app_version,
                 "context": self.context,
@@ -238,4 +244,7 @@ class Notification(object):
                 "projectRoot": self.config.get("project_root"),
                 "libRoot": self.config.get("lib_root")
             }]
-        })
+        }
+        if self.unhandled:
+            payload['severityReason'] = self.severity_reason
+        return encoder.encode(payload)
