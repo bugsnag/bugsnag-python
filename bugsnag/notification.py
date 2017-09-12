@@ -60,7 +60,7 @@ class Notification(object):
 
         self.unhandled = options.pop("unhandled", False)
         self.severity_reason = options.pop("severity_reason", None)
-        self.default_severity = True
+        self.default_severity = options.pop("default_severity", True)
 
         self.user = options.pop("user", {})
         if "user_id" in options:
@@ -246,5 +246,5 @@ class Notification(object):
             }]
         }
         if self.unhandled:
-            payload['severityReason'] = self.severity_reason
+            payload['events'][0]['severityReason'] = self.severity_reason
         return encoder.encode(payload)
