@@ -37,7 +37,14 @@ class BugsnagHandler(logging.Handler, object):
             if path in record.pathname:
                 return
 
-        options = {'meta_data': {}}
+        options = {'meta_data': {}, 'unhandled': True,
+            'severity_reasons': {
+                'type': 'log_level',
+                'attributes': {
+                    'level': record.levelname
+                }
+            }
+        }
 
         for callback in self.callbacks:
             try:

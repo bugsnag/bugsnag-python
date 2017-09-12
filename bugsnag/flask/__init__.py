@@ -12,7 +12,7 @@ def add_flask_request_to_notification(notification):
         notification.context = "%s %s" % (request.method,
                                           request_path(request.environ))
 
-    if 'id' not in notification.user:
+    if "id" not in notification.user:
         notification.set_user(id=request.remote_addr)
     notification.add_tab("session", dict(session))
     notification.add_tab("environment", dict(request.environ))
@@ -31,4 +31,9 @@ def handle_exceptions(app):
 
 # pylint: disable-msg=W0613
 def __log_exception(sender, exception, **extra):
-    bugsnag.auto_notify(exception)
+    bugsnag.auto_notify(exception, unhandled=True, severity_reason={
+        "type": "middleware_handler",
+        "attributes": {
+            "name": "flask"
+        }
+    })

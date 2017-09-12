@@ -14,7 +14,14 @@ def failure_handler(sender, task_id, exception, args, kwargs, traceback, einfo,
 
     bugsnag.auto_notify(exception, traceback=traceback,
                         context=sender.name,
-                        extra_data=task)
+                        extra_data=task,
+                        unhandled=True,
+                        severity_reason={
+                            'type':'middleware_handler',
+                            'attributes': {
+                                'name': 'celery'
+                            }
+                        })
 
 
 def connect_failure_handler():

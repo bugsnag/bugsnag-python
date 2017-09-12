@@ -28,13 +28,20 @@ class WrappedWSGIApp(object):
 
     def __init__(self, application, environ, start_response):
         self.environ = environ
+        self.severity_reason = {
+            "type": "middleware_handler",
+            "attributes": {
+                "name": "wsgi"
+            }
+        } 
 
         bugsnag.configure_request(wsgi_environ=self.environ)
 
         try:
             self.app = application(environ, start_response)
         except Exception as e:
-            bugsnag.auto_notify(e)
+            bugsnag.auto_notify(e, unhandled=True,
+                severity_reason=self.severity_reason)
             raise
 
     def __iter__(self):
@@ -43,7 +50,8 @@ class WrappedWSGIApp(object):
                 yield response
 
         except Exception as e:
-            bugsnag.auto_notify(e)
+            bugsnag.auto_notify(e, unhandled=True,
+                severity_reason=self.severity_reason)
             raise
 
     def close(self):
@@ -51,7 +59,8 @@ class WrappedWSGIApp(object):
             if hasattr(self.app, 'close'):
                 return self.app.close()
         except Exception as e:
-            bugsnag.auto_notify(e)
+            bugsnag.auto_notify(e, unhandled=True,
+                severity_reason=self.severity_reason)
             raise
         finally:
             bugsnag.clear_request_config()
