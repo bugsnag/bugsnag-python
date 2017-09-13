@@ -17,7 +17,7 @@ def failure_handler(sender, task_id, exception, args, kwargs, traceback, einfo,
                         extra_data=task,
                         unhandled=True,
                         severity_reason={
-                            'type':'middleware_handler',
+                            'type': 'middleware_handler',
                             'attributes': {
                                 'name': 'celery'
                             }

@@ -37,7 +37,9 @@ class BugsnagHandler(logging.Handler, object):
             if path in record.pathname:
                 return
 
-        options = {'meta_data': {}, 'unhandled': True,
+        options = {
+            'meta_data': {},
+            'unhandled': True,
             'severity_reasons': {
                 'type': 'log_level',
                 'attributes': {

@@ -54,3 +54,21 @@ class DjangoMiddlewareTests(IntegrationTest):
     def test_ignores_http404(self):
         self.client.get('/404')
         self.assertEqual(len(self.server.received), 0)
+
+    def test_django_intergration_includes_middleware_severity(self):
+        with self.assertRaises(Exception):
+            self.client.get('/crash/')
+
+        self.assertEqual(len(self.server.received), 1)
+
+        payload = self.server.received[0]['json_body']
+        event = payload['events'][0]
+
+        self.assertTrue(event['unhandled'])
+        self.assertTrue(event['defaultSeverity'])
+        self.assertEqual(event['severityReason'], {
+            'type': 'middleware_handler',
+            'attributes': {
+                'name': 'django'
+            }
+        })

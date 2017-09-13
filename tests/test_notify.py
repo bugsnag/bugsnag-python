@@ -507,3 +507,55 @@ class TestBugsnag(IntegrationTest):
         self.assertEqual(self.server.received[0]['method'], 'POST')
         self.assertEqual(self.server.received[0]['path'].strip('/'),
                          self.server.url)
+
+    def test_notify_unhandled_defaults(self):
+        bugsnag.notify(ScaryException("unexpected failover"))
+
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertTrue(event['defaultSeverity'])
+        self.assertFalse(event['unhandled'])
+
+    def test_notify_unhandled_severity_overridden(self):
+        bugsnag.notify(ScaryException("unexpected failover"), severity="info")
+
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertFalse(event['defaultSeverity'])
+        self.assertFalse(event['unhandled'])
+
+    def test_notify_unhandled_severity_callback(self):
+        def callback(report):
+            report.severity = "info"
+
+        bugsnag.before_notify(callback)
+
+        bugsnag.notify(ScaryException("unexpected failover"), severity="info")
+
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertFalse(event['defaultSeverity'])
+        self.assertFalse(event['unhandled'])
+
+    def test_notify_unhandled_attaches_severity_reasons(self):
+        bugsnag.notify(
+            ScaryException("unexpected failover"),
+            unhandled=True,
+            severity_reason={
+                "type": "middleware_handler",
+                "attributes": {
+                    "name": "test middleware"
+                }
+            }
+        )
+
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertTrue(event['defaultSeverity'])
+        self.assertTrue(event['unhandled'])
+        self.assertEqual(event['severityReason'], {
+            "type": "middleware_handler",
+            "attributes": {
+                "name": "test middleware"
+            }
+        })

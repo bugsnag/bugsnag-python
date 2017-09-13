@@ -28,11 +28,13 @@ class BugsnagMiddleware(MiddlewareMixin):
 
     def process_exception(self, request, exception):
         try:
-            bugsnag.auto_notify(exception, unhandled=True,
+            bugsnag.auto_notify(
+                exception,
+                unhandled=True,
                 severity_reason={
-                    "type":"middleware_handler",
+                    "type": "middleware_handler",
                     "attributes": {
-                        "name":"django"
+                        "name": "django"
                     }
                 }
             )
