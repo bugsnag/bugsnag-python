@@ -121,12 +121,19 @@ class Client(object):
             return
 
         initial_severity = notification.severity
+        initial_default_severity = notification.default_severity
+        initial_unhandled = notification.unhandled
+        initial_severity_reason = notification.severity_reason
 
         def send_payload():
             if notification.api_key is None:
                 bugsnag.logger.warning(
                     "No API key configured, couldn't notify")
                 return
+
+            notification.default_severity = initial_default_severity
+            notification.unhandled = initial_unhandled
+            notification.severity_reason = initial_severity_reason
 
             if initial_severity != notification.severity:
                 notification.default_severity = False
