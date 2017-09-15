@@ -47,7 +47,7 @@ def notify(exception, **options):
     """
     Notify bugsnag of an exception.
     """
-    if 'severity' in options:
+    if ('unhandled' not in options or options['unhandled'] is False) and 'severity' in options:
         options['default_severity'] = False
 
     if (isinstance(exception, (list, tuple)) and len(exception) == 3 and
