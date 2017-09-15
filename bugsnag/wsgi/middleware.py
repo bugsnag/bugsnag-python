@@ -26,14 +26,15 @@ class WrappedWSGIApp(object):
     Wraps a running WSGI app and sends all exceptions to bugsnag.
     """
 
+    SEVERITY_REASON = {
+        "type": "middleware_handler",
+        "attributes": {
+            "name": "wsgi"
+        }
+    }
+
     def __init__(self, application, environ, start_response):
         self.environ = environ
-        self.severity_reason = {
-            "type": "middleware_handler",
-            "attributes": {
-                "name": "wsgi"
-            }
-        }
 
         bugsnag.configure_request(wsgi_environ=self.environ)
 
@@ -42,8 +43,7 @@ class WrappedWSGIApp(object):
         except Exception as e:
             bugsnag.auto_notify(
                 e,
-                unhandled=True,
-                severity_reason=self.severity_reason
+                severity_reason=self.SEVERITY_REASON
             )
             raise
 
@@ -55,8 +55,7 @@ class WrappedWSGIApp(object):
         except Exception as e:
             bugsnag.auto_notify(
                 e,
-                unhandled=True,
-                severity_reason=self.severity_reason
+                severity_reason=self.SEVERITY_REASON
             )
             raise
 
@@ -67,8 +66,7 @@ class WrappedWSGIApp(object):
         except Exception as e:
             bugsnag.auto_notify(
                 e,
-                unhandled=True,
-                severity_reason=self.severity_reason
+                severity_reason=self.SEVERITY_REASON
             )
             raise
         finally:

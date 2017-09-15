@@ -72,7 +72,7 @@ def auto_notify(exception, **options):
     Notify bugsnag of an exception if auto_notify is enabled.
     """
     if configuration.auto_notify:
-        default_client.notify(exception, severity="error", **options)
+        default_client.notify(exception, unhandled=True, severity="error", **options)
 
 
 def before_notify(callback):
