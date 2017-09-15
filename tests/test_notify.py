@@ -526,7 +526,7 @@ class TestBugsnag(IntegrationTest):
 
     def test_notify_unhandled_severity_callback(self):
         def callback(report):
-            report.severity = "info"
+            report.severity = "warning"
 
         bugsnag.before_notify(callback)
 
