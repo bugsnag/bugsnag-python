@@ -1,6 +1,25 @@
 Changelog
 =========
 
+## 3.1.2 (2017-09-18)
+
+### Enhancements
+
+* Added flask example app
+  [#122](https://github.com/bugsnag/bugsnag-python/pull/122)
+
+* Added example for using celery with django
+  [#124](https://github.com/bugsnag/bugsnag-python/pull/124)
+
+* Added issue template
+  [#125](https://github.com/bugsnag/bugsnag-python/pull/125)
+
+### Bug fixes
+
+* Fixed context being overridden in flask notifier
+  [#123](https://github.com/bugsnag/bugsnag-python/pull/123)
+  
+
 ## 3.1.1 (2017-06-08)
 
 ### Bug fixes
