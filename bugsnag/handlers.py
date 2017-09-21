@@ -39,9 +39,9 @@ class BugsnagHandler(logging.Handler, object):
 
         options = {
             'meta_data': {},
-            'unhandled': True,
-            'severity_reasons': {
-                'type': 'log_level',
+            'unhandled': False,
+            'severity_reason': {
+                'type': 'logs',
                 'attributes': {
                     'level': record.levelname
                 }

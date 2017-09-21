@@ -87,11 +87,13 @@ class Client(object):
 
     def excepthook(self, exc_type, exc_value, traceback):
         if self.configuration.auto_notify:
-            self.notify_exc_info(exc_type, exc_value, traceback,
-                                 severity='error', unhandled=True,
-                                 severity_reasons={
-                                     'type': 'exception_handler'
-                                 })
+            self.notify_exc_info(
+                exc_type, exc_value, traceback,
+                severity='error',
+                unhandled=True,
+                severity_reason={
+                    'type': 'unhandledException'
+                })
 
     def install_sys_hook(self):
         self.sys_excepthook = sys.excepthook
@@ -121,6 +123,7 @@ class Client(object):
             return
 
         initial_severity = notification.severity
+        initial_reason = notification.severity_reason
 
         def send_payload():
             if notification.api_key is None:
@@ -129,7 +132,11 @@ class Client(object):
                 return
 
             if initial_severity != notification.severity:
-                notification.default_severity = False
+                notification.severity_reason = {
+                    'type': 'userSpecifiedSeverity'
+                }
+            else:
+                notification.severity_reason = initial_reason
 
             try:
                 self.configuration.delivery.deliver(self.configuration,
