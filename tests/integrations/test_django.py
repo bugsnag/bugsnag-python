@@ -65,10 +65,9 @@ class DjangoMiddlewareTests(IntegrationTest):
         event = payload['events'][0]
 
         self.assertTrue(event['unhandled'])
-        self.assertTrue(event['defaultSeverity'])
         self.assertEqual(event['severityReason'], {
-            'type': 'middleware_handler',
+            'type': 'unhandledExceptionMiddleware',
             'attributes': {
-                'name': 'django'
+                'framework': 'Django'
             }
         })

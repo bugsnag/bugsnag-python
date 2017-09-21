@@ -27,9 +27,9 @@ class WrappedWSGIApp(object):
     """
 
     SEVERITY_REASON = {
-        "type": "middleware_handler",
+        "type": "unhandledExceptionMiddleware",
         "attributes": {
-            "name": "wsgi"
+            "framework": "WSGI"
         }
     }
 

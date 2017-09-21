@@ -15,11 +15,10 @@ class BugsnagRequestHandler(RequestHandler):
                 "method": self.request.method,
                 "arguments": self.request.arguments,
             },
-            "unhandled": True,
             "severity_reason": {
-                "type": "middleware_handler",
+                "type": "unhandledExceptionMiddleware",
                 "attributes": {
-                    "name": "tornado"
+                    "framework": "Tornado"
                 }
             }
         }

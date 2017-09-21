@@ -32,8 +32,8 @@ def handle_exceptions(app):
 # pylint: disable-msg=W0613
 def __log_exception(sender, exception, **extra):
     bugsnag.auto_notify(exception, severity_reason={
-        "type": "middleware_handler",
+        "type": "unhandledExceptionMiddleware",
         "attributes": {
-            "name": "flask"
+            "framework": "Flask"
         }
     })

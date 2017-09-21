@@ -31,9 +31,9 @@ class BugsnagMiddleware(MiddlewareMixin):
             bugsnag.auto_notify(
                 exception,
                 severity_reason={
-                    "type": "middleware_handler",
+                    "type": "unhandledExceptionMiddleware",
                     "attributes": {
-                        "name": "django"
+                        "framework": "Django"
                     }
                 }
             )
