@@ -76,8 +76,11 @@ def auto_notify(exception, **options):
     if configuration.auto_notify:
         default_client.notify(
             exception,
-            unhandled=options.get('unhandled', True),
-            severity=options.get('severity', 'error'),
+            unhandled=options.pop('unhandled', True),
+            severity=options.pop('severity', 'error'),
+            severity_reason=options.pop('severity_reason', {
+                'type': 'unhandledException'
+            }),
             **options
         )
 

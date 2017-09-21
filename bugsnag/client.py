@@ -133,7 +133,7 @@ class Client(object):
 
             if initial_severity != notification.severity:
                 notification.severity_reason = {
-                    'type': 'userSpecifiedSeverity'
+                    'type': 'userCallbackSetSeverity'
                 }
             else:
                 notification.severity_reason = initial_reason
