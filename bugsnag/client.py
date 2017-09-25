@@ -165,6 +165,8 @@ class ClientContext(object):
     def __init__(self, client, exception_types=None, **options):
         self.client = client
         self.options = options
+        if 'severity' in options:
+            options['severity_reason'] = dict(type='contextSpecifiedSeverity')
         self.exception_types = exception_types or (Exception,)
 
     def __call__(self, function):
