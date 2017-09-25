@@ -129,7 +129,7 @@ class ClientTest(IntegrationTest):
         self.assertEqual(event['severity'], "info")
         self.assertFalse(event['unhandled'])
         self.assertEqual(event['severityReason'], {
-            "type": "contextSpecifiedSeverity"
+            "type": "userContextSetSeverity"
         })
 
     def test_notify_capture_types(self):
@@ -207,7 +207,7 @@ class ClientTest(IntegrationTest):
         self.assertEqual(event['severity'], "info")
         self.assertFalse(event['unhandled'])
         self.assertEqual(event['severityReason'], {
-            "type": "contextSpecifiedSeverity"
+            "type": "userContextSetSeverity"
         })
 
     def test_capture_decorator_raises(self):
