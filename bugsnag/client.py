@@ -87,8 +87,13 @@ class Client(object):
 
     def excepthook(self, exc_type, exc_value, traceback):
         if self.configuration.auto_notify:
-            self.notify_exc_info(exc_type, exc_value, traceback,
-                                 severity='error')
+            self.notify_exc_info(
+                exc_type, exc_value, traceback,
+                severity='error',
+                unhandled=True,
+                severity_reason={
+                    'type': 'unhandledException'
+                })
 
     def install_sys_hook(self):
         self.sys_excepthook = sys.excepthook
@@ -117,11 +122,21 @@ class Client(object):
         if not self.should_deliver(notification):
             return
 
+        initial_severity = notification.severity
+        initial_reason = notification.severity_reason
+
         def send_payload():
             if notification.api_key is None:
                 bugsnag.logger.warning(
                     "No API key configured, couldn't notify")
                 return
+
+            if initial_severity != notification.severity:
+                notification.severity_reason = {
+                    'type': 'userCallbackSetSeverity'
+                }
+            else:
+                notification.severity_reason = initial_reason
 
             try:
                 self.configuration.delivery.deliver(self.configuration,
@@ -150,6 +165,8 @@ class ClientContext(object):
     def __init__(self, client, exception_types=None, **options):
         self.client = client
         self.options = options
+        if 'severity' in options:
+            options['severity_reason'] = dict(type='contextSpecifiedSeverity')
         self.exception_types = exception_types or (Exception,)
 
     def __call__(self, function):

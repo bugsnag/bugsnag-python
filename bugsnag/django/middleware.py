@@ -28,10 +28,18 @@ class BugsnagMiddleware(MiddlewareMixin):
 
     def process_exception(self, request, exception):
         try:
-            bugsnag.auto_notify(exception)
+            bugsnag.auto_notify(
+                exception,
+                severity_reason={
+                    "type": "unhandledExceptionMiddleware",
+                    "attributes": {
+                        "framework": "Django"
+                    }
+                }
+            )
 
         except Exception:
-            bugsnag.logger.exception('Error in exception middleware')
+            bugsnag.logger.exception("Error in exception middleware")
 
         bugsnag.clear_request_config()
 

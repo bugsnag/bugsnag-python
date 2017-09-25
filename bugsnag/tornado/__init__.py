@@ -14,6 +14,12 @@ class BugsnagRequestHandler(RequestHandler):
                 "url": self.request.full_url(),
                 "method": self.request.method,
                 "arguments": self.request.arguments,
+            },
+            "severity_reason": {
+                "type": "unhandledExceptionMiddleware",
+                "attributes": {
+                    "framework": "Tornado"
+                }
             }
         }
 
@@ -32,7 +38,7 @@ class BugsnagRequestHandler(RequestHandler):
         RequestHandler._handle_request_exception(self, exc)
 
     def _get_context(self):
-        return "%s %s" % (self.request.method, self.request.uri.split('?')[0])
+        return "%s %s" % (self.request.method, self.request.uri.split("?")[0])
 
     def bugsnag_ignore_status_codes(self):
         # Subclasses can override to add or remove codes

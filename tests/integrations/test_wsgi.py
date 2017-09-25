@@ -154,3 +154,26 @@ class TestWSGI(IntegrationTest):
         payload = self.server.received[0]['json_body']
         environ = payload['events'][0]['metaData']['environment']
         self.assertEqual(environ['PATH_INFO'], '/beans')
+
+    def test_bugsnag_middleware_attaches_unhandled_data(self):
+
+        class CrashOnStartApp(object):
+
+            def __init__(self, environ, start_response):
+                raise SentinelError("oops")
+
+        app = TestApp(BugsnagMiddleware(CrashOnStartApp))
+
+        self.assertRaises(SentinelError, lambda: app.get('/beans'))
+
+        self.assertEqual(1, len(self.server.received))
+        payload = self.server.received[0]['json_body']
+        event = payload['events'][0]
+
+        self.assertTrue(event['unhandled'])
+        self.assertEqual(event['severityReason'], {
+            'type': 'unhandledExceptionMiddleware',
+            'attributes': {
+                'framework': 'WSGI'
+            }
+        })

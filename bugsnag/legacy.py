@@ -47,6 +47,11 @@ def notify(exception, **options):
     """
     Notify bugsnag of an exception.
     """
+    if 'severity' in options:
+        options['severity_reason'] = {'type': 'userSpecifiedSeverity'}
+    else:
+        options['severity_reason'] = {'type': 'handledException'}
+
     if (isinstance(exception, (list, tuple)) and len(exception) == 3 and
             isinstance(exception[2], types.TracebackType)):
         default_client.notify_exc_info(*exception, **options)
@@ -69,7 +74,15 @@ def auto_notify(exception, **options):
     Notify bugsnag of an exception if auto_notify is enabled.
     """
     if configuration.auto_notify:
-        default_client.notify(exception, severity="error", **options)
+        default_client.notify(
+            exception,
+            unhandled=options.pop('unhandled', True),
+            severity=options.pop('severity', 'error'),
+            severity_reason=options.pop('severity_reason', {
+                'type': 'unhandledException'
+            }),
+            **options
+        )
 
 
 def before_notify(callback):

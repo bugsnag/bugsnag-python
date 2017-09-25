@@ -116,6 +116,22 @@ class ClientTest(IntegrationTest):
             'key': 'value'
         })
 
+    def test_notify_capture_change_severity(self):
+        try:
+            with self.client.capture(severity='info'):
+                raise Exception('Testing Notify Context')
+        except Exception:
+            pass
+
+        payload = self.server.received[0]['json_body']
+        event = payload['events'][0]
+
+        self.assertEqual(event['severity'], "info")
+        self.assertFalse(event['unhandled'])
+        self.assertEqual(event['severityReason'], {
+            "type": "contextSpecifiedSeverity"
+        })
+
     def test_notify_capture_types(self):
         try:
             with self.client.capture((ScaryException,)):
@@ -174,6 +190,25 @@ class ClientTest(IntegrationTest):
             return "300"
 
         self.assertEqual(foo(), "300")
+
+    def test_capture_decorator_change_severity(self):
+        @self.client.capture(severity='info')
+        def foo():
+            raise Exception('Testing Capture Function')
+
+        try:
+            foo(Exception)
+        except Exception:
+            pass
+
+        payload = self.server.received[0]['json_body']
+        event = payload['events'][0]
+
+        self.assertEqual(event['severity'], "info")
+        self.assertFalse(event['unhandled'])
+        self.assertEqual(event['severityReason'], {
+            "type": "contextSpecifiedSeverity"
+        })
 
     def test_capture_decorator_raises(self):
 

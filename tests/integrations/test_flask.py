@@ -170,3 +170,24 @@ class TestFlask(IntegrationTest):
         payload = self.server.received[0]['json_body']
         self.assertEqual(payload['events'][0]['context'],
                          'custom_context_notification_testing')
+
+    def test_flask_intergration_includes_middleware_severity(self):
+        app = Flask("bugsnag")
+
+        @app.route("/test")
+        def test():
+            raise SentinelError("oops")
+
+        handle_exceptions(app)
+        app.test_client().get("/test")
+
+        self.assertEqual(1, len(self.server.received))
+        payload = self.server.received[0]['json_body']
+        event = payload['events'][0]
+        self.assertTrue(event['unhandled'])
+        self.assertEqual(event['severityReason'], {
+            "type": "unhandledExceptionMiddleware",
+            "attributes": {
+                "framework": "Flask"
+            }
+        })

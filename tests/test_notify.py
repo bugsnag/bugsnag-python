@@ -507,3 +507,73 @@ class TestBugsnag(IntegrationTest):
         self.assertEqual(self.server.received[0]['method'], 'POST')
         self.assertEqual(self.server.received[0]['path'].strip('/'),
                          self.server.url)
+
+    def test_notify_unhandled_defaults(self):
+        bugsnag.notify(ScaryException("unexpected failover"))
+
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertFalse(event['unhandled'])
+        self.assertEqual(event['severityReason'], {
+            "type": "handledException"
+        })
+
+    def test_notify_severity_overridden(self):
+        bugsnag.notify(ScaryException("unexpected failover"), severity="info")
+
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertFalse(event['unhandled'])
+        self.assertEqual(event['severityReason'], {
+            "type": "userSpecifiedSeverity"
+        })
+
+    def test_notify_unhandled_severity_callback(self):
+        def callback(report):
+            report.severity = "info"
+
+        bugsnag.before_notify(callback)
+
+        bugsnag.notify(ScaryException("unexpected failover"), severity="error")
+
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertFalse(event['unhandled'])
+        self.assertEqual(event['severityReason'], {
+            "type": "userCallbackSetSeverity"
+        })
+
+    def test_auto_notify_defaults(self):
+        bugsnag.auto_notify(ScaryException("unexpected failover"))
+
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertTrue(event['unhandled'])
+        self.assertEqual(event['severity'], 'error')
+        self.assertEqual(event['severityReason'], {
+            "type": "unhandledException"
+        })
+
+    def test_auto_notify_overrides(self):
+        bugsnag.auto_notify(
+            ScaryException("unexpected failover"),
+            severity='info',
+            unhandled=False,
+            severity_reason={
+                "type": "middleware_handler",
+                "attributes": {
+                    "name": "test middleware"
+                }
+            }
+        )
+
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertFalse(event['unhandled'])
+        self.assertEqual(event['severity'], 'info')
+        self.assertEqual(event['severityReason'], {
+            "type": "middleware_handler",
+            "attributes": {
+                "name": "test middleware"
+            }
+        })
