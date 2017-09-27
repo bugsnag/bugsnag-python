@@ -1,6 +1,14 @@
 Changelog
 =========
 
+## 3.2.0 (2017-09-27)
+
+### Enhancements
+
+* Track difference between handled and unhandled exceptions
+[#127](https://github.com/bugsnag/bugsnag-python/pull/127)
+
+
 ## 3.1.2 (2017-09-18)
 
 ### Enhancements
