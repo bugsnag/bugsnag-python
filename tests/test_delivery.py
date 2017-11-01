@@ -42,7 +42,7 @@ class DeliveryTest(IntegrationTest):
 
         try:
             import requests  # noqa
-        except:
+        except ImportError:
             raise SkipTest("Requests is not installed")
 
         RequestsDelivery().deliver(self.config, '{"legit":4}')
@@ -59,7 +59,7 @@ class DeliveryTest(IntegrationTest):
 
         try:
             import requests  # noqa
-        except:
+        except ImportError:
             raise SkipTest("Requests is not installed")
 
         self.config.configure(endpoint=self.server.url)
