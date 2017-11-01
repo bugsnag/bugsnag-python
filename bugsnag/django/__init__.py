@@ -2,7 +2,11 @@ from __future__ import division, print_function, absolute_import
 
 import six
 from django.conf import settings
-from django.core.urlresolvers import resolve
+
+try:
+    from django.core.urlresolvers import resolve
+except ImportError:
+    from django.urls import resolve
 
 import bugsnag
 
