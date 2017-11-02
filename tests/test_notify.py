@@ -356,7 +356,7 @@ class TestBugsnag(IntegrationTest):
         backtrace = None
         try:
             raise ScaryException('foo')
-        except:
+        except ScaryException:
             backtrace = sys.exc_info()[2]
 
         bugsnag.notify(Exception("foo"), traceback=backtrace)
@@ -375,7 +375,7 @@ class TestBugsnag(IntegrationTest):
             backtrace = None
             try:
                 raise ScaryException('foo')
-            except:
+            except ScaryException:
                 backtrace = sys.exc_info()[2]
             bugsnag.notify((Exception, Exception("foo"), backtrace))
 

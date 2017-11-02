@@ -59,7 +59,7 @@ def notify(exception, **options):
         if not isinstance(exception, BaseException):
             try:
                 value = repr(exception)
-            except:
+            except Exception:
                 value = '[BADENCODING]'
 
             bugsnag.logger.warning('Coercing invalid notify()'

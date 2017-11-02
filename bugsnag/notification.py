@@ -133,7 +133,7 @@ class Notification(object):
                 if module_file[-4:] == '.pyc':
                     module_file = module_file[:-1]
                 exclude_module_paths.append(module_file)
-            except:
+            except Exception:
                 bugsnag.logger.exception(
                     'Could not exclude module: %s' % repr(exclude_module))
 
@@ -207,7 +207,7 @@ class Notification(object):
 
             return dict((n, lines[n - 1].rstrip()) for n in range(start, end))
 
-        except:
+        except Exception:
             return None
 
     def _payload(self):
