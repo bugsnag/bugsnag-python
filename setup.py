@@ -14,7 +14,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='bugsnag',
-    version='3.2.0',
+    version='3.3.0',
     description='Automatic error monitoring for django, flask, etc.',
     long_description=__doc__,
     author='Simon Maynard',

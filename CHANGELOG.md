@@ -1,6 +1,18 @@
 Changelog
 =========
 
+## 3.3.0 (2017-11-02)
+
+### Enhancements
+
+* Adds support for Django 2.0
+[Denis](https://github.com/overplumbum)
+[#130](https://github.com/bugsnag/bugsnag-python/pull/130)
+
+* Updates and improves Python examples
+[#128](https://github.com/bugsnag/bugsnag-python/pull/128)
+
+
 ## 3.2.0 (2017-09-27)
 
 ### Enhancements
