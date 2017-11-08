@@ -12,7 +12,7 @@ def add_wsgi_request_data_to_notification(notification):
     request = Request(environ)
 
     notification.context = "%s %s" % (request.method, request_path(environ))
-    notification.set_user(id=request.remote_addr)
+    notification.set_user(id=request.client_addr)
     notification.add_tab("request", {
         "url": request.path_url,
         "headers": dict(request.headers),
