@@ -32,6 +32,8 @@ class SessionTracker(object):
         self.usercallback = usercallback
 
     def createsession(self, user=None):
+        if not self.config.tracksessions:
+            return
         if not user:
             if callable(self.usercallback):
                 user = self.usercallback()
@@ -73,6 +75,8 @@ class SessionTracker(object):
             self.mutex.release()
 
     def __deliversessions(self):
+        if not self.config.tracksessions:
+            return
         sessions = []
         while not self.deliveryqueue.empty():
             sessions.append(self.deliveryqueue.get())
@@ -108,15 +112,15 @@ class SessionTracker(object):
             'Bugsnag-Payload-Version': self.SESSION_PAYLOAD_VERSION
         }
         try:
-            self.config.delivery.deliver(self.config, payload, self.config.sessionendpoint, headers)
+            self.config.delivery.deliver(self.config, payload, \
+                self.config.sessionendpoint, headers)
         except Exception as e:
             bugsnag.logger.exception('Notifying Bugsnag failed %s', e)
 
 
 class SessionMiddleware(object):
     """
-    DefaultMiddleware provides the transformation from request_config into
-    meta-data that has always been supported by bugsnag-python.
+    Session middleware ensures that a session is appended to the notification.
     """
     def __init__(self, bugsnag):
         
