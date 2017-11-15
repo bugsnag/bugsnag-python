@@ -43,16 +43,17 @@ class Delivery(object):
 
 class UrllibDelivery(Delivery):
 
-    def deliver(self, config, payload):
+    def deliver(self, config, payload, endpoint=None, headers={}):
 
         def request():
-            endpoint = config.endpoint
-            if '://' not in endpoint:
-                endpoint = config.get_endpoint()
+            uri = endpoint or config.endpoint
+            headers.update({'Content-Type': 'application/json'})
+            if '://' not in uri:
+                uri = config.get_endpoint()
 
-            req = Request(endpoint,
+            req = Request(uri,
                           payload.encode('utf-8', 'replace'),
-                          {'Content-Type': 'application/json'})
+                          headers)
 
             if config.proxy_host:
                 proxies = ProxyHandler({
@@ -69,7 +70,7 @@ class UrllibDelivery(Delivery):
 
             if status != 200:
                 bugsnag.logger.warning(
-                    'Notification to %s failed, status %d' % (config.endpoint,
+                    'Notification to %s failed, status %d' % (uri,
                                                               status))
         if config.asynchronous:
             t = threading.Thread(target=request)
@@ -80,14 +81,14 @@ class UrllibDelivery(Delivery):
 
 class RequestsDelivery(Delivery):
 
-    def deliver(self, config, payload):
+    def deliver(self, config, payload, endpoint=None, headers={}):
 
         def request():
-            endpoint = config.endpoint
-            if '://' not in endpoint:
-                endpoint = config.get_endpoint()
+            uri = endpoint or config.endpoint
+            if '://' not in uri:
+                uri = config.get_endpoint()
 
-            headers = {'Content-Type': 'application/json'}
+            headers.update({'Content-Type': 'application/json'})
             options = {'data': payload, 'headers': headers}
 
             if config.proxy_host:
@@ -96,12 +97,12 @@ class RequestsDelivery(Delivery):
                     'http': config.proxy_host
                 }
 
-            response = requests.post(endpoint, **options)
+            response = requests.post(uri, **options)
             status = response.status_code
 
             if status != requests.codes.ok:
                 bugsnag.logger.warning(
-                    'Notification to %s failed, status %d' % (endpoint,
+                    'Notification to %s failed, status %d' % (uri,
                                                               status))
         if config.asynchronous:
             t = threading.Thread(target=request)

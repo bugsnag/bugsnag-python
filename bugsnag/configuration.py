@@ -2,17 +2,13 @@ from __future__ import absolute_import, division, print_function
 
 import os
 import socket
-import threading
 import warnings
 from distutils.sysconfig import get_python_lib
 
+from bugsnag.sessiontracker import SessionMiddleware
 from bugsnag.middleware import DefaultMiddleware, MiddlewareStack
-from bugsnag.utils import fully_qualified_class_name
+from bugsnag.utils import fully_qualified_class_name, ThreadLocals
 from bugsnag.delivery import create_default_delivery
-
-
-threadlocal = threading.local()
-
 
 class _BaseConfiguration(object):
     def get(self, name, overrides=None):
@@ -48,6 +44,8 @@ class _BaseConfiguration(object):
 
 
 class Configuration(_BaseConfiguration):
+
+    
     """
     Global app-level Bugsnag configuration settings.
     """
@@ -68,10 +66,13 @@ class Configuration(_BaseConfiguration):
                                "authorization"]
         self.ignore_classes = ["KeyboardInterrupt", "django.http.Http404"]
         self.endpoint = "https://notify.bugsnag.com"
+        self.sessionendpoint = "https://sessions.bugsnag.com"
+        self.tracksessions = False
         self.traceback_exclude_modules = []
 
         self.middleware = MiddlewareStack()
         self.middleware.append(DefaultMiddleware)
+        self.middleware.append(SessionMiddleware)
 
         self.proxy_host = None
 
@@ -117,10 +118,11 @@ class RequestConfiguration(_BaseConfiguration):
         """
         Get this thread's instance of the RequestConfiguration.
         """
-        instance = getattr(threadlocal, "bugsnag", None)
+        tls = ThreadLocals.get_instance()
+        instance = tls.getitem("bugsnag", None)
         if not instance:
             instance = RequestConfiguration()
-            setattr(threadlocal, "bugsnag", instance)
+            tls.setitem("bugsnag", instance)
 
         return instance
 
@@ -129,8 +131,9 @@ class RequestConfiguration(_BaseConfiguration):
         """
         Clear this thread's instance of the RequestConfiguration.
         """
-        if hasattr(threadlocal, "bugsnag"):
-            delattr(threadlocal, "bugsnag")
+        tls = ThreadLocals.get_instance()
+        if tls.hasitem("bugsnag"):
+            tls.delitem("bugsnag")
 
     def __init__(self):
         self.context = None

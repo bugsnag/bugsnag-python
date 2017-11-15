@@ -68,6 +68,18 @@ def notify(exception, **options):
 
         default_client.notify(exception, **options)
 
+def create_session(user=None):
+    """
+    Creates a new session 
+    """
+    default_client.sessiontracker.createsession(user)
+
+def deliver_sessions():
+    """
+    Delivers all currently undelivered sessions to Bugsnag
+    """
+    default_client.sessiontracker.sendsessions()
+
 
 def auto_notify(exception, **options):
     """

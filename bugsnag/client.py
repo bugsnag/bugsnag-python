@@ -6,6 +6,7 @@ from types import FunctionType
 from bugsnag.configuration import Configuration, RequestConfiguration
 from bugsnag.notification import Notification
 from bugsnag.handlers import BugsnagHandler
+from bugsnag.sessiontracker import SessionTracker
 
 import bugsnag
 
@@ -22,6 +23,7 @@ class Client(object):
 
     def __init__(self, configuration=None, install_sys_hook=True, **kwargs):
         self.configuration = configuration or Configuration()
+        self.sessiontracker = SessionTracker(self.configuration)
         self.configuration.configure(**kwargs)
 
         if install_sys_hook:
@@ -143,6 +145,8 @@ class Client(object):
                                                     notification._payload())
             except Exception as e:
                 bugsnag.logger.exception('Notifying Bugsnag failed %s', e)
+            # Trigger session delivery
+            self.sessiontracker.sendsessions()
 
         self.configuration.middleware.run(notification, send_payload)
 

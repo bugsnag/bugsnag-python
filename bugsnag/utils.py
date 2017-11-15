@@ -3,13 +3,12 @@ from __future__ import division, print_function, absolute_import
 import inspect
 import six
 from json import JSONEncoder
+from threading import local as threadlocal
 
 import bugsnag
 
-
 MAX_PAYLOAD_LENGTH = 128 * 1024
 MAX_STRING_LENGTH = 1024
-
 
 class SanitizingJSONEncoder(JSONEncoder):
     """
@@ -137,3 +136,25 @@ def package_version(package_name):
             return pkg_resources.get_distribution(package_name).version
         except pkg_resources.DistributionNotFound:
             return None
+
+class ThreadLocals(object):
+    LOCALS = None
+    def get_instance():
+        if not ThreadLocals.LOCALS:
+            ThreadLocals.LOCALS = threadlocal()
+        return ThreadLocals()
+    get_instance = staticmethod(get_instance)
+    
+    def getitem(self, key, default=None):
+        return getattr(ThreadLocals.LOCALS, key, default)
+
+    def setitem(self, key, value):
+        return setattr(ThreadLocals.LOCALS, key, value)
+
+    def hasitem(self, key):
+        return hasattr(ThreadLocals.LOCALS, key)
+
+    def delitem(self, key):
+        return delattr(ThreadLocals.LOCALS, key)
+
+    

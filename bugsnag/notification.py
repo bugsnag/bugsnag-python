@@ -74,6 +74,8 @@ class Notification(object):
         self.grouping_hash = options.pop("grouping_hash", None)
         self.api_key = options.pop("api_key", get_config("api_key"))
 
+        self.session = None
+
         self.meta_data = {}
         for name, tab in options.pop("meta_data", {}).items():
             self.add_tab(name, tab)
@@ -244,6 +246,7 @@ class Notification(object):
                     "hostname": self.hostname
                 },
                 "projectRoot": self.config.get("project_root"),
-                "libRoot": self.config.get("lib_root")
+                "libRoot": self.config.get("lib_root"),
+                "session": self.session
             }]
         })
