@@ -125,7 +125,6 @@ class SessionMiddleware(object):
     def __call__(self, notification):
         tls = ThreadLocals.get_instance()
         session = tls.getitem('bugsnag-session', {}).copy()
-        print(session)
         if session:
             if notification.unhandled:
                 session['events']['unhandled'] += 1
