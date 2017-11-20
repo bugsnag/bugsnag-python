@@ -1,4 +1,4 @@
-from flask import got_request_exception, request, session
+from flask import got_request_exception, request, session, request_started
 
 import bugsnag
 from bugsnag.wsgi import request_path
@@ -27,7 +27,7 @@ def add_flask_request_to_notification(notification):
 def handle_exceptions(app):
     bugsnag.before_notify(add_flask_request_to_notification)
     got_request_exception.connect(__log_exception, app)
-
+    request_started.connect(__track_session, app)
 
 # pylint: disable-msg=W0613
 def __log_exception(sender, exception, **extra):
@@ -37,3 +37,9 @@ def __log_exception(sender, exception, **extra):
             "framework": "Flask"
         }
     })
+
+def __track_session(sender, **extra):
+    user = None
+    if request:
+        user = {'id': request.remote_addr}
+    bugsnag.create_session(user)
