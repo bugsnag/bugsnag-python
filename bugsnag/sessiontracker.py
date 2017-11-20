@@ -39,7 +39,7 @@ class SessionTracker(object):
                 user = self.usercallback()
             else:
                 user = {}
-                requestconfig = RequestConfiguration.get_instance()
+                requestconfig = bugsnag.RequestConfiguration.get_instance()
                 user.update(requestconfig.user)
                 if requestconfig.user_id:
                     user['id'] = requestconfig.user_id
