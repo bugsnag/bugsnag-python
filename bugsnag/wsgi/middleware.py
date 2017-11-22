@@ -87,4 +87,5 @@ class BugsnagMiddleware(object):
         self.application = application
 
     def __call__(self, environ, start_response):
+        bugsnag.create_session()
         return WrappedWSGIApp(self.application, environ, start_response)
