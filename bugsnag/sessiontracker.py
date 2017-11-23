@@ -4,14 +4,15 @@ from time import strftime, gmtime
 from threading import Lock, Thread
 
 import bugsnag
-from bugsnag.utils import SanitizingJSONEncoder, FilterDict, package_version,\
+from bugsnag.utils import SanitizingJSONEncoder, package_version,\
     ThreadLocals
 from bugsnag.notification import Notification
 
 try:
-    from Queue import Queue, Empty
+    from Queue import Queue
 except ImportError:
-    from queue import Queue, Empty
+    from queue import Queue
+
 
 class SessionTracker(object):
 
@@ -112,8 +113,11 @@ class SessionTracker(object):
             'Bugsnag-Payload-Version': self.SESSION_PAYLOAD_VERSION
         }
         try:
-            self.config.delivery.deliver(self.config, payload, \
-                self.config.session_endpoint, headers)
+            self.config.delivery.deliver(self.config,
+                                         payload,
+                                         self.config.session_endpoint,
+                                         headers
+                                         )
         except Exception as e:
             bugsnag.logger.exception('Notifying Bugsnag failed %s', e)
 
@@ -123,7 +127,6 @@ class SessionMiddleware(object):
     Session middleware ensures that a session is appended to the notification.
     """
     def __init__(self, bugsnag):
-        
         self.bugsnag = bugsnag
 
     def __call__(self, notification):
@@ -135,5 +138,4 @@ class SessionMiddleware(object):
             else:
                 session['events']['handled'] += 1
             notification.session = session
-            
         self.bugsnag(notification)

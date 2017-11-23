@@ -10,6 +10,7 @@ from bugsnag.middleware import DefaultMiddleware, MiddlewareStack
 from bugsnag.utils import fully_qualified_class_name, ThreadLocals
 from bugsnag.delivery import create_default_delivery
 
+
 class _BaseConfiguration(object):
     def get(self, name, overrides=None):
         """
@@ -44,8 +45,6 @@ class _BaseConfiguration(object):
 
 
 class Configuration(_BaseConfiguration):
-
-    
     """
     Global app-level Bugsnag configuration settings.
     """

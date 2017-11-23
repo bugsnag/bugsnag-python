@@ -29,6 +29,7 @@ def handle_exceptions(app):
     got_request_exception.connect(__log_exception, app)
     request_started.connect(__track_session, app)
 
+
 # pylint: disable-msg=W0613
 def __log_exception(sender, exception, **extra):
     bugsnag.auto_notify(exception, severity_reason={
@@ -37,6 +38,7 @@ def __log_exception(sender, exception, **extra):
             "framework": "Flask"
         }
     })
+
 
 def __track_session(sender, **extra):
     user = None

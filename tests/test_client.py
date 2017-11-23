@@ -1,7 +1,6 @@
 import sys
 
 from bugsnag import Client, Configuration
-from bugsnag.utils import ThreadLocals
 from tests.utils import IntegrationTest, ScaryException
 
 

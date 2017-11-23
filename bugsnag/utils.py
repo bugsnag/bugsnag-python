@@ -10,6 +10,7 @@ import bugsnag
 MAX_PAYLOAD_LENGTH = 128 * 1024
 MAX_STRING_LENGTH = 1024
 
+
 class SanitizingJSONEncoder(JSONEncoder):
     """
     A JSON encoder which handles filtering and conversion from JSON-
@@ -137,14 +138,16 @@ def package_version(package_name):
         except pkg_resources.DistributionNotFound:
             return None
 
+
 class ThreadLocals(object):
     LOCALS = None
+
     def get_instance():
         if not ThreadLocals.LOCALS:
             ThreadLocals.LOCALS = threadlocal()
         return ThreadLocals()
     get_instance = staticmethod(get_instance)
-    
+
     def get_item(self, key, default=None):
         return getattr(ThreadLocals.LOCALS, key, default)
 
@@ -156,5 +159,3 @@ class ThreadLocals(object):
 
     def del_item(self, key):
         return delattr(ThreadLocals.LOCALS, key)
-
-    

@@ -63,5 +63,6 @@ def configure():
 
     bugsnag.before_notify(add_django_request_to_notification)
 
+
 def __track_session(sender, **extra):
     bugsnag.create_session()

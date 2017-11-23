@@ -1,4 +1,3 @@
-import sys
 import time
 
 from bugsnag import Client
@@ -6,7 +5,8 @@ from bugsnag.notification import Notification
 from bugsnag.configuration import Configuration
 from bugsnag.sessiontracker import SessionTracker
 from bugsnag.utils import ThreadLocals, package_version
-from tests.utils import IntegrationTest, ScaryException
+from tests.utils import IntegrationTest
+
 
 class TestConfiguration(IntegrationTest):
     def setUp(self):
@@ -33,11 +33,14 @@ class TestConfiguration(IntegrationTest):
 
     def test_session_tracker_stores_user_object(self):
         tracker = SessionTracker(self.config)
-        tracker.create_session({"id": "userid", "attr": {"name": "James", "job": "Spy"}})
+        tracker.create_session({"id": "userid",
+                                "attr": {"name": "James", "job": "Spy"}})
         self.assertEqual(tracker.delivery_queue.qsize(), 1)
         session = tracker.delivery_queue.get(False)
         self.assertTrue('user' in session)
-        self.assertEqual(session['user'], {"id": "userid", "attr": {"name": "James", "job": "Spy"}})
+        self.assertEqual(session['user'],
+                         {"id": "userid",
+                          "attr": {"name": "James", "job": "Spy"}})
 
     def test_session_tracker_stores_session_in_threadlocals(self):
         locs = ThreadLocals.get_instance()
@@ -55,14 +58,18 @@ class TestConfiguration(IntegrationTest):
 
     def test_session_tracker_calls_user_callback(self):
         tracker = SessionTracker(self.config)
+
         def user_callback():
-            return {"id": "userid", "attr": {"name": "Jason", "job": "Spy"}}
+            return {"id": "userid",
+                    "attr": {"name": "Jason", "job": "Spy"}}
         tracker.set_user_callback(user_callback)
         tracker.create_session()
         self.assertEqual(tracker.delivery_queue.qsize(), 1)
         session = tracker.delivery_queue.get(False)
         self.assertTrue('user' in session)
-        self.assertEqual(session['user'], {"id": "userid", "attr": {"name": "Jason", "job": "Spy"}})
+        self.assertEqual(session['user'],
+                         {"id": "userid",
+                          "attr": {"name": "Jason", "job": "Spy"}})
 
     def test_session_tracker_sessions_are_unique(self):
         tracker = SessionTracker(self.config)
@@ -111,13 +118,16 @@ class TestConfiguration(IntegrationTest):
         # App properties
         app = json_body['app']
         self.assertTrue('releaseStage' in app)
-        self.assertEqual(app['releaseStage'], client.configuration.get('release_stage'))
+        self.assertEqual(app['releaseStage'],
+                         client.configuration.get('release_stage'))
         self.assertTrue('version' in app)
-        self.assertEqual(app['version'], client.configuration.get('app_version'))
+        self.assertEqual(app['version'],
+                         client.configuration.get('app_version'))
         # Device properties
         device = json_body['device']
         self.assertTrue('hostname' in device)
-        self.assertEqual(device['hostname'], client.configuration.get('hostname'))
+        self.assertEqual(device['hostname'],
+                         client.configuration.get('hostname'))
 
     def test_session_tracker_sends_when_threshold_hit(self):
         client = Client(
