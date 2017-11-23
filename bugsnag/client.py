@@ -23,7 +23,7 @@ class Client(object):
 
     def __init__(self, configuration=None, install_sys_hook=True, **kwargs):
         self.configuration = configuration or Configuration()
-        self.sessiontracker = SessionTracker(self.configuration)
+        self.session_tracker = SessionTracker(self.configuration)
         self.configuration.configure(**kwargs)
 
         if install_sys_hook:
@@ -146,7 +146,7 @@ class Client(object):
             except Exception as e:
                 bugsnag.logger.exception('Notifying Bugsnag failed %s', e)
             # Trigger session delivery
-            self.sessiontracker.sendsessions()
+            self.session_tracker.send_sessions()
 
         self.configuration.middleware.run(notification, send_payload)
 

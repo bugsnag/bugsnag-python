@@ -145,16 +145,16 @@ class ThreadLocals(object):
         return ThreadLocals()
     get_instance = staticmethod(get_instance)
     
-    def getitem(self, key, default=None):
+    def get_item(self, key, default=None):
         return getattr(ThreadLocals.LOCALS, key, default)
 
-    def setitem(self, key, value):
+    def set_item(self, key, value):
         return setattr(ThreadLocals.LOCALS, key, value)
 
-    def hasitem(self, key):
+    def has_item(self, key):
         return hasattr(ThreadLocals.LOCALS, key)
 
-    def delitem(self, key):
+    def del_item(self, key):
         return delattr(ThreadLocals.LOCALS, key)
 
     

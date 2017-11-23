@@ -22,64 +22,64 @@ class SessionTracker(object):
     Session tracking class for Bugsnag
     """
     def __init__(self, configuration):
-        self.usercallback = None
-        self.deliveryqueue = Queue(self.MAX_PAYLOAD_SIZE)
+        self.user_callback = None
+        self.delivery_queue = Queue(self.MAX_PAYLOAD_SIZE)
         self.config = configuration
         self.mutex = Lock()
         self.lastsent = 0
 
-    def setusercallback(self, usercallback):
-        self.usercallback = usercallback
+    def set_user_callback(self, usercallback):
+        self.user_callback = usercallback
 
-    def createsession(self, user=None):
-        if not self.config.tracksessions:
+    def create_session(self, user=None):
+        if not self.config.track_sessions:
             return
         if not user:
-            if callable(self.usercallback):
-                user = self.usercallback()
+            if callable(self.user_callback):
+                user = self.user_callback()
             else:
                 user = {}
-                requestconfig = bugsnag.RequestConfiguration.get_instance()
-                user.update(requestconfig.user)
-                if requestconfig.user_id:
-                    user['id'] = requestconfig.user_id
-        newsession = {
+                request_config = bugsnag.RequestConfiguration.get_instance()
+                user.update(request_config.user)
+                if request_config.user_id:
+                    user['id'] = request_config.user_id
+        new_session = {
             'id': uuid4().hex,
             'startedAt': strftime('%y-%m-%dT%H:%M:%S', gmtime())
         }
-        sessioncopy = newsession.copy()
-        sessioncopy.update({'user': user})
-        addthread = Thread(target=self.__queuesession, args=(sessioncopy,))
-        addthread.start()
-        newsession['events'] = {
+        session_copy = new_session.copy()
+        session_copy.update({'user': user})
+        add_thread = Thread(target=self.__queue_session, args=(session_copy,))
+        add_thread.start()
+        new_session['events'] = {
             'handled': 0,
             'unhandled': 0
         }
         tls = ThreadLocals.get_instance()
-        tls.setitem("bugsnag-session", newsession)
+        tls.set_item("bugsnag-session", new_session)
 
-    def sendsessions(self):
+    def send_sessions(self):
         self.mutex.acquire()
         try:
-            self.__deliversessions()
+            self.__deliver_sessions()
         finally:
             self.mutex.release()
 
-    def __queuesession(self, session):
+    def __queue_session(self, session):
         self.mutex.acquire()
         try:
-            if self.deliveryqueue.full():
-                self.__deliversessions()
-            self.deliveryqueue.put(session)
+            if self.delivery_queue.full():
+                self.__deliver_sessions()
+            self.delivery_queue.put(session)
         finally:
             self.mutex.release()
 
-    def __deliversessions(self):
-        if not self.config.tracksessions:
+    def __deliver_sessions(self):
+        if not self.config.track_sessions:
             return
         sessions = []
-        while not self.deliveryqueue.empty():
-            sessions.append(self.deliveryqueue.get())
+        while not self.delivery_queue.empty():
+            sessions.append(self.delivery_queue.get())
         self.__deliver(sessions)
 
     def __deliver(self, sessions):
@@ -113,7 +113,7 @@ class SessionTracker(object):
         }
         try:
             self.config.delivery.deliver(self.config, payload, \
-                self.config.sessionendpoint, headers)
+                self.config.session_endpoint, headers)
         except Exception as e:
             bugsnag.logger.exception('Notifying Bugsnag failed %s', e)
 
@@ -128,7 +128,7 @@ class SessionMiddleware(object):
 
     def __call__(self, notification):
         tls = ThreadLocals.get_instance()
-        session = tls.getitem('bugsnag-session', {}).copy()
+        session = tls.get_item('bugsnag-session', {}).copy()
         if session:
             if notification.unhandled:
                 session['events']['unhandled'] += 1

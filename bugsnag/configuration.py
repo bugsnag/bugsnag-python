@@ -66,8 +66,8 @@ class Configuration(_BaseConfiguration):
                                "authorization"]
         self.ignore_classes = ["KeyboardInterrupt", "django.http.Http404"]
         self.endpoint = "https://notify.bugsnag.com"
-        self.sessionendpoint = "https://sessions.bugsnag.com"
-        self.tracksessions = False
+        self.session_endpoint = "https://sessions.bugsnag.com"
+        self.track_sessions = False
         self.traceback_exclude_modules = []
 
         self.middleware = MiddlewareStack()
@@ -119,10 +119,10 @@ class RequestConfiguration(_BaseConfiguration):
         Get this thread's instance of the RequestConfiguration.
         """
         tls = ThreadLocals.get_instance()
-        instance = tls.getitem("bugsnag", None)
+        instance = tls.get_item("bugsnag", None)
         if not instance:
             instance = RequestConfiguration()
-            tls.setitem("bugsnag", instance)
+            tls.set_item("bugsnag", instance)
 
         return instance
 
@@ -132,8 +132,8 @@ class RequestConfiguration(_BaseConfiguration):
         Clear this thread's instance of the RequestConfiguration.
         """
         tls = ThreadLocals.get_instance()
-        if tls.hasitem("bugsnag"):
-            tls.delitem("bugsnag")
+        if tls.has_item("bugsnag"):
+            tls.del_item("bugsnag")
 
     def __init__(self):
         self.context = None
