@@ -2,7 +2,7 @@ import unittest
 import json
 
 from six import u
-from bugsnag.utils import SanitizingJSONEncoder, FilterDict
+from bugsnag.utils import SanitizingJSONEncoder, FilterDict, ThreadLocals
 
 
 class TestUtils(unittest.TestCase):
@@ -69,3 +69,17 @@ class TestUtils(unittest.TestCase):
         encoder = SanitizingJSONEncoder(keyword_filters=["password"])
         sane_data = json.loads(encoder.encode(data))
         self.assertEqual(sane_data, data)
+
+    def test_thread_locals(self):
+        key = "TEST_THREAD_LOCALS"
+        val = {"Test": "Thread", "Locals": "Here"}
+        locs = ThreadLocals.get_instance()
+        self.assertFalse(locs.has_item(key))
+        locs.set_item(key, val)
+        self.assertTrue(locs.has_item(key))
+        item = locs.get_item(key)
+        self.assertEqual(item, val)
+        locs.del_item(key)
+        self.assertFalse(locs.has_item(key))
+        item = locs.get_item(key, "default")
+        self.assertEqual(item, "default")

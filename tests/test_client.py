@@ -1,6 +1,7 @@
 import sys
 
 from bugsnag import Client, Configuration
+from bugsnag.utils import ThreadLocals
 from tests.utils import IntegrationTest, ScaryException
 
 
@@ -354,3 +355,9 @@ class ClientTest(IntegrationTest):
 
         self.assertEqual(client1, sys.excepthook.bugsnag_client)
         self.assertEqual(client1.sys_excepthook, excepthook)
+
+    # Session Tracking
+
+    def test_session_tracker_object_exists(self):
+        client = Client()
+        self.assertTrue(hasattr(client, 'session_tracker'))
