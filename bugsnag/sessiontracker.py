@@ -1,6 +1,6 @@
 from __future__ import print_function
 from uuid import uuid4
-from time import strftime, gmtime
+from time import strftime, gmtime, time
 from threading import Lock, Thread
 
 import bugsnag
@@ -16,7 +16,7 @@ except ImportError:
 
 class SessionTracker(object):
 
-    MAX_PAYLOAD_SIZE = 50
+    TIME_THRESHOLD = 60
     SESSION_PAYLOAD_VERSION = "1.0"
 
     """
@@ -24,10 +24,10 @@ class SessionTracker(object):
     """
     def __init__(self, configuration):
         self.user_callback = None
-        self.delivery_queue = Queue(self.MAX_PAYLOAD_SIZE)
+        self.delivery_queue = Queue()
         self.config = configuration
         self.mutex = Lock()
-        self.lastsent = 0
+        self.lastsent = time()
 
     def set_user_callback(self, usercallback):
         self.user_callback = usercallback
@@ -69,7 +69,7 @@ class SessionTracker(object):
     def __queue_session(self, session):
         self.mutex.acquire()
         try:
-            if self.delivery_queue.full():
+            if time() - self.lastsent > self.TIME_THRESHOLD:
                 self.__deliver_sessions()
             self.delivery_queue.put(session)
         finally:
@@ -120,6 +120,7 @@ class SessionTracker(object):
                                          )
         except Exception as e:
             bugsnag.logger.exception('Notifying Bugsnag failed %s', e)
+        self.lastsent = time()
 
 
 class SessionMiddleware(object):

@@ -7,6 +7,8 @@ import sys
 import traceback
 import inspect
 
+from time import strftime, gmtime
+
 import bugsnag
 
 from bugsnag.utils import fully_qualified_class_name as class_name
@@ -19,7 +21,7 @@ class Notification(object):
     """
     NOTIFIER_NAME = "Python Bugsnag Notifier"
     NOTIFIER_URL = "https://github.com/bugsnag/bugsnag-python"
-    PAYLOAD_VERSION = "2"
+    PAYLOAD_VERSION = "4.0"
     SUPPORTED_SEVERITIES = ["info", "warning", "error"]
 
     def __init__(self, exception, config, request_config, **options):
@@ -220,14 +222,12 @@ class Notification(object):
         encoder = SanitizingJSONEncoder(separators=(',', ':'),
                                         keyword_filters=filters)
         return encoder.encode({
-            "apiKey": self.api_key,
             "notifier": {
                 "name": self.NOTIFIER_NAME,
                 "url": self.NOTIFIER_URL,
                 "version": notifier_version,
             },
             "events": [{
-                "payloadVersion": self.PAYLOAD_VERSION,
                 "severity": self.severity,
                 "severityReason": self.severity_reason,
                 "unhandled": self.unhandled,
@@ -250,3 +250,9 @@ class Notification(object):
                 "session": self.session
             }]
         })
+    
+    def _headers(self):
+        return {
+            "Bugsnag-Api-Key": self.api_key,
+            "Bugsnag-Payload-Version": self.PAYLOAD_VERSION
+        }

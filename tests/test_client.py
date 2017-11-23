@@ -50,7 +50,7 @@ class ClientTest(IntegrationTest):
 
         class FooDelivery:
 
-            def deliver(foo, config, payload):
+            def deliver(foo, config, payload, endpoint=None, headers={}):
                 self.called = True
 
         c.configure(delivery=FooDelivery(), api_key='abc')
@@ -72,7 +72,7 @@ class ClientTest(IntegrationTest):
 
         class FooDelivery:
 
-            def deliver(foo, config, payload):
+            def deliver(foo, config, payload, endpoint=None, headers={}):
                 self.called = True
                 raise ScaryException('something gone wrong')
 
@@ -334,13 +334,13 @@ class ClientTest(IntegrationTest):
         client1.notify(ScaryException('foo'))
         self.assertSentReportCount(1)
 
-        json_body = self.server.received[0]['json_body']
+        headers = self.server.received[0]['headers']
 
         client2.notify(ScaryException('bar'))
         self.assertSentReportCount(2)
 
-        json_body = self.server.received[1]['json_body']
-        self.assertEqual(json_body['apiKey'], '456')
+        headers = self.server.received[1]['headers']
+        self.assertEqual(headers['Bugsnag-Api-Key'], '456')
 
     def test_multiple_clients_one_excepthook(self):
         def excepthook(*exc_info):

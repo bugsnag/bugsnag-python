@@ -129,20 +129,6 @@ class TestConfiguration(IntegrationTest):
         self.assertEqual(device['hostname'],
                          client.configuration.get('hostname'))
 
-    def test_session_tracker_sends_when_threshold_hit(self):
-        client = Client(
-            track_sessions=True,
-            session_endpoint=self.server.url,
-            asynchronous=False
-        )
-        for i in range(51):
-            client.session_tracker.create_session()
-        # Wait for asynchronous delivery to be trigger
-        time.sleep(0.01)
-        json_body = self.server.received[0]['json_body']
-        self.assertTrue('sessions' in json_body)
-        self.assertEqual(len(json_body['sessions']), 50)
-
     def test_session_middleware_attaches_session_to_notification(self):
         client = Client(
             track_sessions=True,

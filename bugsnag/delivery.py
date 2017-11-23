@@ -1,6 +1,8 @@
 import threading
 import sys
 
+from time import strftime, gmtime
+
 from six.moves.urllib.request import (
     Request,
     ProxyHandler,
@@ -88,7 +90,9 @@ class RequestsDelivery(Delivery):
             if '://' not in uri:
                 uri = config.get_endpoint()
 
-            headers.update({'Content-Type': 'application/json'})
+            headers.update({
+                'Content-Type': 'application/json',
+                'Bugsnag-Sent-At': strftime('%y-%m-%dT%H:%M:%S', gmtime())})
             options = {'data': payload, 'headers': headers}
 
             if config.proxy_host:
