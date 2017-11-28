@@ -1,4 +1,4 @@
-import threading
+from threading import Thread, Timer
 import sys
 
 from time import strftime, gmtime
@@ -36,16 +36,33 @@ class Delivery(object):
     Mechanism for sending a report to Bugsnag
     """
 
+    BACKOFF_TIMES = (0.5, 1.0, 3.0, 5.0, 10.0, 30.0, 60.0, 180.0, 300.0, 600.0)
+
     def deliver(self, report_payload):
         """
         Sends a report to Bugsnag
         """
         pass
 
+    def backoff(self, config, payload, endpoint, headers, request, backoff):
+        try:
+            if backoff is True:
+                interval = self.BACKOFF_TIMES[0]
+                backoff = 1
+            else:
+                interval = self.BACKOFF_TIMES[backoff]
+                backoff += 1
+            Timer(interval=interval, function=request,
+                  args=(config, payload, endpoint, headers, backoff)).start()
+        except IndexError:
+            bugsnag.logger.warning(
+                'Delivery to %s failed after %d retries' % (endpoint, backoff))
+
 
 class UrllibDelivery(Delivery):
 
-    def deliver(self, config, payload, endpoint=None, headers={}):
+    def deliver(self, config, payload,
+                endpoint=None, headers={}, backoff=False):
 
         def request():
             uri = endpoint or config.endpoint
@@ -70,20 +87,23 @@ class UrllibDelivery(Delivery):
             resp = opener.open(req)
             status = resp.getcode()
 
-            if status != 200:
+            if status not in (200, 202):
                 bugsnag.logger.warning(
-                    'Notification to %s failed, status %d' % (uri,
-                                                              status))
+                    'Delivery to %s failed, status %d' % (uri, status))
+                if backoff:
+                    self.backoff(config, payload, uri,
+                                 headers, self.deliver, backoff)
+                
         if config.asynchronous:
-            t = threading.Thread(target=request)
-            t.start()
+            Thread(target=request).start()
         else:
             request()
 
 
 class RequestsDelivery(Delivery):
 
-    def deliver(self, config, payload, endpoint=None, headers={}):
+    def deliver(self, config, payload,
+                endpoint=None, headers={}, backoff=False):
 
         def request():
             uri = endpoint or config.endpoint
@@ -108,8 +128,11 @@ class RequestsDelivery(Delivery):
                 bugsnag.logger.warning(
                     'Notification to %s failed, status %d' % (uri,
                                                               status))
+                if backoff:
+                    self.backoff(config, payload, uri,
+                                 headers, self.deliver, backoff)
+            
         if config.asynchronous:
-            t = threading.Thread(target=request)
-            t.start()
+            Thread(target=request).start()
         else:
             request()

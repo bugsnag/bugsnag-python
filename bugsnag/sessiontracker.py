@@ -50,8 +50,12 @@ class SessionTracker(object):
         }
         session_copy = new_session.copy()
         session_copy.update({'user': user})
-        add_thread = Thread(target=self.__queue_session, args=(session_copy,))
-        add_thread.start()
+        if self.config.asynchronous:
+            add_thread = Thread(target=self.__queue_session,
+                                args=(session_copy,))
+            add_thread.start()
+        else:
+            self.__queue_session(session_copy)
         new_session['events'] = {
             'handled': 0,
             'unhandled': 0
@@ -62,7 +66,11 @@ class SessionTracker(object):
     def send_sessions(self):
         self.mutex.acquire()
         try:
-            self.__deliver_sessions()
+            if self.config.asynchronous:
+                deliver_thread = Thread(target=self.__deliver_sessions)
+                deliver_thread.start()
+            else:
+                self.__deliver_sessions()
         finally:
             self.mutex.release()
 
@@ -116,10 +124,10 @@ class SessionTracker(object):
             self.config.delivery.deliver(self.config,
                                          payload,
                                          self.config.session_endpoint,
-                                         headers
-                                         )
+                                         headers,
+                                         True)
         except Exception as e:
-            bugsnag.logger.exception('Notifying Bugsnag failed %s', e)
+            bugsnag.logger.exception('Sending sessions failed %s', e)
         self.lastsent = time()
 
 
