@@ -73,14 +73,14 @@ def create_session(user=None):
     """
     Creates a new session
     """
-    default_client.sessiontracker.create_session(user)
+    default_client.session_tracker.create_session(user)
 
 
 def deliver_sessions():
     """
     Delivers all currently undelivered sessions to Bugsnag
     """
-    default_client.sessiontracker.send_sessions()
+    default_client.session_tracker.send_sessions()
 
 
 def auto_notify(exception, **options):
