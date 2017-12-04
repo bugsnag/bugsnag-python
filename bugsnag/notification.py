@@ -218,10 +218,7 @@ class Notification(object):
         # Fetch the notifier version from the package
         notifier_version = package_version("bugsnag") or "unknown"
         # Construct the payload dictionary
-        filters = self.config.params_filters
-        encoder = SanitizingJSONEncoder(separators=(',', ':'),
-                                        keyword_filters=filters)
-        return encoder.encode({
+        return {
             "notifier": {
                 "name": self.NOTIFIER_NAME,
                 "url": self.NOTIFIER_URL,
@@ -249,7 +246,7 @@ class Notification(object):
                 "libRoot": self.config.get("lib_root"),
                 "session": self.session
             }]
-        })
+        }
     
     def _headers(self):
         return {

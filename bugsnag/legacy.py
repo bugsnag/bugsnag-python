@@ -73,7 +73,7 @@ def create_session(user=None):
     """
     Creates a new session
     """
-    default_client.session_tracker.create_session(user)
+    default_client.session_tracker.create_session()
 
 
 def deliver_sessions():

@@ -1,6 +1,7 @@
 from threading import Thread, Timer
 import sys
 
+from threading import Lock
 from time import strftime, gmtime
 
 from six.moves.urllib.request import (
@@ -10,6 +11,7 @@ from six.moves.urllib.request import (
 )
 
 import bugsnag
+from bugsnag.utils import SanitizingJSONEncoder, merge_dicts, MAX_PAYLOAD_LENGTH
 
 try:
     if sys.version_info < (2, 7):
@@ -36,7 +38,11 @@ class Delivery(object):
     Mechanism for sending a report to Bugsnag
     """
 
-    BACKOFF_TIMES = (0.5, 1.0, 3.0, 5.0, 10.0, 30.0, 60.0, 180.0, 300.0, 600.0)
+    def __init__(self):
+        self.backoff_lock = Lock()
+        self.backoff_requests = {}
+        self.backoff_threads = {}
+        self.config = None
 
     def deliver(self, report_payload):
         """
@@ -44,34 +50,78 @@ class Delivery(object):
         """
         pass
 
-    def backoff(self, config, payload, endpoint, headers, request, backoff):
+    def backoff(self, config, payload, options={}):
+        self.config = config
+        self.backoff_lock.acquire()
         try:
-            if backoff is True:
-                interval = self.BACKOFF_TIMES[0]
-                backoff = 1
+            uri = options['endpoint']
+            if 'interval' not in options:
+                options['interval'] = 2
             else:
-                interval = self.BACKOFF_TIMES[backoff]
-                backoff += 1
-            Timer(interval=interval, function=request,
-                  args=(config, payload, endpoint, headers, backoff)).start()
-        except IndexError:
-            bugsnag.logger.warning(
-                'Delivery to %s failed after %d retries' % (endpoint, backoff))
+                options['interval'] = options['interval'] * 2
+            interval = 600 if options['interval'] > 600 else options['interval']
+            request = {'options': options, 'payload': payload}
+            if uri in self.backoff_requests:
+                filters = self.config.params_filters
+                encoder = SanitizingJSONEncoder(separators=(',', ':'),
+                                                keyword_filters=filters)
+                last_req = self.backoff_requests[uri][-1].copy()
+                merge_dicts(last_req, request)
+                enc_request = encoder.encode(last_req['payload'])
+                if len(enc_request) <= MAX_PAYLOAD_LENGTH:
+                    self.backoff_requests[uri][-1] = last_req
+                else:
+                    self.backoff_requests[uri].append(request)
+            else:
+                self.backoff_requests[uri] = [request]
+            if (uri not in self.backoff_threads or
+                not self.backoff_threads[uri].isAlive()):
+                    new_timer = Timer(interval, self.retry_request, args=(uri,))
+                    new_timer.daemon = True
+                    new_timer.start()
+                    self.backoff_threads[uri] = new_timer
+        finally:
+            self.backoff_lock.release()
+
+    def retry_request(self, uri):
+        self.backoff_lock.acquire()
+        try:
+            for req in self.backoff_requests[uri]:
+                request = req.copy()
+                self.deliver(self.config, **request)
+        finally:
+            self.backoff_lock.release()
+
+    def get_default_headers(self):
+        return {
+            'Content-Type': 'application/json',
+            'Bugsnag-Sent-At': strftime('%y-%m-%dT%H:%M:%S', gmtime())
+        }
 
 
 class UrllibDelivery(Delivery):
 
-    def deliver(self, config, payload,
-                endpoint=None, headers={}, backoff=False):
+    def deliver(self, config, payload, options = {}):
+
+        filters = config.params_filters
+        encoder = SanitizingJSONEncoder(separators=(',', ':'),
+                                        keyword_filters=filters)
+        encoded_payload = encoder.encode(payload)
 
         def request():
-            uri = endpoint or config.endpoint
-            headers.update({'Content-Type': 'application/json'})
+            if 'endpoint' in options:
+                uri = options['endpoint']
+            else:
+                uri = config.endpoint
+
+            headers = options['headers'] if 'headers' in options else {}
+            headers.update(self.get_default_headers())
+
             if '://' not in uri:
                 uri = config.get_endpoint()
 
             req = Request(uri,
-                          payload.encode('utf-8', 'replace'),
+                          encoded_payload.encode('utf-8', 'replace'),
                           headers)
 
             if config.proxy_host:
@@ -87,12 +137,16 @@ class UrllibDelivery(Delivery):
             resp = opener.open(req)
             status = resp.getcode()
 
-            if status not in (200, 202):
+            if 'success' in options:
+                success = options['success']
+            else:
+                success = 200
+            if status != success:
                 bugsnag.logger.warning(
                     'Delivery to %s failed, status %d' % (uri, status))
-                if backoff:
-                    self.backoff(config, payload, uri,
-                                 headers, self.deliver, backoff)
+                if 'backoff' in options and options['backoff']:
+                    options['endpoint'] = uri
+                    self.backoff(config, payload, options)
                 
         if config.asynchronous:
             Thread(target=request).start()
@@ -102,35 +156,45 @@ class UrllibDelivery(Delivery):
 
 class RequestsDelivery(Delivery):
 
-    def deliver(self, config, payload,
-                endpoint=None, headers={}, backoff=False):
+    def deliver(self, config, payload, options={}):
+
+        filters = config.params_filters
+        encoder = SanitizingJSONEncoder(separators=(',', ':'),
+                                        keyword_filters=filters)
+        encoded_payload = encoder.encode(payload)
 
         def request():
-            uri = endpoint or config.endpoint
+            if 'endpoint' in options:
+                uri = options['endpoint']
+            else:
+                uri = config.endpoint
+            
             if '://' not in uri:
                 uri = config.get_endpoint()
 
-            headers.update({
-                'Content-Type': 'application/json',
-                'Bugsnag-Sent-At': strftime('%y-%m-%dT%H:%M:%S', gmtime())})
-            options = {'data': payload, 'headers': headers}
+            headers = options['headers'] if 'headers' in options else {}
+            headers.update(self.get_default_headers())
+            req_options = {'data': encoded_payload, 'headers': headers}
 
             if config.proxy_host:
-                options['proxies'] = {
+                req_options['proxies'] = {
                     'https': config.proxy_host,
                     'http': config.proxy_host
                 }
 
-            response = requests.post(uri, **options)
+            response = requests.post(uri, **req_options)
             status = response.status_code
+            if 'success' in options:
+                success = options['success']
+            else:
+                success = requests.codes.ok
 
-            if status != requests.codes.ok:
+            if status != success:
                 bugsnag.logger.warning(
-                    'Notification to %s failed, status %d' % (uri,
-                                                              status))
-                if backoff:
-                    self.backoff(config, payload, uri,
-                                 headers, self.deliver, backoff)
+                    'Delivery to %s failed, status %d' % (uri, status))
+                if 'backoff' in options and options['backoff']:
+                    options.endpoint = uri
+                    self.backoff(config, payload, options)
             
         if config.asynchronous:
             Thread(target=request).start()
