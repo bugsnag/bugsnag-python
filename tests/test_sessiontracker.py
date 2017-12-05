@@ -19,28 +19,14 @@ class TestConfiguration(IntegrationTest):
         config.track_sessions = False
         tracker = SessionTracker(config)
         tracker.create_session()
-        self.assertEqual(tracker.delivery_queue.qsize(), 0)
+        self.assertEqual(len(tracker.session_counts), 0)
 
     def test_session_tracker_adds_session_object_to_queue(self):
         tracker = SessionTracker(self.config)
         tracker.create_session()
-        self.assertEqual(tracker.delivery_queue.qsize(), 1)
-        session = tracker.delivery_queue.get(False)
-        self.assertTrue('id' in session)
-        self.assertTrue('user' in session)
-        self.assertTrue('startedAt' in session)
-        self.assertEqual(session['user'], {})
-
-    def test_session_tracker_stores_user_object(self):
-        tracker = SessionTracker(self.config)
-        tracker.create_session({"id": "userid",
-                                "attr": {"name": "James", "job": "Spy"}})
-        self.assertEqual(tracker.delivery_queue.qsize(), 1)
-        session = tracker.delivery_queue.get(False)
-        self.assertTrue('user' in session)
-        self.assertEqual(session['user'],
-                         {"id": "userid",
-                          "attr": {"name": "James", "job": "Spy"}})
+        self.assertEqual(len(tracker.session_counts), 1)
+        for key, value in tracker.session_counts.items():
+            self.assertEqual(value, 1)
 
     def test_session_tracker_stores_session_in_threadlocals(self):
         locs = ThreadLocals.get_instance()
@@ -48,7 +34,6 @@ class TestConfiguration(IntegrationTest):
         tracker.create_session()
         session = locs.get_item('bugsnag-session')
         self.assertTrue('id' in session)
-        self.assertFalse('user' in session)
         self.assertTrue('startedAt' in session)
         self.assertTrue('events' in session)
         self.assertTrue('handled' in session['events'])
@@ -56,55 +41,44 @@ class TestConfiguration(IntegrationTest):
         self.assertEqual(session['events']['handled'], 0)
         self.assertEqual(session['events']['unhandled'], 0)
 
-    def test_session_tracker_calls_user_callback(self):
-        tracker = SessionTracker(self.config)
-
-        def user_callback():
-            return {"id": "userid",
-                    "attr": {"name": "Jason", "job": "Spy"}}
-        tracker.set_user_callback(user_callback)
-        tracker.create_session()
-        self.assertEqual(tracker.delivery_queue.qsize(), 1)
-        session = tracker.delivery_queue.get(False)
-        self.assertTrue('user' in session)
-        self.assertEqual(session['user'],
-                         {"id": "userid",
-                          "attr": {"name": "Jason", "job": "Spy"}})
-
     def test_session_tracker_sessions_are_unique(self):
         tracker = SessionTracker(self.config)
+        locs = ThreadLocals.get_instance()
         tracker.create_session()
+        session_one = locs.get_item('bugsnag-session').copy()
         tracker.create_session()
-        self.assertEqual(tracker.delivery_queue.qsize(), 2)
-        session_one = tracker.delivery_queue.get(False)
-        session_two = tracker.delivery_queue.get(False)
+        session_two = locs.get_item('bugsnag-session').copy()
         self.assertNotEqual(session_one['id'], session_two['id'])
 
     def test_session_tracker_send_sessions_sends_sessions(self):
         client = Client(
             track_sessions=True,
             session_endpoint=self.server.url,
-            asynchronous=False
+            asynchronous=True
         )
         client.session_tracker.create_session()
-        self.assertEqual(client.session_tracker.delivery_queue.qsize(), 1)
+        self.assertEqual(len(client.session_tracker.session_counts), 1)
         client.session_tracker.send_sessions()
-        self.assertEqual(client.session_tracker.delivery_queue.qsize(), 0)
+        self.assertEqual(len(client.session_tracker.session_counts), 0)
+        while len(self.server.received) == 0:
+            time.sleep(0.5)
         json_body = self.server.received[0]['json_body']
         self.assertTrue('app' in json_body)
         self.assertTrue('notifier' in json_body)
         self.assertTrue('device' in json_body)
-        self.assertTrue('sessions' in json_body)
-        self.assertEqual(len(json_body['sessions']), 1)
+        self.assertTrue('sessionCounts' in json_body)
+        self.assertEqual(len(json_body['sessionCounts']), 1)
 
     def test_session_tracker_sets_details_from_config(self):
         client = Client(
             track_sessions=True,
             session_endpoint=self.server.url,
-            asynchronous=False
+            asynchronous=True
         )
         client.session_tracker.create_session()
         client.session_tracker.send_sessions()
+        while len(self.server.received) == 0:
+            time.sleep(0.5)
         json_body = self.server.received[0]['json_body']
         # Notifier properties
         notifier = json_body['notifier']
@@ -134,10 +108,12 @@ class TestConfiguration(IntegrationTest):
             track_sessions=True,
             session_endpoint=self.server.url,
             endpoint=self.server.url,
-            asynchronous=False
+            asynchronous=True
         )
         client.session_tracker.create_session()
         client.notify(Exception("Test"))
+        while len(self.server.received) == 0:
+            time.sleep(0.5)
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertTrue('session' in event)
