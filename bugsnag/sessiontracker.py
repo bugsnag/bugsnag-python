@@ -1,7 +1,7 @@
 from __future__ import print_function
 from uuid import uuid4
 from time import strftime, gmtime, time
-from threading import Lock, Thread
+from threading import Lock, Thread, Timer
 from json import JSONEncoder
 
 import bugsnag
@@ -18,6 +18,7 @@ except ImportError:
 class SessionTracker(object):
 
     TIME_THRESHOLD = 60
+    FALLBACK_TIME = 300
     MAXIMUM_SESSION_COUNT = 50
     SESSION_PAYLOAD_VERSION = "1.0"
 
@@ -29,6 +30,7 @@ class SessionTracker(object):
         self.config = configuration
         self.mutex = Lock()
         self.lastsent = time()
+        self.fallbacktimeout = None
 
     def create_session(self):
         if not self.config.track_sessions:
@@ -66,6 +68,11 @@ class SessionTracker(object):
         finally:
             self.mutex.release()
 
+    def __reset_fallback_timer(self):
+        if self.fallbacktimeout:
+            self.fallbacktimeout.cancel()
+        self.fallbacktimeout = Timer(self.FALLBACK_TIME, self.send_sessions)
+
     def __deliver_sessions(self):
         if not self.config.track_sessions:
             return
@@ -79,6 +86,7 @@ class SessionTracker(object):
                 self.__deliver(sessions)
                 sessions = []
         self.session_counts = {}
+        self.__reset_fallback_timer()
         self.__deliver(sessions)
 
     def __deliver(self, sessions):
