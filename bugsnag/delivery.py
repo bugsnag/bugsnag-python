@@ -89,6 +89,7 @@ class Delivery(object):
             for req in self.backoff_requests[uri]:
                 request = req.copy()
                 self.deliver(self.config, **request)
+            self.backoff_requests[uri] = []
         finally:
             self.backoff_lock.release()
 
