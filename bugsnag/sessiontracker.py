@@ -52,8 +52,7 @@ class SessionTracker(object):
     def send_sessions(self):
         self.mutex.acquire()
         try:
-            deliver_thread = Thread(target=self.__deliver_sessions)
-            deliver_thread.start()
+            self.__deliver_sessions()
         finally:
             self.mutex.release()
 
