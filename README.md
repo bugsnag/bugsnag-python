@@ -41,5 +41,5 @@ and release, see our [contributing guide](CONTRIBUTING.md).
 
 ## License
 
-The Bugsnag Python library is free software released under the MIT License. 
+The Bugsnag Python library is free software released under the MIT License.
 See [LICENSE.txt](LICENSE.txt) for details.
