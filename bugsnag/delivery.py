@@ -96,7 +96,7 @@ class Delivery(object):
     def get_default_headers(self):
         return {
             'Content-Type': 'application/json',
-            'Bugsnag-Sent-At': strftime('%y-%m-%dT%H:%M:%S', gmtime())
+            'Bugsnag-Sent-At': strftime('%Y-%m-%dT%H:%M:%S', gmtime())
         }
 
 

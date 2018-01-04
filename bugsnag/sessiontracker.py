@@ -35,7 +35,7 @@ class SessionTracker(object):
     def create_session(self):
         if not self.config.track_sessions:
             return
-        start_time = strftime('%y-%m-%dT%H:%M:00', gmtime())
+        start_time = strftime('%Y-%m-%dT%H:%M:00', gmtime())
         new_session = {
             'id': uuid4().hex,
             'startedAt': start_time,
