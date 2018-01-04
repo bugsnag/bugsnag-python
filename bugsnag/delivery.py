@@ -194,7 +194,7 @@ class RequestsDelivery(Delivery):
                 bugsnag.logger.warning(
                     'Delivery to %s failed, status %d' % (uri, status))
                 if 'backoff' in options and options['backoff']:
-                    options.endpoint = uri
+                    options['endpoint'] = uri
                     self.backoff(config, payload, options)
             
         if config.asynchronous:
