@@ -60,10 +60,11 @@ class FakeBugsnagServer(object):
 
                 length = int(handler.headers['Content-Length'])
                 raw_body = handler.rfile.read(length).decode('utf-8')
-                self.received.append({'headers': handler.headers,
-                                      'json_body': json.loads(raw_body),
-                                      'path': handler.path,
-                                      'method': handler.command})
+                if handler.path != '/ignore':
+                    self.received.append({'headers': handler.headers,
+                                        'json_body': json.loads(raw_body),
+                                        'path': handler.path,
+                                        'method': handler.command})
                 handler.send_response(200)
                 handler.end_headers()
                 return ()

@@ -57,8 +57,12 @@ class TestConfiguration(IntegrationTest):
             asynchronous=True
         )
         client.session_tracker.create_session()
+        while len(client.session_tracker.session_counts) == 0:
+            time.sleep(0.5)
         self.assertEqual(len(client.session_tracker.session_counts), 1)
         client.session_tracker.send_sessions()
+        while len(client.session_tracker.session_counts) == 1:
+            time.sleep(0.5)
         self.assertEqual(len(client.session_tracker.session_counts), 0)
         while len(self.server.received) == 0:
             time.sleep(0.5)
@@ -106,7 +110,7 @@ class TestConfiguration(IntegrationTest):
     def test_session_middleware_attaches_session_to_notification(self):
         client = Client(
             track_sessions=True,
-            session_endpoint=self.server.url,
+            session_endpoint=self.server.url + '/ignore',
             endpoint=self.server.url,
             asynchronous=True
         )
