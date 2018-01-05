@@ -3,6 +3,7 @@ from uuid import uuid4
 from time import strftime, gmtime, time
 from threading import Lock, Thread, Timer
 from json import JSONEncoder
+import atexit
 
 import bugsnag
 from bugsnag.utils import package_version,\
@@ -17,9 +18,7 @@ except ImportError:
 
 class SessionTracker(object):
 
-    TIME_THRESHOLD = 60
-    FALLBACK_TIME = 300
-    MAXIMUM_SESSION_COUNT = 50
+    MAXIMUM_SESSION_COUNT = 100
     SESSION_PAYLOAD_VERSION = "1.0"
 
     """
@@ -29,12 +28,16 @@ class SessionTracker(object):
         self.session_counts = {}
         self.config = configuration
         self.mutex = Lock()
-        self.lastsent = time()
-        self.fallbacktimeout = None
+        self.tracking_sessions = False
+        self.delivery_thread = None
 
     def create_session(self):
-        if not self.config.track_sessions:
-            return
+        if not self.tracking_sessions:
+            if self.config.track_sessions:
+                self.tracking_sessions = True
+                self.__start_delivery()
+            else:
+                return
         start_time = strftime('%Y-%m-%dT%H:%M:00', gmtime())
         new_session = {
             'id': uuid4().hex,
@@ -44,17 +47,44 @@ class SessionTracker(object):
                 'unhandled': 0
             }
         }
-        add_thread = Thread(target=self.__queue_session, args=(start_time,))
-        add_thread.start()
         tls = ThreadLocals.get_instance()
         tls.set_item("bugsnag-session", new_session)
+        self.__queue_session(start_time)
 
     def send_sessions(self):
+        if not self.tracking_sessions:
+            return
         self.mutex.acquire()
         try:
-            self.__deliver_sessions()
+            sessions = []
+            for min_time, count in self.session_counts.items():
+                sessions.append({
+                    'startedAt': min_time,
+                    'sessionsStarted': count
+                })
+            self.session_counts = {}
         finally:
             self.mutex.release()
+        self.__deliver(sessions)
+
+    def __start_delivery(self):
+        if self.delivery_thread == None:
+            def deliver():
+                self.send_sessions()
+                self.delivery_thread = Timer(30.0, deliver)
+                self.delivery_thread.daemon = True
+                self.delivery_thread.start()
+
+            self.delivery_thread = Timer(30.0, deliver)
+            self.delivery_thread.daemon = True
+            self.delivery_thread.start()
+
+            def cleanup():
+                if self.delivery_thread != None:
+                    self.delivery_thread.cancel()
+                self.send_sessions()
+
+            atexit.register(cleanup)
 
     def __queue_session(self, start_time):
         self.mutex.acquire()
@@ -62,31 +92,8 @@ class SessionTracker(object):
             if start_time not in self.session_counts:
                 self.session_counts[start_time] = 0
             self.session_counts[start_time] += 1
-            if time() - self.lastsent > self.TIME_THRESHOLD:
-                self.__deliver_sessions()
         finally:
             self.mutex.release()
-
-    def __reset_fallback_timer(self):
-        if self.fallbacktimeout:
-            self.fallbacktimeout.cancel()
-        self.fallbacktimeout = Timer(self.FALLBACK_TIME, self.send_sessions)
-
-    def __deliver_sessions(self):
-        if not self.config.track_sessions:
-            return
-        sessions = []
-        for min_time, count in self.session_counts.items():
-            sessions.append({
-                'startedAt': min_time,
-                'sessionsStarted': count
-            })
-            if len(sessions) > self.MAXIMUM_SESSION_COUNT:
-                self.__deliver(sessions)
-                sessions = []
-        self.session_counts = {}
-        self.__reset_fallback_timer()
-        self.__deliver(sessions)
 
     def __deliver(self, sessions):
         if not sessions:
@@ -99,10 +106,6 @@ class SessionTracker(object):
 
         if not self.config.should_notify:
             bugsnag.logger.debug("Not delivering due to release_stages")
-            return
-
-        if not self.config.asynchronous:
-            bugsnag.logger.debug("Delivering sessions requires async delivery")
             return
 
         notifier_version = package_version('bugsnag') or 'unknown'
@@ -131,7 +134,6 @@ class SessionTracker(object):
         options = {
             'endpoint': self.config.session_endpoint,
             'headers': headers,
-            'backoff': True,
             'success': 202
         }
 
@@ -139,7 +141,6 @@ class SessionTracker(object):
             self.config.delivery.deliver(self.config, payload, options)
         except Exception as e:
             bugsnag.logger.exception('Sending sessions failed %s', e)
-        self.lastsent = time()
 
 
 class SessionMiddleware(object):

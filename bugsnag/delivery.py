@@ -39,9 +39,6 @@ class Delivery(object):
     """
 
     def __init__(self):
-        self.backoff_lock = Lock()
-        self.backoff_requests = {}
-        self.backoff_threads = {}
         self.config = None
 
     def deliver(self, report_payload):
@@ -49,49 +46,6 @@ class Delivery(object):
         Sends a report to Bugsnag
         """
         pass
-
-    def backoff(self, config, payload, options={}):
-        self.config = config
-        self.backoff_lock.acquire()
-        try:
-            uri = options['endpoint']
-            if 'interval' not in options:
-                options['interval'] = 2
-            else:
-                options['interval'] = options['interval'] * 2
-            interval = 600 if options['interval'] > 600 else options['interval']
-            request = {'options': options, 'payload': payload}
-            if uri in self.backoff_requests:
-                filters = self.config.params_filters
-                encoder = SanitizingJSONEncoder(separators=(',', ':'),
-                                                keyword_filters=filters)
-                last_req = self.backoff_requests[uri][-1].copy()
-                merge_dicts(last_req, request)
-                enc_request = encoder.encode(last_req['payload'])
-                if len(enc_request) <= MAX_PAYLOAD_LENGTH:
-                    self.backoff_requests[uri][-1] = last_req
-                else:
-                    self.backoff_requests[uri].append(request)
-            else:
-                self.backoff_requests[uri] = [request]
-            if (uri not in self.backoff_threads or
-                not self.backoff_threads[uri].isAlive()):
-                    new_timer = Timer(interval, self.retry_request, args=(uri,))
-                    new_timer.daemon = True
-                    new_timer.start()
-                    self.backoff_threads[uri] = new_timer
-        finally:
-            self.backoff_lock.release()
-
-    def retry_request(self, uri):
-        self.backoff_lock.acquire()
-        try:
-            for req in self.backoff_requests[uri]:
-                request = req.copy()
-                self.deliver(self.config, **request)
-            self.backoff_requests[uri] = []
-        finally:
-            self.backoff_lock.release()
 
     def get_default_headers(self):
         return {
@@ -145,10 +99,7 @@ class UrllibDelivery(Delivery):
             if status != success:
                 bugsnag.logger.warning(
                     'Delivery to %s failed, status %d' % (uri, status))
-                if 'backoff' in options and options['backoff']:
-                    options['endpoint'] = uri
-                    self.backoff(config, payload, options)
-                
+
         if config.asynchronous:
             Thread(target=request).start()
         else:
@@ -169,7 +120,7 @@ class RequestsDelivery(Delivery):
                 uri = options['endpoint']
             else:
                 uri = config.endpoint
-            
+
             if '://' not in uri:
                 uri = config.get_endpoint()
 
@@ -193,10 +144,7 @@ class RequestsDelivery(Delivery):
             if status != success:
                 bugsnag.logger.warning(
                     'Delivery to %s failed, status %d' % (uri, status))
-                if 'backoff' in options and options['backoff']:
-                    options['endpoint'] = uri
-                    self.backoff(config, payload, options)
-            
+
         if config.asynchronous:
             Thread(target=request).start()
         else:
