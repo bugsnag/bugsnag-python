@@ -24,6 +24,8 @@ class TestConfiguration(IntegrationTest):
     def test_session_tracker_adds_session_object_to_queue(self):
         tracker = SessionTracker(self.config)
         tracker.create_session()
+        while len(tracker.session_counts) == 0:
+            time.sleep(0.5)
         self.assertEqual(len(tracker.session_counts), 1)
         for key, value in tracker.session_counts.items():
             self.assertEqual(value, 1)
