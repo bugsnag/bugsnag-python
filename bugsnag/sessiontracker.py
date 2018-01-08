@@ -33,7 +33,7 @@ class SessionTracker(object):
 
     def create_session(self):
         if not self.tracking_sessions:
-            if self.config.track_sessions:
+            if self.config.auto_capture_sessions:
                 self.tracking_sessions = True
                 self.__start_delivery()
             else:

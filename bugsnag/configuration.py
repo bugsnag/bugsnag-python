@@ -66,7 +66,7 @@ class Configuration(_BaseConfiguration):
         self.ignore_classes = ["KeyboardInterrupt", "django.http.Http404"]
         self.endpoint = "https://notify.bugsnag.com"
         self.session_endpoint = "https://sessions.bugsnag.com"
-        self.track_sessions = False
+        self.auto_capture_sessions = False
         self.traceback_exclude_modules = []
 
         self.middleware = MiddlewareStack()

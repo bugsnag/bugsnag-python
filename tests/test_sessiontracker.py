@@ -12,11 +12,11 @@ class TestConfiguration(IntegrationTest):
     def setUp(self):
         super(TestConfiguration, self).setUp()
         self.config = Configuration()
-        self.config.track_sessions = True
+        self.config.auto_capture_sessions = True
 
     def test_session_tracker_doesnt_create_session_object_if_disabled(self):
         config = Configuration()
-        config.track_sessions = False
+        config.auto_capture_sessions = False
         tracker = SessionTracker(config)
         tracker.create_session()
         self.assertEqual(len(tracker.session_counts), 0)
@@ -54,7 +54,7 @@ class TestConfiguration(IntegrationTest):
 
     def test_session_tracker_send_sessions_sends_sessions(self):
         client = Client(
-            track_sessions=True,
+            auto_capture_sessions=True,
             session_endpoint=self.server.url,
             asynchronous=True
         )
@@ -77,7 +77,7 @@ class TestConfiguration(IntegrationTest):
 
     def test_session_tracker_sets_details_from_config(self):
         client = Client(
-            track_sessions=True,
+            auto_capture_sessions=True,
             session_endpoint=self.server.url,
             asynchronous=True
         )
@@ -111,7 +111,7 @@ class TestConfiguration(IntegrationTest):
 
     def test_session_middleware_attaches_session_to_notification(self):
         client = Client(
-            track_sessions=True,
+            auto_capture_sessions=True,
             session_endpoint=self.server.url + '/ignore',
             endpoint=self.server.url,
             asynchronous=True
