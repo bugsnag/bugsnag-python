@@ -7,13 +7,13 @@ from bugsnag.client import Client
 from bugsnag.legacy import (configuration, configure, configure_request,
                             add_metadata_tab, clear_request_config, notify,
                             auto_notify, before_notify, start_session,
-                            deliver_sessions)
+                            send_sessions)
 
 __all__ = ('Client', 'Notification', 'Configuration', 'RequestConfiguration',
            'configuration', 'configure', 'configure_request',
            'add_metadata_tab', 'clear_request_config', 'notify',
            'auto_notify', 'before_notify', 'start_session',
-           'deliver_sessions')
+           'send_sessions')
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)

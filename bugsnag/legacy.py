@@ -76,7 +76,7 @@ def start_session():
     default_client.session_tracker.start_session()
 
 
-def deliver_sessions():
+def send_sessions():
     """
     Delivers all currently undelivered sessions to Bugsnag
     """
