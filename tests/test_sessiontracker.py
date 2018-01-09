@@ -23,9 +23,8 @@ class TestConfiguration(IntegrationTest):
 
     def test_session_tracker_adds_session_object_to_queue(self):
         tracker = SessionTracker(self.config)
+        tracker.tracking_sessions = True
         tracker.create_session()
-        while len(tracker.session_counts) == 0:
-            time.sleep(0.5)
         self.assertEqual(len(tracker.session_counts), 1)
         for key, value in tracker.session_counts.items():
             self.assertEqual(value, 1)
@@ -33,6 +32,7 @@ class TestConfiguration(IntegrationTest):
     def test_session_tracker_stores_session_in_threadlocals(self):
         locs = ThreadLocals.get_instance()
         tracker = SessionTracker(self.config)
+        tracker.tracking_sessions = True
         tracker.create_session()
         session = locs.get_item('bugsnag-session')
         self.assertTrue('id' in session)
@@ -45,6 +45,7 @@ class TestConfiguration(IntegrationTest):
 
     def test_session_tracker_sessions_are_unique(self):
         tracker = SessionTracker(self.config)
+        tracker.tracking_sessions = True
         locs = ThreadLocals.get_instance()
         tracker.create_session()
         session_one = locs.get_item('bugsnag-session').copy()
@@ -56,18 +57,12 @@ class TestConfiguration(IntegrationTest):
         client = Client(
             auto_capture_sessions=True,
             session_endpoint=self.server.url,
-            asynchronous=True
+            asynchronous=False
         )
         client.session_tracker.create_session()
-        while len(client.session_tracker.session_counts) == 0:
-            time.sleep(0.5)
         self.assertEqual(len(client.session_tracker.session_counts), 1)
         client.session_tracker.send_sessions()
-        while len(client.session_tracker.session_counts) == 1:
-            time.sleep(0.5)
         self.assertEqual(len(client.session_tracker.session_counts), 0)
-        while len(self.server.received) == 0:
-            time.sleep(0.5)
         json_body = self.server.received[0]['json_body']
         self.assertTrue('app' in json_body)
         self.assertTrue('notifier' in json_body)
@@ -79,12 +74,10 @@ class TestConfiguration(IntegrationTest):
         client = Client(
             auto_capture_sessions=True,
             session_endpoint=self.server.url,
-            asynchronous=True
+            asynchronous=False
         )
         client.session_tracker.create_session()
         client.session_tracker.send_sessions()
-        while len(self.server.received) == 0:
-            time.sleep(0.5)
         json_body = self.server.received[0]['json_body']
         # Notifier properties
         notifier = json_body['notifier']
@@ -114,7 +107,7 @@ class TestConfiguration(IntegrationTest):
             auto_capture_sessions=True,
             session_endpoint=self.server.url + '/ignore',
             endpoint=self.server.url,
-            asynchronous=True
+            asynchronous=False
         )
         client.session_tracker.create_session()
         client.notify(Exception("Test"))
