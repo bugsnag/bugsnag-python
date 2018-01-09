@@ -41,7 +41,5 @@ def __log_exception(sender, exception, **extra):
 
 
 def __track_session(sender, **extra):
-    user = None
-    if request:
-        user = {'id': request.remote_addr}
-    bugsnag.start_session(user)
+    if bugsnag.configuration.auto_capture_sessions:
+        bugsnag.start_session()

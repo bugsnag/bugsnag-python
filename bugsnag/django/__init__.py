@@ -65,4 +65,5 @@ def configure():
 
 
 def __track_session(sender, **extra):
-    bugsnag.start_session()
+    if bugsnag.configuration.auto_capture_sessions:
+        bugsnag.start_session()
