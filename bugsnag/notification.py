@@ -7,12 +7,10 @@ import sys
 import traceback
 import inspect
 
-from time import strftime, gmtime
-
 import bugsnag
 
 from bugsnag.utils import fully_qualified_class_name as class_name
-from bugsnag.utils import SanitizingJSONEncoder, FilterDict, package_version
+from bugsnag.utils import FilterDict, package_version
 
 
 class Notification(object):
@@ -247,7 +245,7 @@ class Notification(object):
                 "session": self.session
             }]
         }
-    
+
     def _headers(self):
         return {
             "Bugsnag-Api-Key": self.api_key,

@@ -154,11 +154,11 @@ def merge_dicts(lhs, rhs):
 class ThreadLocals(object):
     LOCALS = None
 
+    @staticmethod
     def get_instance():
         if not ThreadLocals.LOCALS:
             ThreadLocals.LOCALS = threadlocal()
         return ThreadLocals()
-    get_instance = staticmethod(get_instance)
 
     def get_item(self, key, default=None):
         return getattr(ThreadLocals.LOCALS, key, default)

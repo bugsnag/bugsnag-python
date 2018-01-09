@@ -1,7 +1,6 @@
-from threading import Thread, Timer
+from threading import Thread
 import sys
 
-from threading import Lock
 from time import strftime, gmtime
 
 from six.moves.urllib.request import (
@@ -11,7 +10,7 @@ from six.moves.urllib.request import (
 )
 
 import bugsnag
-from bugsnag.utils import SanitizingJSONEncoder, merge_dicts, MAX_PAYLOAD_LENGTH
+from bugsnag.utils import SanitizingJSONEncoder
 
 try:
     if sys.version_info < (2, 7):
@@ -56,7 +55,7 @@ class Delivery(object):
 
 class UrllibDelivery(Delivery):
 
-    def deliver(self, config, payload, options = {}):
+    def deliver(self, config, payload, options={}):
 
         filters = config.params_filters
         encoder = SanitizingJSONEncoder(separators=(',', ':'),

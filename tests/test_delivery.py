@@ -21,14 +21,14 @@ class DeliveryTest(IntegrationTest):
 
     def test_urllib_delivery_full_url(self):
         self.config.configure(endpoint=self.server.url, use_ssl=None)
-        UrllibDelivery().deliver(self.config, {"legit":4})
+        UrllibDelivery().deliver(self.config, {"legit": 4})
 
         self.assertSentReportCount(1)
         request = self.server.received[0]
         self.assertEqual(request['json_body'], {"legit": 4})
 
     def test_urllib_delivery(self):
-        UrllibDelivery().deliver(self.config, {"legit":4})
+        UrllibDelivery().deliver(self.config, {"legit": 4})
 
         self.assertSentReportCount(1)
         request = self.server.received[0]
@@ -45,7 +45,7 @@ class DeliveryTest(IntegrationTest):
         except ImportError:
             raise SkipTest("Requests is not installed")
 
-        RequestsDelivery().deliver(self.config, {"legit":4})
+        RequestsDelivery().deliver(self.config, {"legit": 4})
 
         self.assertSentReportCount(1)
         request = self.server.received[0]
@@ -64,7 +64,7 @@ class DeliveryTest(IntegrationTest):
 
         self.config.configure(endpoint=self.server.url)
         del self.config.use_ssl
-        RequestsDelivery().deliver(self.config, {"legit":4})
+        RequestsDelivery().deliver(self.config, {"legit": 4})
 
         self.assertSentReportCount(1)
         request = self.server.received[0]
@@ -90,7 +90,7 @@ class DeliveryTest(IntegrationTest):
 
         payload = notification._payload()
         UrllibDelivery().deliver(self.config, payload)
-        
+
         self.assertSentReportCount(1)
         request = self.server.received[0]['json_body']
 

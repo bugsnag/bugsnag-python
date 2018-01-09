@@ -1,19 +1,13 @@
 from __future__ import print_function
 from uuid import uuid4
-from time import strftime, gmtime, time
-from threading import Lock, Thread, Timer
-from json import JSONEncoder
+from time import strftime, gmtime
+from threading import Lock, Timer
 import atexit
 
 import bugsnag
 from bugsnag.utils import package_version,\
     ThreadLocals
 from bugsnag.notification import Notification
-
-try:
-    from Queue import Queue
-except ImportError:
-    from queue import Queue
 
 
 class SessionTracker(object):
@@ -68,7 +62,7 @@ class SessionTracker(object):
         self.__deliver(sessions)
 
     def __start_delivery(self):
-        if self.delivery_thread == None:
+        if self.delivery_thread is None:
             def deliver():
                 self.send_sessions()
                 self.delivery_thread = Timer(30.0, deliver)
@@ -80,7 +74,7 @@ class SessionTracker(object):
             self.delivery_thread.start()
 
             def cleanup():
-                if self.delivery_thread != None:
+                if self.delivery_thread is not None:
                     self.delivery_thread.cancel()
                 self.send_sessions()
 
