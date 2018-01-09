@@ -44,4 +44,4 @@ def __track_session(sender, **extra):
     user = None
     if request:
         user = {'id': request.remote_addr}
-    bugsnag.create_session(user)
+    bugsnag.start_session(user)

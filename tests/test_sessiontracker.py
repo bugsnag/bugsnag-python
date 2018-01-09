@@ -14,17 +14,10 @@ class TestConfiguration(IntegrationTest):
         self.config = Configuration()
         self.config.auto_capture_sessions = True
 
-    def test_session_tracker_doesnt_create_session_object_if_disabled(self):
-        config = Configuration()
-        config.auto_capture_sessions = False
-        tracker = SessionTracker(config)
-        tracker.create_session()
-        self.assertEqual(len(tracker.session_counts), 0)
-
     def test_session_tracker_adds_session_object_to_queue(self):
         tracker = SessionTracker(self.config)
-        tracker.tracking_sessions = True
-        tracker.create_session()
+        tracker.auto_sessions = True
+        tracker.start_session()
         self.assertEqual(len(tracker.session_counts), 1)
         for key, value in tracker.session_counts.items():
             self.assertEqual(value, 1)
@@ -32,8 +25,8 @@ class TestConfiguration(IntegrationTest):
     def test_session_tracker_stores_session_in_threadlocals(self):
         locs = ThreadLocals.get_instance()
         tracker = SessionTracker(self.config)
-        tracker.tracking_sessions = True
-        tracker.create_session()
+        tracker.auto_sessions = True
+        tracker.start_session()
         session = locs.get_item('bugsnag-session')
         self.assertTrue('id' in session)
         self.assertTrue('startedAt' in session)
@@ -45,11 +38,11 @@ class TestConfiguration(IntegrationTest):
 
     def test_session_tracker_sessions_are_unique(self):
         tracker = SessionTracker(self.config)
-        tracker.tracking_sessions = True
+        tracker.auto_sessions = True
         locs = ThreadLocals.get_instance()
-        tracker.create_session()
+        tracker.start_session()
         session_one = locs.get_item('bugsnag-session').copy()
-        tracker.create_session()
+        tracker.start_session()
         session_two = locs.get_item('bugsnag-session').copy()
         self.assertNotEqual(session_one['id'], session_two['id'])
 
@@ -59,7 +52,7 @@ class TestConfiguration(IntegrationTest):
             session_endpoint=self.server.url,
             asynchronous=False
         )
-        client.session_tracker.create_session()
+        client.session_tracker.start_session()
         self.assertEqual(len(client.session_tracker.session_counts), 1)
         client.session_tracker.send_sessions()
         self.assertEqual(len(client.session_tracker.session_counts), 0)
@@ -76,7 +69,7 @@ class TestConfiguration(IntegrationTest):
             session_endpoint=self.server.url,
             asynchronous=False
         )
-        client.session_tracker.create_session()
+        client.session_tracker.start_session()
         client.session_tracker.send_sessions()
         json_body = self.server.received[0]['json_body']
         # Notifier properties
@@ -109,7 +102,7 @@ class TestConfiguration(IntegrationTest):
             endpoint=self.server.url,
             asynchronous=False
         )
-        client.session_tracker.create_session()
+        client.session_tracker.start_session()
         client.notify(Exception("Test"))
         while len(self.server.received) == 0:
             time.sleep(0.5)

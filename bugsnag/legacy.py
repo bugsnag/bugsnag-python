@@ -69,11 +69,11 @@ def notify(exception, **options):
         default_client.notify(exception, **options)
 
 
-def create_session(user=None):
+def start_session():
     """
     Creates a new session
     """
-    default_client.session_tracker.create_session()
+    default_client.session_tracker.start_session()
 
 
 def deliver_sessions():

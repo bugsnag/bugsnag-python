@@ -38,7 +38,7 @@ class BugsnagRequestHandler(RequestHandler):
         RequestHandler._handle_request_exception(self, exc)
 
     def prepare(self):
-        bugsnag.create_session()
+        bugsnag.start_session()
 
     def _get_context(self):
         return "%s %s" % (self.request.method, self.request.uri.split("?")[0])

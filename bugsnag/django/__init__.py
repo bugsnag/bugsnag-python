@@ -65,4 +65,4 @@ def configure():
 
 
 def __track_session(sender, **extra):
-    bugsnag.create_session()
+    bugsnag.start_session()

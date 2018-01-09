@@ -39,7 +39,7 @@ class WrappedWSGIApp(object):
         bugsnag.configure_request(wsgi_environ=self.environ)
 
         try:
-            bugsnag.create_session()
+            bugsnag.start_session()
             self.app = application(environ, start_response)
         except Exception as e:
             bugsnag.auto_notify(
@@ -88,5 +88,4 @@ class BugsnagMiddleware(object):
         self.application = application
 
     def __call__(self, environ, start_response):
-        bugsnag.create_session()
         return WrappedWSGIApp(self.application, environ, start_response)

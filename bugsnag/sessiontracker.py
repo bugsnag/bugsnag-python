@@ -22,16 +22,13 @@ class SessionTracker(object):
         self.session_counts = {}
         self.config = configuration
         self.mutex = Lock()
-        self.tracking_sessions = False
+        self.auto_sessions = False
         self.delivery_thread = None
 
-    def create_session(self):
-        if not self.tracking_sessions:
-            if self.config.auto_capture_sessions:
-                self.tracking_sessions = True
-                self.__start_delivery()
-            else:
-                return
+    def start_session(self):
+        if not self.auto_sessions and self.config.auto_capture_sessions:
+            self.auto_sessions = True
+            self.__start_delivery()
         start_time = strftime('%Y-%m-%dT%H:%M:00', gmtime())
         new_session = {
             'id': uuid4().hex,
@@ -46,8 +43,6 @@ class SessionTracker(object):
         self.__queue_session(start_time)
 
     def send_sessions(self):
-        if not self.tracking_sessions:
-            return
         self.mutex.acquire()
         try:
             sessions = []
