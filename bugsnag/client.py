@@ -140,14 +140,9 @@ class Client(object):
             else:
                 notification.severity_reason = initial_reason
             payload = notification._payload()
-            headers = notification._headers()
-            options = {
-                'headers': headers
-            }
             try:
                 self.configuration.delivery.deliver(self.configuration,
-                                                    payload,
-                                                    options)
+                                                    payload)
             except Exception as e:
                 bugsnag.logger.exception('Notifying Bugsnag failed %s', e)
             # Trigger session delivery

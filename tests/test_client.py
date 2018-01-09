@@ -50,7 +50,7 @@ class ClientTest(IntegrationTest):
 
         class FooDelivery:
 
-            def deliver(foo, config, payload, endpoint=None, headers={}):
+            def deliver(foo, config, payload):
                 self.called = True
 
         c.configure(delivery=FooDelivery(), api_key='abc')
@@ -72,7 +72,7 @@ class ClientTest(IntegrationTest):
 
         class FooDelivery:
 
-            def deliver(foo, config, payload, endpoint=None, headers={}):
+            def deliver(foo, config, payload):
                 self.called = True
                 raise ScaryException('something gone wrong')
 

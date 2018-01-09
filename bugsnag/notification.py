@@ -10,7 +10,7 @@ import inspect
 import bugsnag
 
 from bugsnag.utils import fully_qualified_class_name as class_name
-from bugsnag.utils import FilterDict, package_version
+from bugsnag.utils import FilterDict, package_version, SanitizingJSONEncoder
 
 
 class Notification(object):
@@ -215,8 +215,12 @@ class Notification(object):
     def _payload(self):
         # Fetch the notifier version from the package
         notifier_version = package_version("bugsnag") or "unknown"
+        filters = self.config.params_filters
+        encoder = SanitizingJSONEncoder(separators=(',', ':'),
+                                        keyword_filters=filters)
         # Construct the payload dictionary
-        return {
+        return encoder.encode({
+            "apiKey": self.api_key,
             "notifier": {
                 "name": self.NOTIFIER_NAME,
                 "url": self.NOTIFIER_URL,
@@ -244,10 +248,4 @@ class Notification(object):
                 "libRoot": self.config.get("lib_root"),
                 "session": self.session
             }]
-        }
-
-    def _headers(self):
-        return {
-            "Bugsnag-Api-Key": self.api_key,
-            "Bugsnag-Payload-Version": self.PAYLOAD_VERSION
-        }
+        })

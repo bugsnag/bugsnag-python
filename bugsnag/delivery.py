@@ -1,5 +1,6 @@
 from threading import Thread
 import sys
+import json
 
 from time import strftime, gmtime
 
@@ -10,7 +11,7 @@ from six.moves.urllib.request import (
 )
 
 import bugsnag
-from bugsnag.utils import SanitizingJSONEncoder
+from bugsnag.notification import Notification
 
 try:
     if sys.version_info < (2, 7):
@@ -32,51 +33,52 @@ def create_default_delivery():
     return UrllibDelivery()
 
 
+def default_headers(api_key):
+    return {
+        'Bugsnag-Api-Key': api_key,
+        'Bugsnag-Payload-Version': Notification.PAYLOAD_VERSION,
+        'Bugsnag-Sent-At': strftime('%Y-%m-%dT%H:%M:%S', gmtime()),
+        'Content-Type': 'application/json',
+    }
+
+
 class Delivery(object):
     """
-    Mechanism for sending a report to Bugsnag
+    Mechanism for sending a request to Bugsnag
     """
 
-    def __init__(self):
-        self.config = None
-
-    def deliver(self, report_payload):
+    def deliver(self, config, payload):
         """
-        Sends a report to Bugsnag
+        Sends error reports to Bugsnag
         """
         pass
 
-    def get_default_headers(self):
-        return {
-            'Content-Type': 'application/json',
-            'Bugsnag-Sent-At': strftime('%Y-%m-%dT%H:%M:%S', gmtime())
-        }
+    def deliver_sessions(self, config, payload):
+        """
+        Sends sessions to Bugsnag
+        """
+        pass
 
 
 class UrllibDelivery(Delivery):
 
+    def deliver_sessions(self, config, payload):
+        options = {
+            'endpoint': config.session_endpoint,
+            'success': 202,
+        }
+        self.deliver(config, payload, options)
+
     def deliver(self, config, payload, options={}):
 
-        filters = config.params_filters
-        encoder = SanitizingJSONEncoder(separators=(',', ':'),
-                                        keyword_filters=filters)
-        encoded_payload = encoder.encode(payload)
-
         def request():
-            if 'endpoint' in options:
-                uri = options['endpoint']
-            else:
-                uri = config.endpoint
-
-            headers = options['headers'] if 'headers' in options else {}
-            headers.update(self.get_default_headers())
-
+            uri = options.pop('endpoint', config.endpoint)
             if '://' not in uri:
                 uri = config.get_endpoint()
-
+            api_key = json.loads(payload).pop('apiKey', config.get('api_key'))
             req = Request(uri,
-                          encoded_payload.encode('utf-8', 'replace'),
-                          headers)
+                          payload.encode('utf-8', 'replace'),
+                          default_headers(api_key))
 
             if config.proxy_host:
                 proxies = ProxyHandler({
@@ -107,25 +109,23 @@ class UrllibDelivery(Delivery):
 
 class RequestsDelivery(Delivery):
 
+    def deliver_sessions(self, config, payload):
+        options = {
+            'endpoint': config.session_endpoint,
+            'success': 202,
+        }
+        self.deliver(config, payload, options)
+
     def deliver(self, config, payload, options={}):
 
-        filters = config.params_filters
-        encoder = SanitizingJSONEncoder(separators=(',', ':'),
-                                        keyword_filters=filters)
-        encoded_payload = encoder.encode(payload)
-
         def request():
-            if 'endpoint' in options:
-                uri = options['endpoint']
-            else:
-                uri = config.endpoint
-
+            uri = options.pop('endpoint', config.endpoint)
             if '://' not in uri:
                 uri = config.get_endpoint()
 
-            headers = options['headers'] if 'headers' in options else {}
-            headers.update(self.get_default_headers())
-            req_options = {'data': encoded_payload, 'headers': headers}
+            api_key = json.loads(payload).pop('apiKey', config.get('api_key'))
+            req_options = {'data': payload,
+                           'headers': default_headers(api_key)}
 
             if config.proxy_host:
                 req_options['proxies'] = {

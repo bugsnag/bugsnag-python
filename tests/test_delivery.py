@@ -2,7 +2,7 @@ import sys
 
 from nose.plugins.skip import SkipTest
 
-from bugsnag import Configuration, Notification
+from bugsnag import Configuration
 from bugsnag.delivery import (UrllibDelivery, RequestsDelivery,
                               create_default_delivery)
 
@@ -21,14 +21,14 @@ class DeliveryTest(IntegrationTest):
 
     def test_urllib_delivery_full_url(self):
         self.config.configure(endpoint=self.server.url, use_ssl=None)
-        UrllibDelivery().deliver(self.config, {"legit": 4})
+        UrllibDelivery().deliver(self.config, '{"legit": 4}')
 
         self.assertSentReportCount(1)
         request = self.server.received[0]
         self.assertEqual(request['json_body'], {"legit": 4})
 
     def test_urllib_delivery(self):
-        UrllibDelivery().deliver(self.config, {"legit": 4})
+        UrllibDelivery().deliver(self.config, '{"legit": 4}')
 
         self.assertSentReportCount(1)
         request = self.server.received[0]
@@ -45,7 +45,7 @@ class DeliveryTest(IntegrationTest):
         except ImportError:
             raise SkipTest("Requests is not installed")
 
-        RequestsDelivery().deliver(self.config, {"legit": 4})
+        RequestsDelivery().deliver(self.config, '{"legit": 4}')
 
         self.assertSentReportCount(1)
         request = self.server.received[0]
@@ -64,7 +64,7 @@ class DeliveryTest(IntegrationTest):
 
         self.config.configure(endpoint=self.server.url)
         del self.config.use_ssl
-        RequestsDelivery().deliver(self.config, {"legit": 4})
+        RequestsDelivery().deliver(self.config, '{"legit": 4}')
 
         self.assertSentReportCount(1)
         request = self.server.received[0]
@@ -77,23 +77,3 @@ class DeliveryTest(IntegrationTest):
             self.assertTrue(isinstance(delivery, RequestsDelivery))
         else:
             self.assertTrue(isinstance(delivery, UrllibDelivery))
-
-    def test_sanitize(self):
-        """
-            It should sanitize request data
-        """
-
-        notification = Notification(Exception("oops"), self.config, {},
-                                    request={"params": {"password": "secret"}})
-
-        notification.add_tab("request", {"arguments": {"password": "secret"}})
-
-        payload = notification._payload()
-        UrllibDelivery().deliver(self.config, payload)
-
-        self.assertSentReportCount(1)
-        request = self.server.received[0]['json_body']
-
-        data = request['events'][0]['metaData']['request']
-        self.assertEqual(data['arguments']['password'], '[FILTERED]')
-        self.assertEqual(data['params']['password'], '[FILTERED]')

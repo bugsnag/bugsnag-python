@@ -5,8 +5,7 @@ from threading import Lock, Timer
 import atexit
 
 import bugsnag
-from bugsnag.utils import package_version,\
-    ThreadLocals
+from bugsnag.utils import package_version, ThreadLocals, SanitizingJSONEncoder
 from bugsnag.notification import Notification
 
 
@@ -115,19 +114,12 @@ class SessionTracker(object):
             'sessionCounts': sessions
         }
 
-        headers = {
-            'Bugsnag-Api-Key': self.config.get('api_key'),
-            'Bugsnag-Payload-Version': self.SESSION_PAYLOAD_VERSION
-        }
-
-        options = {
-            'endpoint': self.config.session_endpoint,
-            'headers': headers,
-            'success': 202
-        }
-
         try:
-            self.config.delivery.deliver(self.config, payload, options)
+            filters = self.config.params_filters
+            encoder = SanitizingJSONEncoder(separators=(',', ':'),
+                                            keyword_filters=filters)
+            encoded_payload = encoder.encode(payload)
+            self.config.delivery.deliver_sessions(self.config, encoded_payload)
         except Exception as e:
             bugsnag.logger.exception('Sending sessions failed %s', e)
 
