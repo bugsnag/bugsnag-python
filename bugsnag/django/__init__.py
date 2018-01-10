@@ -2,6 +2,7 @@ from __future__ import division, print_function, absolute_import
 
 import six
 from django.conf import settings
+from django.core.signals import request_started
 
 try:
     from django.core.urlresolvers import resolve
@@ -54,8 +55,15 @@ def configure():
     if getattr(settings, 'DEBUG'):
         bugsnag.configure(release_stage='development')
 
+    request_started.connect(__track_session)
+
     # Import Bugsnag settings from settings.py
     django_bugsnag_settings = getattr(settings, 'BUGSNAG', {})
     bugsnag.configure(**django_bugsnag_settings)
 
     bugsnag.before_notify(add_django_request_to_notification)
+
+
+def __track_session(sender, **extra):
+    if bugsnag.configuration.auto_capture_sessions:
+        bugsnag.start_session()

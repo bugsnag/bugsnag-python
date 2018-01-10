@@ -334,13 +334,13 @@ class ClientTest(IntegrationTest):
         client1.notify(ScaryException('foo'))
         self.assertSentReportCount(1)
 
-        json_body = self.server.received[0]['json_body']
+        headers = self.server.received[0]['headers']
 
         client2.notify(ScaryException('bar'))
         self.assertSentReportCount(2)
 
-        json_body = self.server.received[1]['json_body']
-        self.assertEqual(json_body['apiKey'], '456')
+        headers = self.server.received[1]['headers']
+        self.assertEqual(headers['Bugsnag-Api-Key'], '456')
 
     def test_multiple_clients_one_excepthook(self):
         def excepthook(*exc_info):
@@ -354,3 +354,9 @@ class ClientTest(IntegrationTest):
 
         self.assertEqual(client1, sys.excepthook.bugsnag_client)
         self.assertEqual(client1.sys_excepthook, excepthook)
+
+    # Session Tracking
+
+    def test_session_tracker_object_exists(self):
+        client = Client()
+        self.assertTrue(hasattr(client, 'session_tracker'))

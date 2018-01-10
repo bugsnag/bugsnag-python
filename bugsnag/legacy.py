@@ -69,6 +69,20 @@ def notify(exception, **options):
         default_client.notify(exception, **options)
 
 
+def start_session():
+    """
+    Creates a new session
+    """
+    default_client.session_tracker.start_session()
+
+
+def send_sessions():
+    """
+    Delivers all currently undelivered sessions to Bugsnag
+    """
+    default_client.session_tracker.send_sessions()
+
+
 def auto_notify(exception, **options):
     """
     Notify bugsnag of an exception if auto_notify is enabled.

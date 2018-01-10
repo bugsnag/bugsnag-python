@@ -48,8 +48,8 @@ class TestBugsnag(IntegrationTest):
 
     def test_notify_configured_api_key(self):
         bugsnag.notify(ScaryException('unexpected failover'))
-        json_body = self.server.received[0]['json_body']
-        self.assertEqual('tomatoes', json_body['apiKey'])
+        headers = self.server.received[0]['headers']
+        self.assertEqual('tomatoes', headers['Bugsnag-Api-Key'])
 
     def test_notify_configured_release_stage(self):
         bugsnag.notify(ScaryException('unexpected failover'))
@@ -192,8 +192,8 @@ class TestBugsnag(IntegrationTest):
 
         bugsnag.before_notify(callback)
         bugsnag.notify(ScaryException('unexpected failover'))
-        json_body = self.server.received[0]['json_body']
-        self.assertEqual('sandwich', json_body['apiKey'])
+        headers = self.server.received[0]['headers']
+        self.assertEqual('sandwich', headers['Bugsnag-Api-Key'])
 
     def test_notify_before_notify_modifying_metadata(self):
 
@@ -248,14 +248,13 @@ class TestBugsnag(IntegrationTest):
     def test_notify_override_api_key(self):
         bugsnag.notify(ScaryException('unexpected failover'),
                        api_key='gravy!')
-        json_body = self.server.received[0]['json_body']
-        self.assertEqual('gravy!', json_body['apiKey'])
+        headers = self.server.received[0]['headers']
+        self.assertEqual('gravy!', headers['Bugsnag-Api-Key'])
 
     def test_notify_payload_version(self):
         bugsnag.notify(ScaryException('unexpected failover'))
-        json_body = self.server.received[0]['json_body']
-        event = json_body['events'][0]
-        self.assertEqual('2', event['payloadVersion'])
+        headers = self.server.received[0]['headers']
+        self.assertEqual('4.0', headers['Bugsnag-Payload-Version'])
 
     def test_notify_error_class(self):
         bugsnag.notify(ScaryException('unexpected failover'))

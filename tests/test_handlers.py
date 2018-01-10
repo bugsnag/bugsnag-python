@@ -202,9 +202,10 @@ class HandlersTest(IntegrationTest):
 
         self.assertSentReportCount(1)
         json_body = self.server.received[0]['json_body']
+        headers = self.server.received[0]['headers']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
-        self.assertEqual('new news', json_body['apiKey'])
+        self.assertEqual('new news', headers['Bugsnag-Api-Key'])
         self.assertEqual(exception['errorClass'], 'tests.utils.ScaryException')
 
     def test_extra_fields(self):

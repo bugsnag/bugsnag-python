@@ -92,3 +92,8 @@ class TestConfiguration(unittest.TestCase):
         os.environ["DYNO"] = "YES"
         c = Configuration()
         self.assertEqual(c.hostname, None)
+
+    def test_session_tracking_defaults(self):
+        c = Configuration()
+        self.assertEqual(c.auto_capture_sessions, False)
+        self.assertEqual(c.session_endpoint, "https://sessions.bugsnag.com")

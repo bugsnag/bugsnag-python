@@ -39,6 +39,8 @@ class WrappedWSGIApp(object):
         bugsnag.configure_request(wsgi_environ=self.environ)
 
         try:
+            if bugsnag.configuration.auto_capture_sessions:
+                bugsnag.start_session()
             self.app = application(environ, start_response)
         except Exception as e:
             bugsnag.auto_notify(

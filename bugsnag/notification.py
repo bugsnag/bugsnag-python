@@ -10,7 +10,7 @@ import inspect
 import bugsnag
 
 from bugsnag.utils import fully_qualified_class_name as class_name
-from bugsnag.utils import SanitizingJSONEncoder, FilterDict, package_version
+from bugsnag.utils import FilterDict, package_version, SanitizingJSONEncoder
 
 
 class Notification(object):
@@ -19,7 +19,7 @@ class Notification(object):
     """
     NOTIFIER_NAME = "Python Bugsnag Notifier"
     NOTIFIER_URL = "https://github.com/bugsnag/bugsnag-python"
-    PAYLOAD_VERSION = "2"
+    PAYLOAD_VERSION = "4.0"
     SUPPORTED_SEVERITIES = ["info", "warning", "error"]
 
     def __init__(self, exception, config, request_config, **options):
@@ -73,6 +73,8 @@ class Notification(object):
             self.options.pop("source_func", None))
         self.grouping_hash = options.pop("grouping_hash", None)
         self.api_key = options.pop("api_key", get_config("api_key"))
+
+        self.session = None
 
         self.meta_data = {}
         for name, tab in options.pop("meta_data", {}).items():
@@ -213,10 +215,10 @@ class Notification(object):
     def _payload(self):
         # Fetch the notifier version from the package
         notifier_version = package_version("bugsnag") or "unknown"
-        # Construct the payload dictionary
         filters = self.config.params_filters
         encoder = SanitizingJSONEncoder(separators=(',', ':'),
                                         keyword_filters=filters)
+        # Construct the payload dictionary
         return encoder.encode({
             "apiKey": self.api_key,
             "notifier": {
@@ -225,7 +227,6 @@ class Notification(object):
                 "version": notifier_version,
             },
             "events": [{
-                "payloadVersion": self.PAYLOAD_VERSION,
                 "severity": self.severity,
                 "severityReason": self.severity_reason,
                 "unhandled": self.unhandled,
@@ -244,6 +245,7 @@ class Notification(object):
                     "hostname": self.hostname
                 },
                 "projectRoot": self.config.get("project_root"),
-                "libRoot": self.config.get("lib_root")
+                "libRoot": self.config.get("lib_root"),
+                "session": self.session
             }]
         })

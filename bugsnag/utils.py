@@ -3,9 +3,9 @@ from __future__ import division, print_function, absolute_import
 import inspect
 import six
 from json import JSONEncoder
+from threading import local as threadlocal
 
 import bugsnag
-
 
 MAX_PAYLOAD_LENGTH = 128 * 1024
 MAX_STRING_LENGTH = 1024
@@ -137,3 +137,37 @@ def package_version(package_name):
             return pkg_resources.get_distribution(package_name).version
         except pkg_resources.DistributionNotFound:
             return None
+
+
+def merge_dicts(lhs, rhs):
+    for key, value in rhs.items():
+        if isinstance(value, dict):
+            node = lhs.setdefault(key, {})
+            merge_dicts(node, value)
+        elif isinstance(value, list):
+            array = lhs.setdefault(key, [])
+            array += value
+        else:
+            lhs[key] = value
+
+
+class ThreadLocals(object):
+    LOCALS = None
+
+    @staticmethod
+    def get_instance():
+        if not ThreadLocals.LOCALS:
+            ThreadLocals.LOCALS = threadlocal()
+        return ThreadLocals()
+
+    def get_item(self, key, default=None):
+        return getattr(ThreadLocals.LOCALS, key, default)
+
+    def set_item(self, key, value):
+        return setattr(ThreadLocals.LOCALS, key, value)
+
+    def has_item(self, key):
+        return hasattr(ThreadLocals.LOCALS, key)
+
+    def del_item(self, key):
+        return delattr(ThreadLocals.LOCALS, key)
