@@ -1,6 +1,15 @@
 Changelog
 =========
 
+## 3.4.0 (2018-01-09)
+
+### Enhancements
+
+* Add support for tracking sessions and overall crash rate by setting
+  `auto_capture_sessions` in configuration options
+  [Alex Moinet](https://github.com/Cawllec)
+  [#135](https://github.com/bugsnag/bugsnag-python/pull/135)
+
 ## 3.3.0 (2017-11-02)
 
 ### Enhancements
