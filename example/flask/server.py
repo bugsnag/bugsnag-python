@@ -10,7 +10,7 @@ Markdown(app)
 
 # Configure Bugsnag
 bugsnag.configure(
-    api_key = 'YOUR_API_KEY_HERE'
+    api_key = '03c1b987da2ed0df8795cc4968b76185'
 )
 
 # Attach Bugsnag to flasks exception handler
@@ -18,7 +18,7 @@ handle_exceptions(app)
 
 @app.route('/')
 def index():
-    return render_template('index.md')
+    return render_template('index.html')
 
 # Will cause a ZeroDivisionError to be caught by the bugsnag exception handler
 @app.route('/crashzero')
@@ -57,11 +57,11 @@ def notifywithmetadata():
         Exception('Flask demo: Manual notification with metadata'),
         meta_data = {
             'Request info': {
-                'route': 'notifywithmetadata', 
+                'route': 'notifywithmetadata',
                 'headers': request.headers
-            }, 
+            },
             'Resolve info': {
-                'status': 200, 
+                'status': 200,
                 'message': 'Metadata has been added to this notificaiton'
             }
         },
