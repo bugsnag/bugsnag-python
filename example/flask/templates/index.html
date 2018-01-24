@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
   <title>Bugsnag Python: Flask example</title>
@@ -8,7 +8,6 @@
   <div>
     <h1>Bugsnag Python: Flask example</h1>
   </div>
-
   <div>
     <h3>This page is a basic example of how to include bugsnag-python in a flask app.
     </h3>
@@ -18,10 +17,15 @@
   <h3>Start clicking!</h3>
     <div id="python">
         <p>PYTHON ERRORS</p>
-          <button type="button" id="indexError">IndexError</button>
-          <button type="button" id="nameError">NameError</button>
-          <button type="button" id="typeError">TypeError</button>
+        <button type="button" id="indexError">UNHANDLED ERROR</button>
+        <a href="/crashcallback">
+          <button type="button" id="indexError">UNHANDLED WITH METADATA</button>
+        </a>
+        <a href="/notify">
+          <button type="button" id="typeError">HANDLED ERROR</button>
+        </a>
+          <button type="button" id="typeError">MANUAL NOTIFICATION</button>
     </div>
-
+<!-- review server.py to see how bugsnag integrates with your app. -->
   </body>
   </html>
