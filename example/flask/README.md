@@ -15,7 +15,6 @@ To get set up, follow the instructions below. Don't forget to replace the placeh
   ```
 
 1. Install dependencies
-
   ```shell
   pip install -r requirements.txt
   ```
@@ -24,7 +23,6 @@ To get set up, follow the instructions below. Don't forget to replace the placeh
 file and configure your API key.
 
 1. Run the application.
-
   ```shell
   python server.py
   ```
