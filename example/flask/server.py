@@ -15,7 +15,7 @@ app = Flask(__name__)
 bugsnag.configure(
 
     # get your own api key at bugsnag.com
-    api_key = 'OUR_API_KEY_HERE',
+    api_key = 'YOUR_API_KEY_HERE',
 
     # if you track deploys or session rates, make sure to set the correct version.
     app_version = '1.2.3',
