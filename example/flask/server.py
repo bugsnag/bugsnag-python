@@ -138,7 +138,7 @@ def notifywithcontext():
     """Notifies Bugsnag of a handled exception, which has a modified 'context' attribute for the purpose of improving how these exceptions will group together in the Bugsnag dashboard, and a severity attribute that has been modifed to overwrite the default level (warning).
     """
     bugsnag.notify(
-        Exception('Flask demo: Manual notification with context'),
+        Exception('Flask demo: Manual notification with context and severity'),
         context = 'notifywithcontext',
         severity = 'info'
     )
