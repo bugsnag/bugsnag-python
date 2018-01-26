@@ -21,8 +21,7 @@ To get set up, follow the instructions below. Don't forget to replace the placeh
     pip install -r requirements.txt
     ```
 
-1. Before testing it, open up the `server.py`
-file and configure your API key.
+1. Before testing it, open up the `server.py` file and configure your API key.
 
 1. Run the application in your terminal.
     ```shell
