@@ -6,7 +6,7 @@ This application demonstrates how to use Bugsnag with the logging framework for 
 
 Try this out with [your own Bugsnag account](https://app.bugsnag.com/user/new)! You'll be able to see how the errors are reported in the dashboard, how errors are grouped and how they relate to the original source.
 
-Most of our python example apps serve a basic web app, but this example, to remain platform-agnostic, runs simply in terminal.
+Most of our python example apps serve a basic web app, but this example, to remain framework-agnostic, runs simply in terminal.
 
 To get set up, follow the instructions below. Don't forget to replace the placeholder API token with your own!
 
