@@ -40,7 +40,7 @@ def handle_zero_div():
     print 'The app hasn\'t crashed, but check bugsnag.com to view notifications'
 
 def log_error():
-    """Simply logs an error, whcih will also be sent to your Bugsnag dashboard.
+    """Simply logs an error, which will also be sent to your Bugsnag dashboard.
     """
     logger.error('I forgot my lunch at home')
     print 'Check bugsnag.com to view this log report.'
