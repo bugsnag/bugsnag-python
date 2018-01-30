@@ -87,7 +87,7 @@ STATIC_URL = '/static/'
 BUGSNAG = {
 
     # get your own api key at bugsnag.com
-    "api_key": "03c1b987da2ed0df8795cc4968b76185",
+    "api_key": "YOUR_API_KEY_HERE",
 
     # By default, requests are sent asynchronously. If you would like to block until the request is done, you can set to false.
     "asynchronous": False,
@@ -111,8 +111,8 @@ BUGSNAG = {
     "params_filters": ["credit_card_number", "password", "ssn"],
 
     # We mark stacktrace lines as inProject if they come from files inside root:
-    # project_root = "/path/to/your/app",
+    # "project_root": "/path/to/your/project",
 
     # Useful if you are wrapping bugsnag.notify() in with your own library, to ensure errors group properly.
-    # traceback_exclude_module = [myapp.custom_logging],
+    # "traceback_exclude_module": [myapp.custom_logging],
 }

@@ -1,5 +1,4 @@
 import bugsnag
-import markdown
 from django.http import HttpResponse
 
 # *******************************************************
@@ -8,7 +7,6 @@ def callback(notification):
     """
     # adding user info and metadata to every report:
     notification.user = {
-        # in your app, you can pull these details from session.
         'name': 'Alan Turing',
         'email': 'turing@code.net',
         'id': '1234567890'
@@ -16,44 +14,54 @@ def callback(notification):
 
     notification.add_tab(
         'company', {
-            'name': 'Stark Industries'
+            'name': 'Stark Industries',
+            'password': 'password1' # this will be filtered by your param_filters.
         }
     )
-
-    if notification.context == "demo.views.crash_with_callback":
+    # checks every error, and adds special metadata only when the error class is 'ValueError', as in crash_with_callback(), below.
+    if isinstance(notification.exception, ValueError):
         tab = {
-            "message": "Django demo says: Everything is great",
-            "code": 200
+            "message": "That's not how this works",
+            "code": 500
         }
         notification.add_tab("Diagnostics", tab)
+        notification.context = "Check the 'Diagnostics' tab attached only to ValueErrorss"
 
+# attach the callback to your Bugsnag client.
 bugsnag.before_notify(callback)
 # *****************************************************
 
 
 
 def index(request):
+    """Homepage for this app.
+    """
     with open('index.html') as fp:
         return HttpResponse(fp.read())
 
 
 def crash(request):
+    """Deliberately crashes with a raised exception.
+    """
     raise Exception("Bugsnag Django demo says: It crashed! Go check " +
                     "bugsnag.com for a new notification!")
 
 
 def crash_with_callback(request):
-
-    raise Exception(
-        "Bugsnag Django demo says: It crashed! But, due to the attached " +
-        "callback the exception has meta information. Go check " +
-        "bugsnag.com for a new notification (see the Diagnostics tab)!"
-    )
+    """Deliberately crashes with a ValueError, which the Bugsnag callback (above) will identify and attach special metadata to - *only* on this type of crash.
+    """
+    x = "string"
+    y = int(x)
 
 
-def notify(request):
-    msg = "Bugsnag Django demo says: False alarm, your application didn't crash"
-    bugsnag.notify(Exception(msg))
+def handled(request):
+    """Deliberately triggers a handled exception, and reports it to Bugsnag.
+    """
+    try:
+        x = 1/0
+    except ZeroDivisionError:
+        bugsnag.notify(ZeroDivisionError('Django demo: To infinity... and beyond!'))
+
     return HttpResponse(
         "Bugsnag Django demo says: It didn't crash! But still go check " +
         "<a href=\"bugsnag.com\">bugsnag.com</a> for a new notification.")
@@ -64,11 +72,10 @@ def notify_meta(request):
     """
     bugsnag.notify(
         Exception('Django demo: Manual notification with metadata'),
-        # this app adds some metadata globally, but you can also attach specfic details to a particular exception
+        # this app adds some metadata globally, but you can also attach specfic details to a particular exception.
         meta_data = {
             'Request info': {
                 'route': 'notifywithmetadata',
-                'headers': request.headers
             },
             'Resolve info': {
                 'status': 200,
@@ -84,10 +91,10 @@ def notify_meta(request):
 
 
 def context(request):
-    """Notifies Bugsnag of a handled exception, which has a modified 'context' attribute for the purpose of improving how these exceptions will group together in the Bugsnag dashboard, and a severity attribute that has been modifed to overwrite the default level (warning).
+    """Sends a notification to Bugsnag which has a modified 'context', and a 'severity' attribute that has been modifed to overwrite the default level (warning).
     """
     bugsnag.notify(
-        Exception('Flask demo: Manual notification with context and severity'),
+        Exception('Django demo: Manual notification with context and severity'),
         context = 'notifywithcontext',
         severity = 'info'
     )
