@@ -1,3 +1,2 @@
 Django>=2.0.1
 bugsnag>=3.4.0
-markdown>=2.4
