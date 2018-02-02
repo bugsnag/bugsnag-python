@@ -443,4 +443,5 @@ class HandlersTest(IntegrationTest):
 
         self.assertEqual(exception['errorClass'], 'LogINFO')
         self.assertEqual(exception['message'], 'Everything is fine')
-        self.assertEqual(event['metaData']['custom'], {'exception': 'metadata'})
+        self.assertEqual(event['metaData']['custom'],
+                         {'exception': 'metadata'})
