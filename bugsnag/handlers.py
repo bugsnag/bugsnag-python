@@ -56,6 +56,13 @@ class BugsnagHandler(logging.Handler, object):
 
         client = self.client or bugsnag.legacy.default_client
 
+        if 'exception' in options:
+            if isinstance(options['exception'], Exception):
+                client.notify(**options)
+                return
+            else:
+                options['meta_data']['exception'] = options.pop('exception')
+
         if record.exc_info:
             client.notify_exc_info(*record.exc_info, **options)
         else:
