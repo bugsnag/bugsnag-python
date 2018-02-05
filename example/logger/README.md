@@ -12,7 +12,7 @@ To get set up, follow the instructions below. Don't forget to replace the placeh
 
 1. Clone the repo and `cd` into this directory:
     ```sh
-    git clone git@github.com:bugsnag/bugsnag-python.git
+    git clone https://github.com/bugsnag/bugsnag-python.git
     cd bugsnag-python/example/logger
     ```
 
@@ -21,7 +21,7 @@ To get set up, follow the instructions below. Don't forget to replace the placeh
     pip install -r requirements.txt
     ```
 
-1. Before testing it, open up the `server.py` file and configure your API key.
+1. Before testing it, open up the `bugsnag_logger.py` file and configure your API key.
 
 1. Run the application in your terminal.
     ```shell

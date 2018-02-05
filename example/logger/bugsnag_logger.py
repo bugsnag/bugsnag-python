@@ -76,8 +76,8 @@ def callback(notification):
         }
     )
 
-    # The callback will evaluate all exceptions, but in this example only 'SomethingBad' errors will have the below data added to their error reports.
-    if notification.exception.message == 'SomethingBad':
+    # The callback will evaluate all exceptions, but in this example only 'SpecificError' class errors will have the below data added to their error reports.
+    if notification.exception.__class__.__name__ == 'SpecificError':
         notification.add_tab('Diagnostics', {
             'message': 'Houston, we have a problem',
             'status': 200,
