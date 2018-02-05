@@ -117,7 +117,7 @@ def notifywithmetadata():
     """
     bugsnag.notify(
         Exception('Flask demo: Manual notification with metadata'),
-        # this app adds some metadata globally, but you can also attach specfic details to a particular
+        # this app adds some metadata globally, but you can also attach specfic details to a particular exception
         meta_data = {
             'Request info': {
                 'route': 'notifywithmetadata',

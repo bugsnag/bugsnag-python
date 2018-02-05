@@ -10,7 +10,7 @@ To get set up, follow the instructions below. Don't forget to replace the placeh
 
 1. Clone the repo and `cd` into this directory:
     ```sh
-    git clone git@github.com:bugsnag/bugsnag-python.git
+    git clone https://github.com/bugsnag/bugsnag-python.git
     cd bugsnag-python/example/flask
     ```
 
