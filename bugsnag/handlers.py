@@ -61,7 +61,12 @@ class BugsnagHandler(logging.Handler, object):
                 client.notify(**options)
                 return
             else:
-                options['meta_data']['exception'] = options.pop('exception')
+                custom_exception = options.pop('exception')
+                try:
+                    options['meta_data']['exception'] = custom_exception
+                except TypeError:
+                    # Means options['meta_data'] is no longer a dictionary
+                    pass
 
         if record.exc_info:
             client.notify_exc_info(*record.exc_info, **options)
