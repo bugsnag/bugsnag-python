@@ -27,7 +27,7 @@ def add_django_request_to_notification(notification):
                                               request.path_info)
 
     if hasattr(request, 'user'):
-        if hasattr(request.user.is_authenticated, '__call__'):
+        if callable(request.user.is_authenticated):
             is_authenticated = request.user.is_authenticated()
         else:
             is_authenticated = request.user.is_authenticated
