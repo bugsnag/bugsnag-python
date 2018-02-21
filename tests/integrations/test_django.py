@@ -18,6 +18,15 @@ class DjangoMiddlewareTests(IntegrationTest):
         django.setup()
         self.client = Client()
 
+        # This isn't nice, but is required as settings setup must happen first
+        from django.contrib.auth.models import User
+        User.objects.all().delete()
+        self.user = User.objects.create_user(
+            username='test',
+            email='test@test.com',
+            password='hunter2'
+        )
+
     def test_notify(self):
         response = self.client.get('/notify/')
         self.assertEqual(response.status_code, 200)
@@ -70,4 +79,19 @@ class DjangoMiddlewareTests(IntegrationTest):
             'attributes': {
                 'framework': 'Django'
             }
+        })
+
+    def test_appends_user_data(self):
+        self.client.login(username='test', password='hunter2')
+        with self.assertRaises(Exception):
+            self.client.get('/crash/')
+
+        self.assertEqual(len(self.server.received), 1)
+
+        payload = self.server.received[0]['json_body']
+        user = payload['events'][0]['user']
+
+        self.assertEqual(user, {
+            'id': self.user.username,
+            'email': 'test@test.com'
         })
