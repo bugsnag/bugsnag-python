@@ -31,7 +31,7 @@ bugsnag.configure(
     notify_release_stages = [ 'development', 'production'],
 
     # Any param key that contains one of these strings will be filtered out of all error reports.
-    params_filters = ["credit_card_number", "password", "ssn"],
+    params_filters = ['credit_card_number', 'password', 'ssn'],
 
     # We mark stacktrace lines as inProject if they come from files inside root:
     # project_root = "/path/to/your/app",
@@ -49,7 +49,8 @@ def callback(notification):
     notification.user = {
         'name': 'Alan Turing',
         'email': 'turing@code.net',
-        'id': '1234567890'
+        'id': '1234567890',
+
     }
 
     notification.add_tab(
@@ -60,11 +61,12 @@ def callback(notification):
     # checks every error, and adds special metadata only when the error class is 'SpecificError', as in crash_with_callback(), below.
     if isinstance(notification.exception, SpecificError):
         tab = {
-            "message": "That's not how this works",
-            "code": 500
+            'message': 'That\'s not how this works',
+            'code': 500,
+            'password': 'ue$hs_9gFsd!kjl41___' # this will be redacted by your filter.
         }
-        notification.add_tab("Diagnostics", tab)
-        notification.context = "Check the 'Diagnostics' tab attached only to SpecificErrors"
+        notification.add_tab('Diagnostics', tab)
+        notification.context = 'Check the \'Diagnostics\' tab attached only to SpecificErrors'
 
 # attach the callback function to your Bugsnag client.
 bugsnag.before_notify(callback)
@@ -101,7 +103,7 @@ def handle_zero_div():
 
 if __name__ == '__main__':
     # automatically sends this manual notification every time the file is loaded.
-    bugsnag.notify(Exception("File loaded!"))
+    bugsnag.notify(Exception('File loaded!'))
 
     print("""
     This app sends one notification to your Bugsnag dashboard on loading.
