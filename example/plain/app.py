@@ -1,7 +1,7 @@
 # www.bugsnag.com
 # https://github.com/bugsnag/bugsnag-python/tree/master/example/plain
 #
-# this example app demonstrates some of the basic syntax to get Bugsnag error reporting configured in your Python code by integrating with a logger.
+# this example app demonstrates some of the basic syntax to get Bugsnag error reporting configured in your Python code.
 # ***********************************************************
 
 import bugsnag
@@ -47,47 +47,33 @@ def callback(notification):
     """
     # adding user info and metadata to every report:
     notification.user = {
-        'name': 'Willow Rosenberg',
-        'email': 'rosenberg@sunnydale.edu',
+        'name': 'Alan Turing',
+        'email': 'turing@code.net',
         'id': '1234567890'
     }
 
     notification.add_tab(
         'company', {
-            'name': 'Magic Box',
-            'password': 'f@ntastic0' # this will be filtered by your param_filters.
+            'name': 'Stark Industries'
         }
     )
-    # checks every error, and adds special metadata only when the error class is 'ValueError', as in crash_with_callback(), below.
-    if isinstance(notification.exception, ValueError):
+    # checks every error, and adds special metadata only when the error class is 'SpecificError', as in crash_with_callback(), below.
+    if isinstance(notification.exception, SpecificError):
         tab = {
             "message": "That's not how this works",
             "code": 500
         }
         notification.add_tab("Diagnostics", tab)
-        notification.context = "Check the 'Diagnostics' tab attached only to ValueErrorss"
+        notification.context = "Check the 'Diagnostics' tab attached only to SpecificErrors"
 
-# attach the callback to your Bugsnag client.
+# attach the callback function to your Bugsnag client.
 bugsnag.before_notify(callback)
 
-#
 
-print("""
-This app logs 3 errors to your Bugsnag dashboard on loading.
-
-call these functions to send more handled exceptions:
--  handle_zero_div()
--  log_error()
-
-call these functions to crash the app and send unhandled exceptions:
--  crash_dict()
--  crash_callback()
-
-or, just write your own crashing statements to see how Bugsnag reports them!
-""")
-
+# defining our own error class, as an example.
 class SpecificError(Exception):
     pass
+
 
 def crash_dict():
     """Deliberately triggers an unhandled KeyError to be reported by the bugsnag exception handler, and crash the app.
@@ -97,7 +83,7 @@ def crash_dict():
 
 
 def crash_callback():
-    """Deliberately raises an unhandled error which will have diagnostic data attached by the global callback function in bugsnag_logger, and crash the app.
+    """Deliberately raises an unhandled error which will have diagnostic data attached by the before_notify(), and crash the app.
     """
     raise(SpecificError('SomethingBad'))
 
@@ -108,17 +94,24 @@ def handle_zero_div():
     try:
         x = 1/0
     except Exception as e:
-        logger.warn(e)
+        bugsnag.notify(e)
 
-    print('The app hasn\'t crashed, but check bugsnag.com to view notifications')
-
-def log_error():
-    """Simply logs an error, which will also be sent to your Bugsnag dashboard.
-    """
-    logger.error('I forgot my lunch at home')
-    print('Check bugsnag.com to view this log report.')
+    print('The app hasn\'t crashed, but check app.bugsnag.com to view notifications')
 
 
 if __name__ == '__main__':
-    # automatically sends this manual notification every tiem the file is loaded.
-    bugsnag.notify("Hello!")
+    # automatically sends this manual notification every time the file is loaded.
+    bugsnag.notify(Exception("File loaded!"))
+
+    print("""
+    This app sends one notification to your Bugsnag dashboard on loading.
+
+    call this function to send more handled exceptions:
+    -  handle_zero_div()
+
+    call these functions to crash the app and send unhandled exceptions:
+    -  crash_dict()
+    -  crash_callback()
+
+    or, just write your own crashing statements to see how Bugsnag reports them!
+    """)
