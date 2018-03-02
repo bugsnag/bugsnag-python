@@ -25,7 +25,7 @@ To get set up, follow the instructions below. Don't forget to replace the placeh
 
 1. Run the application in your terminal.
   ```shell
-  python -i server.py
+  python -i app.py
   ```
 
 1. View the resulting error reports in your [Bugsnag dashboard](https://app.bugsnag.com/).
