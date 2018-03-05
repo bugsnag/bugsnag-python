@@ -108,10 +108,10 @@ class SessionTracker(object):
             'device': FilterDict({
                 'hostname': self.config.get('hostname'),
             }),
-            'app': FilterDict({
+            'app': {
                 'releaseStage': self.config.get('release_stage'),
                 'version': self.config.get('app_version')
-            }),
+            },
             'sessionCounts': sessions
         }
 
