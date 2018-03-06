@@ -5,7 +5,8 @@ from threading import Lock, Timer
 import atexit
 
 import bugsnag
-from bugsnag.utils import package_version, ThreadLocals, SanitizingJSONEncoder
+from bugsnag.utils import package_version, ThreadLocals, \
+    FilterDict, SanitizingJSONEncoder
 from bugsnag.notification import Notification
 
 
@@ -104,9 +105,9 @@ class SessionTracker(object):
                 'url': Notification.NOTIFIER_URL,
                 'version': notifier_version
             },
-            'device': {
+            'device': FilterDict({
                 'hostname': self.config.get('hostname'),
-            },
+            }),
             'app': {
                 'releaseStage': self.config.get('release_stage'),
                 'version': self.config.get('app_version')

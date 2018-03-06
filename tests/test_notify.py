@@ -142,6 +142,31 @@ class TestBugsnag(IntegrationTest):
         self.assertEqual('[FILTERED]', event['metaData']['custom']['apple'])
         self.assertEqual('green', event['metaData']['custom']['cantaloupe'])
 
+    def test_notify_device_filter(self):
+        bugsnag.configure(params_filters=['hostname'])
+        bugsnag.notify(ScaryException('unexpected failover'))
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertEqual('[FILTERED]', event['device']['hostname'])
+
+    def test_notify_user_filter(self):
+        bugsnag.configure(params_filters=['address', 'phonenumber'])
+        bugsnag.notify(ScaryException('unexpected failover'),
+                       user={
+                           "id": "test-man",
+                           "address": "123 street\n cooltown\n ABC 123",
+                           "phonenumber": "12345678900",
+                           "firstname": "Test",
+                           "lastname": "Man"
+                           })
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertEqual('[FILTERED]', event['user']['address'])
+        self.assertEqual('[FILTERED]', event['user']['phonenumber'])
+        self.assertEqual('test-man', event['user']['id'])
+        self.assertEqual('Test', event['user']['firstname'])
+        self.assertEqual('Man', event['user']['lastname'])
+
     def test_notify_payload_matching_filter(self):
         bugsnag.configure(params_filters=['number'])
         bugsnag.notify(ScaryException('unexpected failover'),
@@ -151,7 +176,7 @@ class TestBugsnag(IntegrationTest):
         exception = event['exceptions'][0]
         self.assertEqual('four', event['metaData']['custom']['apple'])
         self.assertEqual('[FILTERED]', event['metaData']['custom']['number'])
-        self.assertEqual(148, exception['stacktrace'][0]['lineNumber'])
+        self.assertEqual(173, exception['stacktrace'][0]['lineNumber'])
 
     def test_notify_ignore_class(self):
         bugsnag.configure(ignore_classes=['tests.utils.ScaryException'])

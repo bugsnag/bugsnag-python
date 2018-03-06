@@ -240,10 +240,10 @@ class Notification(object):
                     "stacktrace": self.stacktrace,
                 }],
                 "metaData": FilterDict(self.meta_data),
-                "user": self.user,
-                "device": {
+                "user": FilterDict(self.user),
+                "device": FilterDict({
                     "hostname": self.hostname
-                },
+                }),
                 "projectRoot": self.config.get("project_root"),
                 "libRoot": self.config.get("lib_root"),
                 "session": self.session
