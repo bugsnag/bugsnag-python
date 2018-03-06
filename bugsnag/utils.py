@@ -27,7 +27,6 @@ class SanitizingJSONEncoder(JSONEncoder):
 
     def __init__(self, keyword_filters=None, **kwargs):
         self.filters = list(map(str.lower, keyword_filters or []))
-        self.ignored = []
         super(SanitizingJSONEncoder, self).__init__(**kwargs)
 
     def encode(self, obj):
@@ -79,25 +78,31 @@ class SanitizingJSONEncoder(JSONEncoder):
             bugsnag.logger.exception('Could not add object to payload')
             return self.unencodeable_value
 
-    def _sanitize(self, obj, trim_strings):
+    def _sanitize(self, obj, trim_strings, ignored=None):
         """
         Replace recursive values and trim strings longer than
         MAX_STRING_LENGTH
         """
-        if id(obj) in self.ignored:
+        if not ignored:
+            ignored = []
+
+        if id(obj) in ignored:
             return self.recursive_value
         elif isinstance(obj, dict):
-            self.ignored.append(id(obj))
-            return self._sanitize_dict(obj, trim_strings)
+            ignored.append(id(obj))
+            return self._sanitize_dict(obj, trim_strings, ignored)
         elif isinstance(obj, (set, tuple, list)):
-            self.ignored.append(id(obj))
-            return list(self._sanitize(value, trim_strings) for value in obj)
+            ignored.append(id(obj))
+            items = []
+            for value in obj:
+                items.append(self._sanitize(value, trim_strings, ignored))
+            return items
         elif trim_strings and isinstance(obj, six.string_types):
             return obj[:MAX_STRING_LENGTH]
         else:
             return obj
 
-    def _sanitize_dict(self, obj, trim_strings):
+    def _sanitize_dict(self, obj, trim_strings, ignored):
         """
         Trim individual values in an object, applying filtering if the object
         is a FilterDict
@@ -107,7 +112,7 @@ class SanitizingJSONEncoder(JSONEncoder):
 
         clean_dict = {}
         for key, value in six.iteritems(obj):
-            clean_dict[key] = self._sanitize(value, trim_strings)
+            clean_dict[key] = self._sanitize(value, trim_strings, ignored)
 
         return clean_dict
 

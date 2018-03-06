@@ -83,3 +83,56 @@ class TestUtils(unittest.TestCase):
         self.assertFalse(locs.has_item(key))
         item = locs.get_item(key, "default")
         self.assertEqual(item, "default")
+
+    def test_encoding_recursive(self):
+        """
+        Test that recursive data structures are replaced with '[RECURSIVE]'
+        """
+        data = {"Test": ["a", "b", "c"]}
+        data["Self"] = data
+        encoder = SanitizingJSONEncoder(keyword_filters=[])
+        sane_data = json.loads(encoder.encode(data))
+        self.assertEqual(sane_data,
+                         {"Test": ["a", "b", "c"], "Self": "[RECURSIVE]"})
+
+    def test_encoding_recursive_repeated(self):
+        """
+        Test that encoding the same object twice produces the same result
+        """
+        data = {"Test": ["a", "b", "c"]}
+        data["Self"] = data
+        encoder = SanitizingJSONEncoder(keyword_filters=[])
+        sane_data = json.loads(encoder.encode(data))
+        self.assertEqual(sane_data,
+                         {"Test": ["a", "b", "c"], "Self": "[RECURSIVE]"})
+        sane_data = json.loads(encoder.encode(data))
+        self.assertEqual(sane_data,
+                         {"Test": ["a", "b", "c"], "Self": "[RECURSIVE]"})
+
+    def test_encoding_nested_repeated(self):
+        """
+        Test that encoding the same object within a new object is not
+        incorrectly marked as recursive
+        """
+        encoder = SanitizingJSONEncoder(keyword_filters=[])
+        data = {"Test": ["a", "b", "c"]}
+        encoder.encode(data)
+        data = {"Previous": data, "Other": 400}
+        sane_data = json.loads(encoder.encode(data))
+        self.assertEqual(sane_data,
+                         {"Other": 400,
+                          "Previous": {"Test": ["a", "b", "c"]}})
+
+    def test_encoding_oversized_recursive(self):
+        """
+        Test that encoding an object which requires trimming clips recursion
+        correctly
+        """
+        data = {"Test": ["a" * 128 * 1024, "b", "c"], "Other": {"a": 300}}
+        data["Self"] = data
+        encoder = SanitizingJSONEncoder(keyword_filters=[])
+        sane_data = json.loads(encoder.encode(data))
+        self.assertEqual(sane_data,
+                         {"Test": ["a" * 1024, "b", "c"],
+                          "Self": "[RECURSIVE]",
+                          "Other": {"a": 300}})
