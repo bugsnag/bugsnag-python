@@ -10,10 +10,10 @@ import bugsnag
 bugsnag.configure(
 
     # get your own api key at bugsnag.com
-    api_key = '03c1b987da2ed0df8795cc4968b76185',
+    api_key = 'YOUR_API_KEY_HERE',
 
     # if you track deploys or session rates, make sure to set the correct version.
-    app_version = '1.2.7',
+    app_version = '1.2.3',
 
     # By default, requests are sent asynchronously. If you would like to block until the request is done, you can set to false
     asynchronous = False,
@@ -50,7 +50,6 @@ def callback(notification):
         'name': 'Alan Turing',
         'email': 'turing@code.net',
         'id': '1234567890',
-        'password': 'ue$hs_9gFsd!kjl41___' # this will be redacted by your filter.
     }
 
     notification.add_tab(
@@ -76,8 +75,6 @@ bugsnag.before_notify(callback)
 class SpecificError(Exception):
     pass
 
-class NewbieError(Exception):
-    pass
 
 def crash_dict():
     """Deliberately triggers an unhandled KeyError to be reported by the bugsnag exception handler, and crash the app.
@@ -87,9 +84,8 @@ def crash_dict():
 
 
 def crash_callback():
-    """Deliberately raises an unhandled error which will have diagnostic data attached by the before_notify(), and crash the app.
+    """Deliberately raises an unhandled error which will have diagnostic data attached by the before_notify() callback above, and crash the app.
     """
-    raise(NewbieError('rsreadradsrtadst'))
     raise(SpecificError('SomethingBad'))
 
 
