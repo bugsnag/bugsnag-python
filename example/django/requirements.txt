@@ -1,3 +1,2 @@
-Django>=1.8
-bugsnag>=2.2
-markdown>=2.4
+Django>=2.0.1
+bugsnag>=3.4.0
