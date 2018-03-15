@@ -39,8 +39,8 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE = (
-    # make sure to add Bugsnag to your middleware.
-    "bugsnag.django.middleware.BugsnagMiddleware",
+    # make sure to add Bugsnag to the top of your middleware.
+    'bugsnag.django.middleware.BugsnagMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

@@ -9,13 +9,13 @@ def callback(notification):
     notification.user = {
         'name': 'Alan Turing',
         'email': 'turing@code.net',
+        'password': 'password1', # this will be filtered by your param_filters.
         'id': '1234567890'
     }
 
     notification.add_tab(
         'company', {
             'name': 'Stark Industries',
-            'password': 'password1' # this will be filtered by your param_filters.
         }
     )
     # checks every error, and adds special metadata only when the error class is 'ValueError', as in crash_with_callback(), below.
