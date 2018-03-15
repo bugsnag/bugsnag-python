@@ -5,7 +5,7 @@
 The Bugsnag exception reporter for Python automatically detects and reports
 exceptions thrown your **Django**, **WSGI**, **Tornado**, **Flask** or
 **plain Python** app.  Any uncaught exceptions will trigger a notification to be
-sent to your Bugsnag project.
+sent to your Bugsnag project. Learn more about [monitoring and reporting Python errors](https://www.bugsnag.com/platforms/python-error-reporting/) with Bugsnag.
 
 
 ## Features
@@ -18,7 +18,7 @@ sent to your Bugsnag project.
 
 ## Getting started
 
-1. [Create a Bugsnag account](https://bugsnag.com)
+1. [Create a Bugsnag account](https://www.bugsnag.com)
 2. Complete the instructions in the
    [integration guide](https://docs.bugsnag.com/platforms/python/)
 3. Report handled exceptions using

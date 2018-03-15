@@ -409,3 +409,39 @@ class HandlersTest(IntegrationTest):
         self.assertEqual(event['metaData']['tab'], {
             'key': 'value', 'key2': 'other value'
         })
+
+    @use_client_logger
+    def test_client_callback_exception(self, handler, logger):
+
+        def exception_replacing_callback(record, options):
+            options['exception'] = ScaryException('replacement')
+
+        handler.add_callback(exception_replacing_callback)
+        logger.info('Everything is fine')
+
+        self.assertSentReportCount(1)
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        exception = event['exceptions'][0]
+
+        self.assertEqual(exception['errorClass'], 'tests.utils.ScaryException')
+        self.assertEqual(exception['message'], 'replacement')
+
+    @use_client_logger
+    def test_client_callback_exception_metadata(self, handler, logger):
+
+        def exception_replacing_callback(record, options):
+            options['exception'] = 'metadata'
+
+        handler.add_callback(exception_replacing_callback)
+        logger.info('Everything is fine')
+
+        self.assertSentReportCount(1)
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        exception = event['exceptions'][0]
+
+        self.assertEqual(exception['errorClass'], 'LogINFO')
+        self.assertEqual(exception['message'], 'Everything is fine')
+        self.assertEqual(event['metaData']['custom'],
+                         {'exception': 'metadata'})

@@ -1,6 +1,6 @@
-# Bugsnag Python demo (no framework)
+# Bugsnag Logger demo
 
-This application demonstrates how to use Bugsnag with basic Python.
+This application demonstrates how to use Bugsnag with the logging framework for Python.
 
 ## Setup
 
@@ -11,22 +11,22 @@ Most of our python example apps serve a basic web app, but this example, to rema
 To get set up, follow the instructions below. Don't forget to replace the placeholder API token with your own!
 
 1. Clone the repo and `cd` into this directory:
-  ```sh
-  git clone https://github.com/bugsnag/bugsnag-python.git
-  cd bugsnag-python/example/plain
-  ```
-
-1. Before testing it, open up the `app.py` file and configure your API key.
+    ```sh
+    git clone https://github.com/bugsnag/bugsnag-python.git
+    cd bugsnag-python/example/logger
+    ```
 
 1. Install dependencies
-  ```shell
-  pip install -r requirements.txt
-  ```
+    ```shell
+    pip install -r requirements.txt
+    ```
+
+1. Before testing it, open up the `bugsnag_logger.py` file and configure your API key.
 
 1. Run the application in your terminal.
-  ```shell
-  python -i app.py
-  ```
+    ```shell
+    python -i server.py
+    ```
 
 1. View the resulting error reports in your [Bugsnag dashboard](https://app.bugsnag.com/).
 

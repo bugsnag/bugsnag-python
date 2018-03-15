@@ -1,6 +1,27 @@
 Changelog
 =========
 
+## 3.4.2 (2018-03-07)
+
+### Fixes
+
+* Fix cases where parts of a payload could be erroneously trimmed as a recursive
+  value
+  [#147](https://github.com/bugsnag/bugsnag-python/pull/147)
+
+* Apply payload filters to device and user metadata
+  [#146](https://github.com/bugsnag/bugsnag-python/pull/146)
+
+## 3.4.1 (2018-02-22)
+
+### Fixes
+
+* Ensure correct usage of `is_authenticated` in Django applications
+  [#143](https://github.com/bugsnag/bugsnag-python/pull/143)
+
+* Allow `exception` option to override a logged exception in handler callbacks
+  [#141](https://github.com/bugsnag/bugsnag-python/pull/141/files)
+
 ## 3.4.0 (2018-01-09)
 
 ### Enhancements
