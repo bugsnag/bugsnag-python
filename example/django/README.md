@@ -2,7 +2,7 @@
 
 This Django application demonstrates how to use Bugsnag with the Django web framework for Python.
 
-Please note this particular example app will only work with Python 3+ and Django 2+, to showcase the most current configurations. Check out [this example](https://github.com/bugsnag/bugsnag-python/example/django1.11) to see the configuration for  Python 2 and Django 1.
+Please note this particular example app will only work with Python 3+ and Django 2+, to showcase the most current configurations. Check out [this example](https://github.com/bugsnag/bugsnag-python/example/django1_10) to see the configuration for  Python 2 and Django 1.
 
 ## Setup
 

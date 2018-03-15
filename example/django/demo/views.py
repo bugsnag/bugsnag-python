@@ -25,7 +25,7 @@ def callback(notification):
             "code": 500
         }
         notification.add_tab("Diagnostics", tab)
-        notification.context = "Check the 'Diagnostics' tab attached only to ValueErrorss"
+        notification.context = "Check the 'Diagnostics' tab attached only to ValueErrors"
 
 # attach the callback to your Bugsnag client.
 bugsnag.before_notify(callback)
