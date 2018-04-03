@@ -43,13 +43,13 @@ class SanitizingJSONEncoder(JSONEncoder):
         Remove any value from the dictionary which match the key filters
         """
         if not ignored:
-            ignored = []
+            ignored = set()
 
         if id(obj) in ignored:
             return self.recursive_value
 
         if isinstance(obj, dict):
-            ignored.append(id(obj))
+            ignored.add(id(obj))
 
             clean_dict = {}
             for key, value in six.iteritems(obj):
@@ -84,15 +84,15 @@ class SanitizingJSONEncoder(JSONEncoder):
         MAX_STRING_LENGTH
         """
         if not ignored:
-            ignored = []
+            ignored = set()
 
         if id(obj) in ignored:
             return self.recursive_value
         elif isinstance(obj, dict):
-            ignored.append(id(obj))
+            ignored.add(id(obj))
             return self._sanitize_dict(obj, trim_strings, ignored)
         elif isinstance(obj, (set, tuple, list)):
-            ignored.append(id(obj))
+            ignored.add(id(obj))
             items = []
             for value in obj:
                 items.append(self._sanitize(value, trim_strings, ignored))
