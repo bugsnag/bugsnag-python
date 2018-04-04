@@ -1,5 +1,6 @@
 import unittest
 import json
+import timeit
 
 from six import u
 from bugsnag.utils import SanitizingJSONEncoder, FilterDict, ThreadLocals
@@ -136,3 +137,21 @@ class TestUtils(unittest.TestCase):
                          {"Test": ["a" * 1024, "b", "c"],
                           "Self": "[RECURSIVE]",
                           "Other": {"a": 300}})
+
+    def test_encoding_time(self):
+        """
+        Test that encoding a large object is sufficiently speedy
+        """
+        setup = """\
+import json
+from tests.large_object import large_object_file_path
+from bugsnag.utils import SanitizingJSONEncoder
+encoder = SanitizingJSONEncoder(keyword_filters=[])
+with open(large_object_file_path()) as json_data:
+    data = json.load(json_data)
+        """
+        stmt = """\
+encoder.encode(data)
+        """
+        time = timeit.timeit(stmt=stmt, setup=setup, number=1000)
+        self.assertTrue(time < 4)
