@@ -155,3 +155,23 @@ encoder.encode(data)
         """
         time = timeit.timeit(stmt=stmt, setup=setup, number=1000)
         self.assertTrue(time < 4)
+
+    def test_filter_string_values_list_handling(self):
+        """
+        Test that filter_string_values can accept a list for the ignored
+        parameter for backwards compatibility
+        """
+        data = {}
+        encoder = SanitizingJSONEncoder()
+        # no assert as we are just expecting this not to throw
+        encoder.filter_string_values(data, ['password'])
+
+    def test_sanitize_list_handling(self):
+        """
+        Test that _sanitize can accept a list for the ignored parameter for
+        backwards compatibility
+        """
+        data = {}
+        encoder = SanitizingJSONEncoder()
+        # no assert as we are just expecting this not to throw
+        encoder._sanitize(data, ['password'], ['password'])

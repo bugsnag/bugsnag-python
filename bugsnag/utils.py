@@ -45,6 +45,9 @@ class SanitizingJSONEncoder(JSONEncoder):
         if not ignored:
             ignored = set()
 
+        if type(ignored) is list:
+            ignored = set(ignored)
+
         if id(obj) in ignored:
             return self.recursive_value
 
@@ -85,6 +88,9 @@ class SanitizingJSONEncoder(JSONEncoder):
         """
         if not ignored:
             ignored = set()
+
+        if type(ignored) is list:
+            ignored = set(ignored)
 
         if id(obj) in ignored:
             return self.recursive_value
