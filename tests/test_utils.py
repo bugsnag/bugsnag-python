@@ -154,6 +154,7 @@ with open(large_object_file_path()) as json_data:
 encoder.encode(data)
         """
         time = timeit.timeit(stmt=stmt, setup=setup, number=1000)
+        print(time)
         self.assertTrue(time < 4)
 
     def test_filter_string_values_list_handling(self):
