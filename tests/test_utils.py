@@ -1,6 +1,7 @@
 import unittest
 import json
 import timeit
+import sys
 
 from six import u
 from bugsnag.utils import SanitizingJSONEncoder, FilterDict, ThreadLocals
@@ -154,8 +155,12 @@ with open(large_object_file_path()) as json_data:
 encoder.encode(data)
         """
         time = timeit.timeit(stmt=stmt, setup=setup, number=1000)
-        print(time)
-        self.assertTrue(time < 4)
+        maximum_time = 4
+        if sys.version_info[0:2] <= (2,6):
+            # json encoding is very slow on python 2.6 so we need to increase
+            # the allowable time when running on it
+            maximum_time = 18
+        self.assertTrue(time < maximum_time)
 
     def test_filter_string_values_list_handling(self):
         """
