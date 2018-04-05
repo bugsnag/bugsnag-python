@@ -160,7 +160,10 @@ encoder.encode(data)
             # json encoding is very slow on python 2.6 so we need to increase
             # the allowable time when running on it
             maximum_time = 18
-        self.assertTrue(time < maximum_time)
+        self.assertTrue(time < maximum_time,
+                        "Encoding required {}s (expected {}s)".format(
+                            time, maximum_time
+                        ))
 
     def test_filter_string_values_list_handling(self):
         """
