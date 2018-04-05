@@ -161,7 +161,7 @@ encoder.encode(data)
             # the allowable time when running on it
             maximum_time = 18
         self.assertTrue(time < maximum_time,
-                        "Encoding required {}s (expected {}s)".format(
+                        "Encoding required {0}s (expected {1}s)".format(
                             time, maximum_time
                         ))
 
