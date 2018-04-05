@@ -1,5 +1,4 @@
 import os
-import json
 
 def large_object_file_path():
     """
