@@ -155,7 +155,7 @@ with open(large_object_file_path()) as json_data:
 encoder.encode(data)
         """
         time = timeit.timeit(stmt=stmt, setup=setup, number=1000)
-        maximum_time = 4
+        maximum_time = 6
         if sys.version_info[0:2] <= (2, 6):
             # json encoding is very slow on python 2.6 so we need to increase
             # the allowable time when running on it
