@@ -1,5 +1,7 @@
 import unittest
 import json
+import timeit
+import sys
 
 from six import u
 from bugsnag.utils import SanitizingJSONEncoder, FilterDict, ThreadLocals
@@ -136,3 +138,49 @@ class TestUtils(unittest.TestCase):
                          {"Test": ["a" * 1024, "b", "c"],
                           "Self": "[RECURSIVE]",
                           "Other": {"a": 300}})
+
+    def test_encoding_time(self):
+        """
+        Test that encoding a large object is sufficiently speedy
+        """
+        setup = """\
+import json
+from tests.large_object import large_object_file_path
+from bugsnag.utils import SanitizingJSONEncoder
+encoder = SanitizingJSONEncoder(keyword_filters=[])
+with open(large_object_file_path()) as json_data:
+    data = json.load(json_data)
+        """
+        stmt = """\
+encoder.encode(data)
+        """
+        time = timeit.timeit(stmt=stmt, setup=setup, number=1000)
+        maximum_time = 6
+        if sys.version_info[0:2] <= (2, 6):
+            # json encoding is very slow on python 2.6 so we need to increase
+            # the allowable time when running on it
+            maximum_time = 18
+        self.assertTrue(time < maximum_time,
+                        "Encoding required {0}s (expected {1}s)".format(
+                            time, maximum_time
+                        ))
+
+    def test_filter_string_values_list_handling(self):
+        """
+        Test that filter_string_values can accept a list for the ignored
+        parameter for backwards compatibility
+        """
+        data = {}
+        encoder = SanitizingJSONEncoder()
+        # no assert as we are just expecting this not to throw
+        encoder.filter_string_values(data, ['password'])
+
+    def test_sanitize_list_handling(self):
+        """
+        Test that _sanitize can accept a list for the ignored parameter for
+        backwards compatibility
+        """
+        data = {}
+        encoder = SanitizingJSONEncoder()
+        # no assert as we are just expecting this not to throw
+        encoder._sanitize(data, ['password'], ['password'])
