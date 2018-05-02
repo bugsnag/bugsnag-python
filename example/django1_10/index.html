@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bugsnag Python: Django 1.10 example</title>
+</head>
+
+<body>
+  <div>
+    <h1>Bugsnag Python: Django 1.10 example</h1>
+  </div>
+  <div>
+    <h3>This page is a basic example of how to include bugsnag-python in a django 1.10 app.
+    </h3>
+  </div>
+
+    <br>
+  <h3>Click below to send errors to your Bugsnag dashboard.</h3>
+  <br>
+  <br>
+    <div id="python">
+        <a href="crash/" style="text-decoration:none;">
+          <button type="button">UNHANDLED ERROR</button>
+        </a>
+        <br>
+        <a href="/crashcallback" style="text-decoration:none;">
+          <button type="button">UNHANDLED WITH METADATA</button>
+        </a>
+        <br>
+        <a href="/handled" style="text-decoration:none;">
+          <button type="button">HANDLED ERROR</button>
+        </a>
+        <br>
+        <a href="/notifywithcontext" style="text-decoration:none;">
+          <button type="button">NOTIFICATION WITH CONTEXT</button>
+        </a>
+        <br>
+        <a href="/notifywithmetadata" style="text-decoration:none;">
+          <button type="button">NOTIFICATION WITH METADATA</button>
+        </a>
+    </div>
+<!-- review settings.py & views.py to see how bugsnag integrates with your app. -->
+  </body>
+  </html>

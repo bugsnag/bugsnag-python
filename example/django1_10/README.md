@@ -1,8 +1,10 @@
-# Bugsnag Django demo
+# Bugsnag Django 1.10+ demo
 
-This Django application demonstrates how to use Bugsnag with the Django web framework for Python.
+This Django application demonstrates how to use Bugsnag with the Django 1.10 web framework for Python 2+.
 
-Please note this particular example app will only work with Python 3+ and Django 2+, to showcase the most current configurations. Check out [this example](https://github.com/bugsnag/bugsnag-python/example/django1_10) to see the configuration for  Python 2 and Django 1.
+Please note that while our bugsnag-python notifier is compatible with more recent versions of Django and Python, this specific example app demonstrates how to configure Bugsnag with Django 1.10 (and subsequent versions prior to 2.0) and Python 2+ (prior to 3.0).  We have a separate example for Django 2+ with Python 3+, which can be viewed [here](https://github.com/bugsnag/bugsnag-python/example/django).
+
+We also support versions of Django prior to 1.10, with some configuration changes. See [our documentation](https://docs.bugsnag.com/platforms/python/django/#basic-configuration) for further details.
 
 ## Setup
 
@@ -12,9 +14,9 @@ To get set up, follow the instructions below. Don't forget to replace the placeh
 
 
 1. Clone the repo and `cd` into this directory:
-    ```shell
-    git clone https://github.com:bugsnag/bugsnag-python.git
-    cd bugsnag-python/example/django
+    ```sh
+    git clone https://github.com/bugsnag/bugsnag-python.git
+    cd bugsnag-python/example/django1_10
     ```
 
 1. Install dependencies
@@ -22,7 +24,7 @@ To get set up, follow the instructions below. Don't forget to replace the placeh
     pip install -r requirements.txt
     ```
 
-1. Before testing it, open up the [`settings.py`](bugsnag_demo/settings.py)
+1. Before testing it, open up the `settings.py`
     file and configure your API key.
 
 1. Confirm that Bugsnag middleware is added to the top of MIDDLEWARE in [`settings.py`](bugsnag_demo/settings.py)
@@ -33,7 +35,7 @@ To get set up, follow the instructions below. Don't forget to replace the placeh
     )
     ```
 
-1. Run the application. (Make sure to use any 3+ version of python.)
+1. Run the application.
     ```shell
     python manage.py runserver
     ```
