@@ -22,11 +22,11 @@ matrix:
   - python: 2.7
     env: TOXENV=py27-flask
   - python: 2.7
-    env: TOXENV=py27-django18-migrate-django
+    env: TOXENV=py27-django18-migrate1-django1
   - python: 2.7
-    env: TOXENV=py27-django19-migrate-django
+    env: TOXENV=py27-django19-migrate1-django1
   - python: 2.7
-    env: TOXENV=py27-django110-migrate-django
+    env: TOXENV=py27-django110-migrate1-django1
 
   - python: 3.3
     env: TOXENV=py33-test
@@ -49,11 +49,11 @@ matrix:
   - python: 3.5
     env: TOXENV=py35-wsgi
   - python: 3.5
-    env: TOXENV=py35-django18-migrate-django
+    env: TOXENV=py35-django18-migrate1-django1
   - python: 3.5
-    env: TOXENV=py35-django19-migrate-django
+    env: TOXENV=py35-django19-migrate1-django1
   - python: 3.5
-    env: TOXENV=py35-django110-migrate-django
+    env: TOXENV=py35-django110-migrate1-django1
   - python: 3.5
     env: TOXENV=py35-lint
 
