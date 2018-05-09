@@ -5,7 +5,7 @@ from tests.utils import IntegrationTest
 import django
 from django.test import Client
 
-EXAMPLE_PATH = os.path.join(__file__, '..', '..', '..', 'example', 'django')
+EXAMPLE_PATH = os.path.join(__file__, '..', '..', 'fixtures', 'django1')
 sys.path.append(os.path.abspath(EXAMPLE_PATH))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'bugsnag_demo.settings'
 
