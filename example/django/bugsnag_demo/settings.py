@@ -92,7 +92,7 @@ BUGSNAG = {
     # By default, requests are sent asynchronously. If you would like to block until the request is done, you can set to false.
     "asynchronous": False,
 
-    # if you track deploys or session rates, make sure to set the correct version.
+    # If you track deploys or session rates, make sure to set the correct version.
     "app_version": '1.2.3',
 
     # Defaults to false, this allows you to log each session which will be used to calculate crash rates in your dashboard for each release.

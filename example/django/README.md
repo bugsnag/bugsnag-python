@@ -13,7 +13,7 @@ To get set up, follow the instructions below. Don't forget to replace the placeh
 
 1. Clone the repo and `cd` into this directory:
     ```shell
-    git clone https://github.com:bugsnag/bugsnag-python.git
+    git clone https://github.com/bugsnag/bugsnag-python.git
     cd bugsnag-python/example/django
     ```
 
@@ -23,7 +23,7 @@ To get set up, follow the instructions below. Don't forget to replace the placeh
     ```
 
 1. Before testing it, open up the [`settings.py`](bugsnag_demo/settings.py)
-    file and configure your API key.
+    file and configure your API key within the `BUGSNAG` dictionary.
 
 1. Confirm that Bugsnag middleware is added to the top of MIDDLEWARE in [`settings.py`](bugsnag_demo/settings.py)
     ```shell
@@ -38,7 +38,6 @@ To get set up, follow the instructions below. Don't forget to replace the placeh
     python manage.py runserver
     ```
 
-1. View the example page which will (most likely) be served at: http://localhost:8000
+1. View the example page which will, by default, be served at: http://localhost:8000
 
-For more information, see our documentation:
-https://docs.bugsnag.com/platforms/python/django/
+For more information, see [our Django documentation](https://docs.bugsnag.com/platforms/python/django/).
