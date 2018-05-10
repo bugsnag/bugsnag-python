@@ -25,14 +25,14 @@ def notify(request):
 def notifymeta(request):
     metadivide(1, 0)
     return HttpResponse('The attached celery process has manually notified ' +
-        'bugnsag, and included some additional metadata')
+        'bugsnag, and included some additional metadata')
 
 def notifycontext(request):
     contextdivide(1, 0)
     return HttpResponse('The attached celery process has manually notified ' +
-        'bugnsag, and added a custom context')
+        'bugsnag, and added a custom context')
 
 def notifyseverity(request):
     severitydivide(1, 0)
     return HttpResponse('The attached celery process has manually notified ' +
-        'bugnsag, and set a specific severity level')
+        'bugsnag, and set a specific severity level')
