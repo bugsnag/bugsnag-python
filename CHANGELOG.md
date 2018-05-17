@@ -1,6 +1,13 @@
 Changelog
 =========
 
+## 3.4.3 (2018-05-17)
+
+### Fixes
+
+* Speed up SanitizingJSONEncoder on large objects
+  [#148](https://github.com/bugsnag/bugsnag-python/pull/148)
+
 ## 3.4.2 (2018-03-07)
 
 ### Fixes
