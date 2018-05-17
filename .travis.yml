@@ -31,6 +31,8 @@ matrix:
     env: TOXENV=py27-django19-migrate1-django1
   - python: 2.7
     env: TOXENV=py27-django110-migrate1-django1
+  - python: 2.7
+    env: TOXENV=py27-django111-migrate1-django1
 
   - python: 3.3
     env: TOXENV=py33-test
@@ -76,6 +78,12 @@ matrix:
     env: TOXENV=py36-django19-migrate1-django1
   - python: 3.6
     env: TOXENV=py36-django110-migrate1-django1
+  - python: 3.6
+    env: TOXENV=py36-django111-migrate1-django1
+  - python: 3.6
+    env: TOXENV=py36-django20-migrate1-django1
+  - python: 3.6
+    env: TOXENV=py36-django21-migrate1-django1
   - python: 3.6
     env: TOXENV=py36-lint
 
