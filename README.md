@@ -30,7 +30,7 @@ sent to your Bugsnag project. Learn more about [monitoring and reporting Python 
 
 * Check out the [configuration options](https://docs.bugsnag.com/platforms/python/configuration-options/)
 * [Search open and closed issues](https://github.com/bugsnag/bugsnag-python/issues?utf8=✓&q=is%3Aissue) for similar problems
-* [Report a bug or request a feature](https://github.com/bugsnag/bugsnag-python/issues/new)
+* [Report a bug or request a feature](https://github.com/bugsnag/bugsnag-python/issues/new/choose)
 
 
 ## Contributing
