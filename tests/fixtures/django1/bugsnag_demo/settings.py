@@ -10,6 +10,9 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+
+import django
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 
@@ -38,7 +41,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
 )
 
-MIDDLEWARE_CLASSES = (
+_MIDDLEWARE = (
     "bugsnag.django.middleware.BugsnagMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -47,6 +50,11 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware'
 )
+
+if django.VERSION >= (1, 10):
+    MIDDLEWARE = _MIDDLEWARE
+else:
+    MIDDLEWARE_CLASSES = _MIDDLEWARE
 
 ROOT_URLCONF = 'bugsnag_demo.urls'
 
