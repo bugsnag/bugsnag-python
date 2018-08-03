@@ -98,7 +98,7 @@ BUGSNAG = {
     "auto_capture_sessions": True,
 
     # Sets which exception classes should never be sent to Bugsnag.
-    "ignore_classes": ['Http404', 'DontCare'],
+    "ignore_classes": ['django.http.response.Http404', 'DontCare'],
 
     # Defines the release stage for all events that occur in this app.
     "release_stage": 'development',
