@@ -63,7 +63,11 @@ class Configuration(_BaseConfiguration):
         self.app_version = None
         self.params_filters = ["password", "password_confirmation", "cookie",
                                "authorization"]
-        self.ignore_classes = ["KeyboardInterrupt", "django.http.Http404"]
+        self.ignore_classes = [
+            "KeyboardInterrupt",
+            "django.http.Http404",
+            "django.http.response.Http404",
+        ]
         self.endpoint = "https://notify.bugsnag.com"
         self.session_endpoint = "https://sessions.bugsnag.com"
         self.auto_capture_sessions = False
