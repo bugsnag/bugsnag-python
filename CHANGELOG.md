@@ -1,6 +1,11 @@
 Changelog
 =========
 
+## 3.X.X (TBD)
+
+* Add django.http.response.Http404 to default ignore_classes
+  [#159](https://github.com/bugsnag/bugsnag-python/pull/159)
+
 ## 3.4.3 (2018-05-17)
 
 ### Fixes
