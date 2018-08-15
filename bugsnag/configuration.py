@@ -2,8 +2,8 @@ from __future__ import absolute_import, division, print_function
 
 import os
 import socket
+import sysconfig
 import warnings
-from distutils.sysconfig import get_python_lib
 
 from bugsnag.sessiontracker import SessionMiddleware
 from bugsnag.middleware import DefaultMiddleware, MiddlewareStack
@@ -58,7 +58,7 @@ class Configuration(_BaseConfiguration):
         self.asynchronous = True
         self.use_ssl = True  # Deprecated
         self.delivery = create_default_delivery()
-        self.lib_root = get_python_lib()
+        self.lib_root = sysconfig.get_path('purelib')
         self.project_root = os.getcwd()
         self.app_version = None
         self.params_filters = ["password", "password_confirmation", "cookie",
