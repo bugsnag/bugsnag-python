@@ -2,8 +2,14 @@ from __future__ import absolute_import, division, print_function
 
 import os
 import socket
+try:
+    import sysconfig
+
+    def get_python_lib(): sysconfig.get_path('purelib')
+except ImportError:
+    # Compatibility with Python 2.6
+    from distutils.sysconfig import get_python_lib
 import warnings
-from distutils.sysconfig import get_python_lib
 
 from bugsnag.sessiontracker import SessionMiddleware
 from bugsnag.middleware import DefaultMiddleware, MiddlewareStack
