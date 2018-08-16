@@ -2,7 +2,13 @@ from __future__ import absolute_import, division, print_function
 
 import os
 import socket
-import sysconfig
+try:
+    import sysconfig
+
+    def get_python_lib(): sysconfig.get_path('purelib')
+except ImportError:
+    # Compatibility with Python 2.6
+    from distutils.sysconfig import get_python_lib
 import warnings
 
 from bugsnag.sessiontracker import SessionMiddleware
@@ -58,7 +64,7 @@ class Configuration(_BaseConfiguration):
         self.asynchronous = True
         self.use_ssl = True  # Deprecated
         self.delivery = create_default_delivery()
-        self.lib_root = sysconfig.get_path('purelib')
+        self.lib_root = get_python_lib()
         self.project_root = os.getcwd()
         self.app_version = None
         self.params_filters = ["password", "password_confirmation", "cookie",
