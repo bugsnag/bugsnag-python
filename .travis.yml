@@ -64,6 +64,21 @@ matrix:
   - python: 3.5
     env: TOXENV=py35-lint
 
+  - python: 3.6
+    env: TOXENV=py36-test
+  - python: 3.6
+    env: TOXENV=py36-requests-test
+  - python: 3.6
+    env: TOXENV=py36-wsgi
+  - python: 3.6
+    env: TOXENV=py36-django18-migrate1-django1
+  - python: 3.6
+    env: TOXENV=py36-django19-migrate1-django1
+  - python: 3.6
+    env: TOXENV=py36-django110-migrate1-django1
+  - python: 3.6
+    env: TOXENV=py36-lint
+
 install: travis_retry pip install coveralls tox
 
 script:
