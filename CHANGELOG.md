@@ -1,6 +1,23 @@
 Changelog
 =========
 
+## 3.4.3 (2018-08-30)
+
+### Fixes
+
+* Speed up SanitizingJSONEncoder on large objects
+  [#148](https://github.com/bugsnag/bugsnag-python/pull/148)
+  [Jon Lund Steffensen](https://github.com/jonls)
+
+* Add django.http.response.Http404 to default ignore_classes
+  [#159](https://github.com/bugsnag/bugsnag-python/pull/159)
+  [Bruno Alla](https://github.com/browniebroke)
+
+* Remove dependency on dist_utils for modern python versions
+  [#161](https://github.com/bugsnag/bugsnag-python/pull/161)
+  [Chris Kuehl](https://github.com/chriskuehl)
+
+
 ## 3.4.2 (2018-03-07)
 
 ### Fixes
@@ -68,7 +85,7 @@ Changelog
 
 * Fixed context being overridden in flask notifier
   [#123](https://github.com/bugsnag/bugsnag-python/pull/123)
-  
+
 
 ## 3.1.1 (2017-06-08)
 
