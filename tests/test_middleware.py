@@ -2,6 +2,33 @@ import unittest
 
 from bugsnag.middleware import MiddlewareStack
 
+class TestMiddlewareClass(object):
+    def __init__(self, callback):
+        self.callback = callback
+        self.char = None
+
+    def __call__(self, item):
+        item.append(self.char)
+        self.callback(item)
+
+
+class TestMiddlewareClassA(TestMiddlewareClass):
+    def __init__(self, callback):
+        TestMiddlewareClass.__init__(self, callback)
+        self.char = 'A'
+
+
+class TestMiddlewareClassB(TestMiddlewareClass):
+    def __init__(self, callback):
+        TestMiddlewareClass.__init__(self, callback)
+        self.char = 'B'
+
+
+class TestMiddlewareClassC(TestMiddlewareClass):
+    def __init__(self, callback):
+        TestMiddlewareClass.__init__(self, callback)
+        self.char = 'C'
+
 
 class TestMiddleware(unittest.TestCase):
 
@@ -52,3 +79,47 @@ class TestMiddleware(unittest.TestCase):
         m.run(None, lambda: a.append(2))
 
         self.assertEqual(a, [2])
+
+    def test_insert_before_ordering(self):
+        a = []
+
+        m = MiddlewareStack()
+        m.append(TestMiddlewareClassA)
+        m.append(TestMiddlewareClassB)
+        m.insert_before(TestMiddlewareClassC, TestMiddlewareClassA.__name__)
+        m.run(a, lambda: None)
+
+        self.assertEqual(a, ['C', 'A', 'B'])
+
+    def test_insert_before_default_ordering(self):
+        a = []
+
+        m = MiddlewareStack()
+        m.append(TestMiddlewareClassA)
+        m.append(TestMiddlewareClassB)
+        m.insert_before(TestMiddlewareClassC, "Not present")
+        m.run(a, lambda: None)
+
+        self.assertEqual(a, ['A', 'B', 'C'])
+
+    def test_insert_after_ordering(self):
+        a = []
+
+        m = MiddlewareStack()
+        m.append(TestMiddlewareClassA)
+        m.append(TestMiddlewareClassB)
+        m.insert_after(TestMiddlewareClassC, TestMiddlewareClassA.__name__)
+        m.run(a, lambda: None)
+
+        self.assertEqual(a, ['A', 'C', 'B'])
+
+    def test_insert_after_default_ordering(self):
+        a = []
+
+        m = MiddlewareStack()
+        m.append(TestMiddlewareClassA)
+        m.append(TestMiddlewareClassB)
+        m.insert_after(TestMiddlewareClassC, "Not present")
+        m.run(a, lambda: None)
+
+        self.assertEqual(a, ['A', 'B', 'C'])
