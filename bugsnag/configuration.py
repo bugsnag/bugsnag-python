@@ -80,8 +80,10 @@ class Configuration(_BaseConfiguration):
         self.traceback_exclude_modules = []
 
         self.middleware = MiddlewareStack()
-        self.middleware.append(DefaultMiddleware)
-        self.middleware.append(SessionMiddleware)
+
+        self.internal_middleware = MiddlewareStack()
+        self.internal_middleware.append(DefaultMiddleware)
+        self.internal_middleware.append(SessionMiddleware)
 
         self.proxy_host = None
 
