@@ -29,6 +29,12 @@ class TestMiddlewareClassC(TestMiddlewareClass):
         TestMiddlewareClass.__init__(self, callback)
         self.char = 'C'
 
+class TestMiddlewareReturning(object):
+    def __init__(self, callback):
+        pass
+
+    def __call__(self, item):
+        return
 
 class TestMiddleware(unittest.TestCase):
 
@@ -86,10 +92,10 @@ class TestMiddleware(unittest.TestCase):
         m = MiddlewareStack()
         m.append(TestMiddlewareClassA)
         m.append(TestMiddlewareClassB)
-        m.insert_before(TestMiddlewareClassC, TestMiddlewareClassA.__name__)
-        m.run(a, lambda: None)
+        m.insert_before(TestMiddlewareClassC, "TestMiddlewareClassA")
+        m.run(a, lambda: a.append('Callback'))
 
-        self.assertEqual(a, ['C', 'A', 'B'])
+        self.assertEqual(a, ['C', 'A', 'B', 'Callback'])
 
     def test_insert_before_default_ordering(self):
         a = []
@@ -98,9 +104,9 @@ class TestMiddleware(unittest.TestCase):
         m.append(TestMiddlewareClassA)
         m.append(TestMiddlewareClassB)
         m.insert_before(TestMiddlewareClassC, "Not present")
-        m.run(a, lambda: None)
+        m.run(a, lambda: a.append('Callback'))
 
-        self.assertEqual(a, ['A', 'B', 'C'])
+        self.assertEqual(a, ['A', 'B', 'C', 'Callback'])
 
     def test_insert_after_ordering(self):
         a = []
@@ -108,10 +114,10 @@ class TestMiddleware(unittest.TestCase):
         m = MiddlewareStack()
         m.append(TestMiddlewareClassA)
         m.append(TestMiddlewareClassB)
-        m.insert_after(TestMiddlewareClassC, TestMiddlewareClassA.__name__)
-        m.run(a, lambda: None)
+        m.insert_after(TestMiddlewareClassC, "TestMiddlewareClassA")
+        m.run(a, lambda: a.append('Callback'))
 
-        self.assertEqual(a, ['A', 'C', 'B'])
+        self.assertEqual(a, ['A', 'C', 'B', 'Callback'])
 
     def test_insert_after_default_ordering(self):
         a = []
@@ -120,6 +126,17 @@ class TestMiddleware(unittest.TestCase):
         m.append(TestMiddlewareClassA)
         m.append(TestMiddlewareClassB)
         m.insert_after(TestMiddlewareClassC, "Not present")
-        m.run(a, lambda: None)
+        m.run(a, lambda: a.append('Callback'))
 
-        self.assertEqual(a, ['A', 'B', 'C'])
+        self.assertEqual(a, ['A', 'B', 'C', 'Callback'])
+
+    def test_callback_not_run_if_middleware_returns(self):
+        a = []
+
+        m = MiddlewareStack()
+        m.append(TestMiddlewareClassA)
+        m.append(TestMiddlewareReturning)
+        m.append(TestMiddlewareClassB)
+        m.run(a, lambda: a.append('Callback'))
+
+        self.assertEqual(a, ['A'])
