@@ -567,13 +567,33 @@ class TestBugsnag(IntegrationTest):
             "type": "userCallbackSetSeverity"
         })
 
+    def test_middleware_stack_order_legacy(self):
+        def first_callback(notification):
+            notification.meta_data['test']['array'].append(1)
+
+        def second_callback(notification):
+            notification.meta_data['test']['array'].append(2)
+
+        # Simulate an internal middleware
+        bugsnag.legacy.configuration.internal_middleware.before_notify(
+                first_callback)
+        # Add a regular callback function
+        bugsnag.before_notify(second_callback)
+
+        bugsnag.notify(ScaryException('unexpected failover'),
+                       test={'array': []})
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+
+        self.assertEqual(event['metaData']['test']['array'], [1, 2])
+
     def test_middleware_stack_order(self):
         client = bugsnag.Client(use_ssl=False,
-                          endpoint=self.server.address,
-                          api_key='tomatoes',
-                          notify_release_stages=['dev'],
-                          release_stage='dev',
-                          asynchronous=False)
+                                endpoint=self.server.address,
+                                api_key='tomatoes',
+                                notify_release_stages=['dev'],
+                                release_stage='dev',
+                                asynchronous=False)
 
         def first_callback(notification):
             notification.meta_data['test']['array'].append(1)
