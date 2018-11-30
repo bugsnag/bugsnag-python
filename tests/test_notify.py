@@ -611,6 +611,72 @@ class TestBugsnag(IntegrationTest):
 
         self.assertEqual(event['metaData']['test']['array'], [1, 2])
 
+    def test_internal_middleware_changes_severity(self):
+        client = bugsnag.Client(use_ssl=False,
+                                endpoint=self.server.address,
+                                api_key='tomatoes',
+                                notify_release_stages=['dev'],
+                                release_stage='dev',
+                                asynchronous=False)
+
+        def severity_callback(notification):
+            notification.severity = 'info'
+
+        client.configuration.internal_middleware.before_notify(severity_callback)
+
+        client.notify(ScaryException('unexpected failover'))
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+
+        self.assertEqual(event['severity'], 'info')
+        self.assertEqual(event['severityReason']['type'], 'handledException')
+
+    def test_internal_middleware_can_change_severity_reason(self):
+        client = bugsnag.Client(use_ssl=False,
+                                endpoint=self.server.address,
+                                api_key='tomatoes',
+                                notify_release_stages=['dev'],
+                                release_stage='dev',
+                                asynchronous=False)
+
+        def severity_reason_callback(notification):
+            notification.severity_reason['type'] = 'testReason'
+
+        client.configuration.internal_middleware.before_notify(severity_reason_callback)
+
+        client.notify(ScaryException('unexpected failover'))
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+
+        self.assertEqual(event['severityReason']['type'], 'testReason')
+
+    def test_external_middleware_can_change_severity(self):
+
+        def severity_callback(notification):
+            notification.severity = 'info'
+
+        bugsnag.before_notify(severity_callback)
+
+        bugsnag.notify(ScaryException('unexpected failover'))
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+
+        self.assertEqual(event['severity'], 'info')
+        self.assertEqual(event['severityReason']['type'], 'userCallbackSetSeverity')
+
+    def test_external_middleware_cannot_change_severity_reason(self):
+
+        def severity_reason_callback(notification):
+            notification.severity_reason['type'] = 'testReason'
+
+        bugsnag.before_notify(severity_reason_callback)
+
+        bugsnag.notify(ScaryException('unexpected failover'))
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+
+        self.assertEqual(event['severityReason']['type'], 'handledException')
+
     def test_auto_notify_defaults(self):
         bugsnag.auto_notify(ScaryException("unexpected failover"))
 

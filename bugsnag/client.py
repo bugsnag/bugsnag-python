@@ -146,7 +146,7 @@ class Client(object):
                 self.session_tracker.send_sessions()
 
             initial_severity = notification.severity
-            initial_reason = notification.severity_reason
+            initial_reason = notification.severity_reason.copy()
             self.configuration.middleware.run(notification, send_payload)
 
         self.configuration.internal_middleware.run(notification,
