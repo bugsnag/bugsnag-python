@@ -25,7 +25,7 @@ def add_flask_request_to_notification(notification):
 
 
 def handle_exceptions(app):
-    bugsnag.before_notify(add_flask_request_to_notification)
+    bugsnag.legacy.configuration.internal_middleware.before_notify(add_flask_request_to_notification)
     got_request_exception.connect(__log_exception, app)
     request_started.connect(__track_session, app)
 

@@ -66,7 +66,7 @@ def configure():
     django_bugsnag_settings = getattr(settings, 'BUGSNAG', {})
     bugsnag.configure(**django_bugsnag_settings)
 
-    bugsnag.before_notify(add_django_request_to_notification)
+    bugsnag.legacy.configuration.internal_middleware.before_notify(add_django_request_to_notification)
 
 
 def __track_session(sender, **extra):
