@@ -104,7 +104,7 @@ class MiddlewareStack(object):
         """
         self.stack.append(middleware)
 
-    def insert_before(self, middleware, target_class):
+    def insert_before(self, target_class, middleware):
         """
         Adds a middleware to the stack in the position before
         the target_class.
@@ -115,7 +115,7 @@ class MiddlewareStack(object):
         else:
             self.append(middleware)
 
-    def insert_after(self, middleware, target_class):
+    def insert_after(self, target_class, middleware):
         """
         Adds a middleware to the stack in the position after
         the target_class.
