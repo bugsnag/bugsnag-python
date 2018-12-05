@@ -132,7 +132,7 @@ class MiddlewareStack(object):
         Returns -1 if not present.
         """
         for index, item in enumerate(self.stack):
-            if item.__name__ == target_class:
+            if item == target_class:
                 return index
         return -1
 
