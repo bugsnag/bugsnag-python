@@ -574,11 +574,12 @@ class TestBugsnag(IntegrationTest):
         def second_callback(notification):
             notification.meta_data['test']['array'].append(2)
 
+        # Add a regular callback function
+        bugsnag.before_notify(second_callback)
+
         # Simulate an internal middleware
         bugsnag.legacy.configuration.internal_middleware.before_notify(
                 first_callback)
-        # Add a regular callback function
-        bugsnag.before_notify(second_callback)
 
         bugsnag.notify(ScaryException('unexpected failover'),
                        test={'array': []})
@@ -601,8 +602,8 @@ class TestBugsnag(IntegrationTest):
         def second_callback(notification):
             notification.meta_data['test']['array'].append(2)
 
-        client.configuration.internal_middleware.before_notify(first_callback)
         client.configuration.middleware.before_notify(second_callback)
+        client.configuration.internal_middleware.before_notify(first_callback)
 
         client.notify(ScaryException('unexpected failover'),
                        test={'array':[]})

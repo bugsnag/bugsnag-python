@@ -13,7 +13,7 @@ def configure(**options):
     """
     Configure the Bugsnag notifier application-wide settings.
     """
-    configuration.configure(**options)
+    return configuration.configure(**options)
 
 
 def configure_request(**options):

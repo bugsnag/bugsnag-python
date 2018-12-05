@@ -125,6 +125,9 @@ class Client(object):
             return
 
         def run_middleware():
+            initial_severity = notification.severity
+            initial_reason = notification.severity_reason.copy()
+
             def send_payload():
                 if notification.api_key is None:
                     bugsnag.logger.warning(
@@ -145,8 +148,6 @@ class Client(object):
                 # Trigger session delivery
                 self.session_tracker.send_sessions()
 
-            initial_severity = notification.severity
-            initial_reason = notification.severity_reason.copy()
             self.configuration.middleware.run(notification, send_payload)
 
         self.configuration.internal_middleware.run(notification,
