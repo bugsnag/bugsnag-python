@@ -48,12 +48,15 @@ class TestNotification(unittest.TestCase):
         self.assertEqual(code[str(line - 3)], lvl + "\"\"\"")
         self.assertEqual(code[str(line - 2)], lvl + "config = Configuration()")
         self.assertEqual(code[str(line - 1)],
-                lvl + "line = inspect.currentframe().f_lineno + 1")
-        self.assertEqual(code[str(line)], lvl +
-                "notification = Notification(Exception(\"oops\"), config, {})")
+                         lvl + "line = inspect.currentframe().f_lineno + 1")
+        self.assertEqual(
+            code[str(line)],
+            lvl +
+            "notification = Notification(Exception(\"oops\"), config, {})"
+            )
         self.assertEqual(code[str(line + 1)], "")
         self.assertEqual(code[str(line + 2)],
-                lvl + "payload = json.loads(notification._payload())")
+                         lvl + "payload = json.loads(notification._payload())")
         self.assertEqual(code[str(line + 3)], "")
 
     def test_code_at_start_of_file(self):
@@ -65,7 +68,8 @@ class TestNotification(unittest.TestCase):
         payload = json.loads(notification._payload())
 
         code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
-        self.assertEqual({'1': '# flake8: noqa',
+        self.assertEqual(
+            {'1': '# flake8: noqa',
              '2': 'try:',
              '3': '    import sys; raise Exception("start")',
              '4': 'except Exception: start_of_file = sys.exc_info()',
@@ -82,7 +86,8 @@ class TestNotification(unittest.TestCase):
         payload = json.loads(notification._payload())
 
         code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
-        self.assertEqual({'6':  '# 5',
+        self.assertEqual(
+            {'6':  '# 5',
              '7':  '# 6',
              '8':  '# 7',
              '9':  '# 8',
@@ -108,7 +113,8 @@ class TestNotification(unittest.TestCase):
         notification = helpers.invoke_exception_on_other_file(config)
 
         payload = json.loads(notification._payload())
-        first_traceback = payload['events'][0]['exceptions'][0]['stacktrace'][0]
+        exception = payload['events'][0]['exceptions'][0]
+        first_traceback = exception['stacktrace'][0]
 
         self.assertEqual(first_traceback['file'], 'fixtures/helpers.py')
 
@@ -118,7 +124,7 @@ class TestNotification(unittest.TestCase):
         py_compile.compile('./fixtures/helpers.py')
 
         from tests.fixtures import helpers
-        reload(helpers)  # The .py variation might be loaded from previous test.
+        reload(helpers)  # .py variation might be loaded from previous test.
 
         if sys.version_info < (3, 0):
             # Python 2.6 & 2.7 returns the cached file on __file__,
@@ -132,5 +138,6 @@ class TestNotification(unittest.TestCase):
         notification = helpers.invoke_exception_on_other_file(config)
 
         payload = json.loads(notification._payload())
-        first_traceback = payload['events'][0]['exceptions'][0]['stacktrace'][0]
+        exception = payload['events'][0]['exceptions'][0]
+        first_traceback = exception['stacktrace'][0]
         self.assertEqual(first_traceback['file'], 'test_notification.py')
