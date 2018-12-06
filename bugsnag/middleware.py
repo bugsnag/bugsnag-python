@@ -109,10 +109,10 @@ class MiddlewareStack(object):
         Adds a middleware to the stack in the position before
         the target_class.
         """
-        index = self._find_class_index(target_class)
-        if index >= 0:
+        try:
+            index = self.stack.index(target_class)
             self.stack.insert(index, middleware)
-        else:
+        except ValueError:
             self.append(middleware)
 
     def insert_after(self, target_class, middleware):
@@ -120,21 +120,11 @@ class MiddlewareStack(object):
         Adds a middleware to the stack in the position after
         the target_class.
         """
-        index = self._find_class_index(target_class)
-        if index >= 0:
+        try:
+            index = self.stack.index(target_class)
             self.stack.insert(index + 1, middleware)
-        else:
+        except ValueError:
             self.append(middleware)
-
-    def _find_class_index(self, target_class):
-        """
-        Locates the index of the target class in the stack.
-        Returns -1 if not present.
-        """
-        for index, item in enumerate(self.stack):
-            if item == target_class:
-                return index
-        return -1
 
     def run(self, notification, callback):
         """
