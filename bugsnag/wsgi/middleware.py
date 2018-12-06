@@ -85,7 +85,8 @@ class BugsnagMiddleware(object):
     """
 
     def __init__(self, application):
-        bugsnag.configure().internal_middleware.before_notify(add_wsgi_request_data_to_notification)
+        middleware = bugsnag.configure().internal_middleware
+        middleware.before_notify(add_wsgi_request_data_to_notification)
         self.application = application
 
     def __call__(self, environ, start_response):

@@ -2,6 +2,7 @@ import unittest
 
 from bugsnag.middleware import MiddlewareStack
 
+
 class TestMiddlewareClass(object):
     def __init__(self, callback):
         self.callback = callback
@@ -29,12 +30,14 @@ class TestMiddlewareClassC(TestMiddlewareClass):
         TestMiddlewareClass.__init__(self, callback)
         self.char = 'C'
 
+
 class TestMiddlewareReturning(object):
     def __init__(self, callback):
         pass
 
     def __call__(self, item):
         return
+
 
 class TestMiddleware(unittest.TestCase):
 

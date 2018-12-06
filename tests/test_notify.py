@@ -606,7 +606,7 @@ class TestBugsnag(IntegrationTest):
         client.configuration.internal_middleware.before_notify(first_callback)
 
         client.notify(ScaryException('unexpected failover'),
-                       test={'array':[]})
+                      test={'array': []})
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
 
@@ -623,7 +623,8 @@ class TestBugsnag(IntegrationTest):
         def severity_callback(notification):
             notification.severity = 'info'
 
-        client.configuration.internal_middleware.before_notify(severity_callback)
+        internal_middleware = client.configuration.internal_middleware
+        internal_middleware.before_notify(severity_callback)
 
         client.notify(ScaryException('unexpected failover'))
         json_body = self.server.received[0]['json_body']
@@ -643,7 +644,8 @@ class TestBugsnag(IntegrationTest):
         def severity_reason_callback(notification):
             notification.severity_reason['type'] = 'testReason'
 
-        client.configuration.internal_middleware.before_notify(severity_reason_callback)
+        internal_middleware = client.configuration.internal_middleware
+        internal_middleware.before_notify(severity_reason_callback)
 
         client.notify(ScaryException('unexpected failover'))
         json_body = self.server.received[0]['json_body']
@@ -663,7 +665,8 @@ class TestBugsnag(IntegrationTest):
         event = json_body['events'][0]
 
         self.assertEqual(event['severity'], 'info')
-        self.assertEqual(event['severityReason']['type'], 'userCallbackSetSeverity')
+        self.assertEqual(event['severityReason']['type'],
+                         'userCallbackSetSeverity')
 
     def test_external_middleware_cannot_change_severity_reason(self):
 
