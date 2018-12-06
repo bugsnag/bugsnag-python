@@ -2,6 +2,7 @@ twine
 wheel
 
 tox
+idna < 2.8
 nose-cov
 coveralls
 flake8
