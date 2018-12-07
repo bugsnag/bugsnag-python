@@ -124,31 +124,34 @@ class Client(object):
         if not self.should_deliver(notification):
             return
 
-        initial_severity = notification.severity
-        initial_reason = notification.severity_reason
+        def run_middleware():
+            initial_severity = notification.severity
+            initial_reason = notification.severity_reason.copy()
 
-        def send_payload():
-            if notification.api_key is None:
-                bugsnag.logger.warning(
-                    "No API key configured, couldn't notify")
-                return
+            def send_payload():
+                if notification.api_key is None:
+                    bugsnag.logger.warning(
+                        "No API key configured, couldn't notify")
+                    return
+                if initial_severity != notification.severity:
+                    notification.severity_reason = {
+                        'type': 'userCallbackSetSeverity'
+                    }
+                else:
+                    notification.severity_reason = initial_reason
+                payload = notification._payload()
+                try:
+                    self.configuration.delivery.deliver(self.configuration,
+                                                        payload)
+                except Exception as e:
+                    bugsnag.logger.exception('Notifying Bugsnag failed %s', e)
+                # Trigger session delivery
+                self.session_tracker.send_sessions()
 
-            if initial_severity != notification.severity:
-                notification.severity_reason = {
-                    'type': 'userCallbackSetSeverity'
-                }
-            else:
-                notification.severity_reason = initial_reason
-            payload = notification._payload()
-            try:
-                self.configuration.delivery.deliver(self.configuration,
-                                                    payload)
-            except Exception as e:
-                bugsnag.logger.exception('Notifying Bugsnag failed %s', e)
-            # Trigger session delivery
-            self.session_tracker.send_sessions()
+            self.configuration.middleware.run(notification, send_payload)
 
-        self.configuration.middleware.run(notification, send_payload)
+        self.configuration.internal_middleware.run(notification,
+                                                   run_middleware)
 
     def should_deliver(self, notification):  # type: (Notification) -> bool
         # Return early if we shouldn't notify for current release stage

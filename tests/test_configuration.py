@@ -3,6 +3,8 @@ import socket
 import unittest
 
 from bugsnag.configuration import Configuration
+from bugsnag.middleware import DefaultMiddleware
+from bugsnag.sessiontracker import SessionMiddleware
 
 
 class TestConfiguration(unittest.TestCase):
@@ -97,3 +99,9 @@ class TestConfiguration(unittest.TestCase):
         c = Configuration()
         self.assertEqual(c.auto_capture_sessions, False)
         self.assertEqual(c.session_endpoint, "https://sessions.bugsnag.com")
+
+    def test_default_middleware_location(self):
+        c = Configuration()
+        self.assertEqual(c.internal_middleware.stack,
+                         [DefaultMiddleware, SessionMiddleware])
+        self.assertEqual(len(c.middleware.stack), 0)
