@@ -102,5 +102,6 @@ class TestConfiguration(unittest.TestCase):
 
     def test_default_middleware_location(self):
         c = Configuration()
-        self.assertEqual(c.internal_middleware.stack, [DefaultMiddleware, SessionMiddleware])
+        self.assertEqual(c.internal_middleware.stack,
+                         [DefaultMiddleware, SessionMiddleware])
         self.assertEqual(len(c.middleware.stack), 0)
