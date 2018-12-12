@@ -1,6 +1,14 @@
 Changelog
 =========
 
+## 3.5.0 (2018-12-12)
+
+### Enhancements
+
+* Separate middleware stacks
+  [#166](https://github.com/bugsnag/bugsnag-python/pull/166)
+
+
 ## 3.4.3 (2018-08-30)
 
 ### Fixes
