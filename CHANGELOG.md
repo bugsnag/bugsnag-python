@@ -6,7 +6,7 @@ Changelog
 ### Enhancements
 
 * Separate middleware stacks, ensuring Bugsnag middleware is always run before
-  user-added middleware
+  user-added middleware, giving user callbacks full control over captured data.
   [#166](https://github.com/bugsnag/bugsnag-python/pull/166)
 
 
