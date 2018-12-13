@@ -5,7 +5,8 @@ Changelog
 
 ### Enhancements
 
-* Separate middleware stacks
+* Separate middleware stacks, ensuring Bugsnag middleware is always run before
+  user-added middleware
   [#166](https://github.com/bugsnag/bugsnag-python/pull/166)
 
 
