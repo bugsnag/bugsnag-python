@@ -104,6 +104,28 @@ class MiddlewareStack(object):
         """
         self.stack.append(middleware)
 
+    def insert_before(self, target_class, middleware):
+        """
+        Adds a middleware to the stack in the position before
+        the target_class.
+        """
+        try:
+            index = self.stack.index(target_class)
+            self.stack.insert(index, middleware)
+        except ValueError:
+            self.append(middleware)
+
+    def insert_after(self, target_class, middleware):
+        """
+        Adds a middleware to the stack in the position after
+        the target_class.
+        """
+        try:
+            index = self.stack.index(target_class)
+            self.stack.insert(index + 1, middleware)
+        except ValueError:
+            self.append(middleware)
+
     def run(self, notification, callback):
         """
         Run all the middleware in order, then call the callback.

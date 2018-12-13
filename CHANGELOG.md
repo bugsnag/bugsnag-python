@@ -1,6 +1,15 @@
 Changelog
 =========
 
+## 3.5.0 (2018-12-13)
+
+### Enhancements
+
+* Separate middleware stacks, ensuring Bugsnag middleware is always run before
+  user-added middleware, giving user callbacks full control over captured data.
+  [#166](https://github.com/bugsnag/bugsnag-python/pull/166)
+
+
 ## 3.4.3 (2018-08-30)
 
 ### Fixes
