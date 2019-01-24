@@ -2,6 +2,8 @@ import unittest
 import json
 import timeit
 import sys
+import datetime
+import re
 
 from six import u
 from bugsnag.utils import SanitizingJSONEncoder, FilterDict, ThreadLocals
@@ -184,3 +186,32 @@ encoder.encode(data)
         encoder = SanitizingJSONEncoder()
         # no assert as we are just expecting this not to throw
         encoder._sanitize(data, ['password'], ['password'])
+
+    def test_json_encode_invalid_keys(self):
+        """
+        Test that _sanitize can accept some invalid json where a function
+        name or some other bad data is passed as a key in the payload
+        dictionary.
+        """
+        encoder = SanitizingJSONEncoder(keyword_filters=[])
+
+        def foo():
+            return "123"
+
+        result = json.loads(encoder.encode({foo: "a"}))
+        self.assertTrue(re.match(r'<function.*foo.*',
+                                 list(result.keys())[0]) is not None)
+        self.assertEqual(list(result.values()), ["a"])
+
+        now = datetime.datetime.now()
+        result = json.loads(encoder.encode({now: "a"}))
+        self.assertEqual(list(result.keys())[0], str(now))
+        self.assertEqual(list(result.values()), ["a"])
+
+        class Object(object):
+            pass
+
+        result = json.loads(encoder.encode({Object(): "a"}))
+        self.assertTrue(re.match(r'<tests.test_utils.*Object.*',
+                                 list(result.keys())[0]) is not None)
+        self.assertEqual(list(result.values()), ["a"])

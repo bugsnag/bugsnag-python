@@ -108,6 +108,21 @@ class SanitizingJSONEncoder(JSONEncoder):
         else:
             return obj
 
+    def _sanitize_dict_key_value(self, clean_dict, key, clean_value):
+        """
+        Safely sets the provided key on the dictionary by coercing the key
+        to a string
+        """
+        if isinstance(key, six.string_types):
+            clean_dict[key] = clean_value
+        else:
+            try:
+                clean_dict[str(key)] = clean_value
+            except Exception:
+                bugsnag.logger.exception(
+                    'Could not add sanitize key for dictionary, '
+                    'dropping value.')
+
     def _sanitize_dict(self, obj, trim_strings, ignored):
         """
         Trim individual values in an object, applying filtering if the object
@@ -118,7 +133,10 @@ class SanitizingJSONEncoder(JSONEncoder):
 
         clean_dict = {}
         for key, value in six.iteritems(obj):
-            clean_dict[key] = self._sanitize(value, trim_strings, ignored)
+
+            clean_value = self._sanitize(value, trim_strings, ignored)
+
+            self._sanitize_dict_key_value(clean_dict, key, clean_value)
 
         return clean_dict
 
