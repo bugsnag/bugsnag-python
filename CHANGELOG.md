@@ -1,6 +1,17 @@
 Changelog
 =========
 
+## 3.5.1 (2019-02-04)
+
+### Fixes
+
+* Ensure metadata keys are safely stringified before serialization
+  [Brock Haywood](https://github.com/brockhaywood)
+  [#163](https://github.com/bugsnag/bugsnag-python/pull/163)
+
+* Remove non-essential packages from distribution
+  [#173](https://github.com/bugsnag/bugsnag-python/pull/173)
+
 ## 3.5.0 (2018-12-13)
 
 ### Enhancements

@@ -23,7 +23,7 @@ class _BaseConfiguration(object):
         Get a single configuration option, using values from overrides
         first if they exist.
         """
-        if name is 'use_ssl':
+        if name == 'use_ssl':
             warnings.warn('use_ssl is deprecated in favor of including the '
                           'protocol in the endpoint property and will be '
                           'removed in a future release',
@@ -39,7 +39,7 @@ class _BaseConfiguration(object):
         Set one or more configuration settings.
         """
         for name, value in options.items():
-            if name is 'use_ssl':
+            if name == 'use_ssl':
                 warnings.warn('use_ssl is deprecated in favor of including '
                               'the protocol in the endpoint property and will '
                               'be removed in a future release',
