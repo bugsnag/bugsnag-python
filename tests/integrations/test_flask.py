@@ -114,6 +114,26 @@ class TestFlask(IntegrationTest):
         self.assertEqual(event['metaData']['request']['data'],
                          dict(key='value'))
 
+    def test_bugsnag_includes_request_when_json_malformed(self):
+        app = Flask("bugsnag")
+
+        @app.route("/ajax", methods=["POST"])
+        def hello():
+            raise SentinelError("oops")
+
+        handle_exceptions(app)
+        app.test_client().post(
+            '/ajax', data='{"key": "value"', content_type='application/json')
+        self.assertEqual(1, len(self.server.received))
+        payload = self.server.received[0]['json_body']
+        event = payload['events'][0]
+        self.assertEqual(event['exceptions'][0]['errorClass'],
+                         'test_flask.SentinelError')
+        self.assertEqual(event['metaData']['request']['url'],
+                         'http://localhost/ajax')
+        self.assertEqual(event['metaData']['request']['data']['body'],
+                         '{"key": "value"')
+
     def test_bugsnag_add_metadata_tab(self):
         app = Flask("bugsnag")
 
