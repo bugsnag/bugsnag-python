@@ -20,7 +20,7 @@ def add_flask_request_to_notification(notification):
         "url": request.base_url,
         "headers": dict(request.headers),
         "params": dict(request.form),
-        "data": request.get_json() or dict(body=request.data)
+        "data": request.get_json(silent=True) or dict(body=request.data)
     })
 
 

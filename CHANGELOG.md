@@ -1,6 +1,14 @@
 Changelog
 =========
 
+## TBD
+
+### Fixes
+
+* Ensure `request` tab is attached to Flask requests when JSON data is malformed
+  or otherwise cannot be read at crash time
+  [#176](https://github.com/bugsnag/bugsnag-python/pull/176)
+
 ## 3.5.1 (2019-02-04)
 
 ### Fixes
