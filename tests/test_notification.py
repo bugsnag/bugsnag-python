@@ -141,3 +141,18 @@ class TestNotification(unittest.TestCase):
         exception = payload['events'][0]['exceptions'][0]
         first_traceback = exception['stacktrace'][0]
         self.assertEqual(first_traceback['file'], 'test_notification.py')
+
+    def test_device_data(self):
+        """
+            It should include device data
+        """
+        config = Configuration()
+        config.hostname = 'test_host_name'
+        config.runtime_versions = {'python': '9.9.9'}
+        notification = Notification(Exception("oops"), config, {})
+
+        payload = json.loads(notification._payload())
+
+        device = payload['events'][0]['device']
+        self.assertEqual('test_host_name', device['hostname'])
+        self.assertEqual('9.9.9', device['runtimeVersions']['python'])

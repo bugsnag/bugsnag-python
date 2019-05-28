@@ -9,6 +9,11 @@ Changelog
   due to over-aggressive object id matching
   [#181](https://github.com/bugsnag/bugsnag-python/pull/181)
 
+### Enhancements
+
+* Add Python version string to report and session payloads (device.runtimeVersions)
+  [#179](https://github.com/bugsnag/bugsnag-python/pull/179)
+
 ## 3.5.2 (2019-03-15)
 
 ### Fixes

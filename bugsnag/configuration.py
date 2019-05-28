@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
 import os
+import platform
 import socket
 try:
     import sysconfig
@@ -91,6 +92,8 @@ class Configuration(_BaseConfiguration):
             self.hostname = socket.gethostname()
         else:
             self.hostname = None
+
+        self.runtime_versions = {"python": str(platform.python_version())}
 
     def should_notify(self):  # type: () -> bool
         return self.notify_release_stages is None or \

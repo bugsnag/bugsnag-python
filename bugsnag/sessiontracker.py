@@ -107,6 +107,7 @@ class SessionTracker(object):
             },
             'device': FilterDict({
                 'hostname': self.config.get('hostname'),
+                'runtimeVersions': self.config.get('runtime_versions')
             }),
             'app': {
                 'releaseStage': self.config.get('release_stage'),
