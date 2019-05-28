@@ -51,6 +51,7 @@ class Notification(object):
         self.release_stage = get_config("release_stage")
         self.app_version = get_config("app_version")
         self.hostname = get_config("hostname")
+        self.runtime_versions = get_config("runtime_versions")
         self.send_code = get_config("send_code")
 
         self.context = options.pop("context", None)
@@ -242,7 +243,8 @@ class Notification(object):
                 "metaData": FilterDict(self.meta_data),
                 "user": FilterDict(self.user),
                 "device": FilterDict({
-                    "hostname": self.hostname
+                    "hostname": self.hostname,
+                    "runtimeVersions": self.runtime_versions
                 }),
                 "projectRoot": self.config.get("project_root"),
                 "libRoot": self.config.get("lib_root"),

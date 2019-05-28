@@ -1,3 +1,4 @@
+import platform
 import time
 
 from bugsnag import Client
@@ -94,6 +95,9 @@ class TestConfiguration(IntegrationTest):
         self.assertTrue('hostname' in device)
         self.assertEqual(device['hostname'],
                          client.configuration.get('hostname'))
+        self.assertTrue('runtimeVersions' in device)
+        self.assertEqual(device['runtimeVersions']['python'],
+                         platform.python_version())
 
     def test_session_middleware_attaches_session_to_notification(self):
         client = Client(
