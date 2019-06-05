@@ -1,5 +1,5 @@
 # Bugsnag exception reporter for Python
-[![Build status](https://travis-ci.org/bugsnag/bugsnag-python.svg?branch=master)](https://travis-ci.org/bugsnag/bugsnag-python)
+[![Build status](https://img.shields.io/travis/bugsnag/bugsnag-python/master.svg?style=flat-square)](https://travis-ci.com/bugsnag/bugsnag-python)
 [![Documentation](https://img.shields.io/badge/documentation-latest-blue.svg)](https://docs.bugsnag.com/platforms/python/)
 
 The Bugsnag exception reporter for Python automatically detects and reports
