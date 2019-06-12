@@ -30,6 +30,7 @@ class SanitizingJSONEncoder(JSONEncoder):
         super(SanitizingJSONEncoder, self).__init__(**kwargs)
 
     def encode(self, obj):
+        print('=> encode')
         safe_obj = self._sanitize(obj, False)
         payload = super(SanitizingJSONEncoder, self).encode(safe_obj)
         if len(payload) > MAX_PAYLOAD_LENGTH:
@@ -42,6 +43,7 @@ class SanitizingJSONEncoder(JSONEncoder):
         """
         Remove any value from the dictionary which match the key filters
         """
+        print('=> filter_string_values: ' + str(obj))
         if not ignored:
             ignored = set()
 
@@ -49,13 +51,15 @@ class SanitizingJSONEncoder(JSONEncoder):
             ignored = set(ignored)
 
         if id(obj) in ignored:
+            print('!!!!! Recursive: ' + str(id(obj)) + ' -> ' + str(obj))
             return self.recursive_value
 
         if isinstance(obj, dict):
             ignored.add(id(obj))
+            print('***** Added: ' + str(id(obj)) + ' -> ' + str(obj))
 
             clean_dict = {}
-            for key, value in six.iteritems(obj):
+            for key, value in sorted(six.iteritems(obj)):
                 is_string = isinstance(key, six.string_types)
                 if is_string and any(f in key.lower() for f in self.filters):
                     clean_dict[key] = self.filtered_value
@@ -86,6 +90,7 @@ class SanitizingJSONEncoder(JSONEncoder):
         Replace recursive values and trim strings longer than
         MAX_STRING_LENGTH
         """
+        print('=> _sanitize: ' + str(obj))
         if not ignored:
             ignored = set()
 
@@ -93,14 +98,17 @@ class SanitizingJSONEncoder(JSONEncoder):
             ignored = set(ignored)
 
         if id(obj) in ignored:
+            print('!!!!! Recursive: ' + str(id(obj)) + ' -> ' + str(obj))
             return self.recursive_value
         elif isinstance(obj, dict):
             ignored.add(id(obj))
+            print('***** Added: ' + str(id(obj)) + ' -> ' + str(obj))
             return self._sanitize_dict(obj, trim_strings, ignored)
         elif isinstance(obj, (set, tuple, list)):
             ignored.add(id(obj))
+            print('***** Added: ' + str(id(obj)) + ' -> ' + str(obj))
             items = []
-            for value in obj:
+            for value in sorted(obj):
                 items.append(self._sanitize(value, trim_strings, ignored))
             return items
         elif trim_strings and isinstance(obj, six.string_types):
@@ -113,6 +121,7 @@ class SanitizingJSONEncoder(JSONEncoder):
         Safely sets the provided key on the dictionary by coercing the key
         to a string
         """
+        print('=> _sanitize_dict_key_value: ' + str(clean_dict) + ', key: ' + str(key))
         if isinstance(key, six.string_types):
             clean_dict[key] = clean_value
         else:
@@ -128,10 +137,12 @@ class SanitizingJSONEncoder(JSONEncoder):
         Trim individual values in an object, applying filtering if the object
         is a FilterDict
         """
+        print('=> _sanitize_dict: ' + str(obj))
         if isinstance(obj, FilterDict):
             obj = self.filter_string_values(obj)
 
         clean_dict = {}
+        #for key, value in sorted(six.iteritems(obj)):
         for key, value in six.iteritems(obj):
 
             clean_value = self._sanitize(value, trim_strings, ignored)
