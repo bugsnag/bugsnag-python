@@ -1,6 +1,14 @@
 Changelog
 =========
 
+## TBD
+
+### Fixes
+
+* Ensure nested dicts are not truncated prematurely when checking for recursion
+  due to over-aggressive object id matching
+  [#181](https://github.com/bugsnag/bugsnag-python/pull/181)
+
 ## 3.5.2 (2019-03-15)
 
 ### Fixes

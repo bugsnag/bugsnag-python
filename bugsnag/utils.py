@@ -38,12 +38,17 @@ class SanitizingJSONEncoder(JSONEncoder):
         else:
             return payload
 
-    def filter_string_values(self, obj, ignored=None):
+    def filter_string_values(self, obj, ignored=None, seen=None):
         """
         Remove any value from the dictionary which match the key filters
         """
         if not ignored:
             ignored = set()
+
+        # Keep track of nested objects to avoid having references garbage
+        # collected (which would cause id reuse and false positive recursion
+        if seen is None:
+            seen = []
 
         if type(ignored) is list:
             ignored = set(ignored)
@@ -53,6 +58,7 @@ class SanitizingJSONEncoder(JSONEncoder):
 
         if isinstance(obj, dict):
             ignored.add(id(obj))
+            seen.append(obj)
 
             clean_dict = {}
             for key, value in six.iteritems(obj):
@@ -60,7 +66,8 @@ class SanitizingJSONEncoder(JSONEncoder):
                 if is_string and any(f in key.lower() for f in self.filters):
                     clean_dict[key] = self.filtered_value
                 else:
-                    clean_dict[key] = self.filter_string_values(value, ignored)
+                    clean_dict[key] = self.filter_string_values(
+                        value, ignored, seen)
 
             return clean_dict
 
@@ -81,13 +88,18 @@ class SanitizingJSONEncoder(JSONEncoder):
             bugsnag.logger.exception('Could not add object to payload')
             return self.unencodeable_value
 
-    def _sanitize(self, obj, trim_strings, ignored=None):
+    def _sanitize(self, obj, trim_strings, ignored=None, seen=None):
         """
         Replace recursive values and trim strings longer than
         MAX_STRING_LENGTH
         """
         if not ignored:
             ignored = set()
+
+        # Keep track of nested objects to avoid having references garbage
+        # collected (which would cause id reuse and false positive recursion)
+        if seen is None:
+            seen = []
 
         if type(ignored) is list:
             ignored = set(ignored)
@@ -96,12 +108,15 @@ class SanitizingJSONEncoder(JSONEncoder):
             return self.recursive_value
         elif isinstance(obj, dict):
             ignored.add(id(obj))
-            return self._sanitize_dict(obj, trim_strings, ignored)
+            seen.append(obj)
+            return self._sanitize_dict(obj, trim_strings, ignored, seen)
         elif isinstance(obj, (set, tuple, list)):
             ignored.add(id(obj))
+            seen.append(obj)
             items = []
             for value in obj:
-                items.append(self._sanitize(value, trim_strings, ignored))
+                items.append(
+                        self._sanitize(value, trim_strings, ignored, seen))
             return items
         elif trim_strings and isinstance(obj, six.string_types):
             return obj[:MAX_STRING_LENGTH]
@@ -123,7 +138,7 @@ class SanitizingJSONEncoder(JSONEncoder):
                     'Could not add sanitize key for dictionary, '
                     'dropping value.')
 
-    def _sanitize_dict(self, obj, trim_strings, ignored):
+    def _sanitize_dict(self, obj, trim_strings, ignored, seen):
         """
         Trim individual values in an object, applying filtering if the object
         is a FilterDict
@@ -134,7 +149,7 @@ class SanitizingJSONEncoder(JSONEncoder):
         clean_dict = {}
         for key, value in six.iteritems(obj):
 
-            clean_value = self._sanitize(value, trim_strings, ignored)
+            clean_value = self._sanitize(value, trim_strings, ignored, seen)
 
             self._sanitize_dict_key_value(clean_dict, key, clean_value)
 
