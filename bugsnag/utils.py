@@ -66,7 +66,8 @@ class SanitizingJSONEncoder(JSONEncoder):
                 if is_string and any(f in key.lower() for f in self.filters):
                     clean_dict[key] = self.filtered_value
                 else:
-                    clean_dict[key] = self.filter_string_values(value, ignored, seen)
+                    clean_dict[key] = self.filter_string_values(
+                        value, ignored, seen)
 
             return clean_dict
 
@@ -96,7 +97,7 @@ class SanitizingJSONEncoder(JSONEncoder):
             ignored = set()
 
         # Keep track of nested objects to avoid having references garbage
-        # collected (which would cause id reuse and false positive recursion
+        # collected (which would cause id reuse and false positive recursion)
         if seen is None:
             seen = []
 
