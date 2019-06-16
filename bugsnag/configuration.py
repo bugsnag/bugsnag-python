@@ -93,7 +93,7 @@ class Configuration(_BaseConfiguration):
         else:
             self.hostname = None
 
-        self.runtime_versions = {"python": str(platform.python_version())}
+        self.runtime_versions = {"python": platform.python_version()}
 
     def should_notify(self):  # type: () -> bool
         return self.notify_release_stages is None or \
