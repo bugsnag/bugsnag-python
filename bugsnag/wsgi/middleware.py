@@ -3,6 +3,11 @@ from webob import Request
 import bugsnag
 from bugsnag.wsgi import request_path
 
+try:
+    import bottle
+    bottle_present = True
+except ImportError:
+    bottle_present = False
 
 def add_wsgi_request_data_to_notification(notification):
     if not hasattr(notification.request_config, "wsgi_environ"):
@@ -37,6 +42,8 @@ class WrappedWSGIApp(object):
         self.environ = environ
 
         bugsnag.configure_request(wsgi_environ=self.environ)
+        if bottle_present:
+            bugsnag.configure().runtime_versions['bottle'] = bottle.__version__
 
         try:
             if bugsnag.configuration.auto_capture_sessions:
