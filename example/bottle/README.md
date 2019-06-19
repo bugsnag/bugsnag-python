@@ -1,6 +1,6 @@
-# Bugsnag Flask demo
+# Bugsnag Bottle demo
 
-This Flask application demonstrates how to use Bugsnag with the Flask web framework for Python.
+This Bottle application demonstrates how to use Bugsnag with the Bottle web framework for Python.
 
 ## Setup
 
@@ -11,7 +11,7 @@ To get set up, follow the instructions below. Don't forget to replace the placeh
 1. Clone the repo and `cd` into this directory:
     ```sh
     git clone https://github.com/bugsnag/bugsnag-python.git
-    cd bugsnag-python/example/flask
+    cd bugsnag-python/example/bottle
     ```
 
 1. Install dependencies
@@ -27,7 +27,7 @@ file and configure your API key.
     python server.py
     ```
 
-1. View the example page which will (most likely) be served at: http://localhost:3000
+1. View the example page which will be served at: http://localhost:8080
 
 For more information, see our documentation:
-https://docs.bugsnag.com/platforms/python/flask/
+https://docs.bugsnag.com/platforms/python/bottle/

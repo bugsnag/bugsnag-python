@@ -95,3 +95,15 @@ class DjangoMiddlewareTests(IntegrationTest):
             'id': self.user.username,
             'email': 'test@test.com'
         })
+
+    def test_appends_framework_version(self):
+        with self.assertRaises(Exception):
+            self.client.get('/crash/')
+
+        self.assertEqual(len(self.server.received), 1)
+
+        payload = self.server.received[0]['json_body']
+        device_data = payload['events'][0]['device']
+
+        self.assertEqual(device_data['runtimeVersions']['django'],
+                         django.__version__)

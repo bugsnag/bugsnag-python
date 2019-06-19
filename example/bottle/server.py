@@ -18,15 +18,17 @@ def crash():
     raise(Exception('SomethingBad'))
 
 @route('/handled')
-def handled():
+def handle_zero_div():
+    """Deliberately triggers a handled exception, and reports it to Bugsnag.
+    """
     try:
         x = 1/0
-    except ZeroDivisionError:
-        bugsnag.notify(ZeroDivisionError('Bottle demo: To infinity... and beyond!'))
+    except Exception as e:
+        bugsnag.notify(e)
 
-    return 'The app hasn\'t crashed, but check <a href=\"bugsnag.com\">bugsnag.com</a> to view notifications'
+    return 'The app hasn\'t crashed, but check https://app.bugsnag.com to view notifications'
 
 app = app()
 app.catchall = False
-wrappedApp = BugsnagMiddleware(app)
-run(app=wrappedApp, host='localhost', port=8080, debug=True)
+wrapped_app = BugsnagMiddleware(app)
+run(app=wrapped_app, host='localhost', port=8080, debug=True)

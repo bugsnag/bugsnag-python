@@ -97,7 +97,7 @@ def handle_zero_div():
     except Exception as e:
         bugsnag.notify(e)
 
-    print('The app hasn\'t crashed, but check app.bugsnag.com to view notifications')
+    print('The app hasn\'t crashed, but check https://app.bugsnag.com to view notifications')
 
 
 if __name__ == '__main__':
