@@ -100,16 +100,15 @@ def crashcallback():
 
 
 @app.route('/handled')
-def notify():
+def handle_zero_div():
     """Deliberately triggers a handled exception, and reports it to Bugsnag.
     """
     try:
         x = 1/0
-    except ZeroDivisionError:
-        bugsnag.notify(ZeroDivisionError('Flask demo: To infinity... and beyond!'))
+    except Exception as e:
+        bugsnag.notify(e)
 
-    return 'The app hasn\'t crashed, but check <a href=\"bugsnag.com\">bugsnag.com</a> to view notifications'
-
+    return 'The app hasn\'t crashed, but check <a href=\"https://app.bugsnag.com\">app.bugsnag.com</a> to view notifications'
 
 @app.route('/notifywithmetadata')
 def notifywithmetadata():

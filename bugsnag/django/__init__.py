@@ -1,6 +1,7 @@
 from __future__ import division, print_function, absolute_import
 
 import six
+import django
 from django.conf import settings
 from django.core.signals import request_started
 
@@ -68,6 +69,8 @@ def configure():
 
     middleware = bugsnag.configure().internal_middleware
     middleware.before_notify(add_django_request_to_notification)
+
+    bugsnag.configure().runtime_versions['django'] = django.__version__
 
 
 def __track_session(sender, **extra):

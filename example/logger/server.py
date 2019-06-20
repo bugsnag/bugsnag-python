@@ -39,7 +39,7 @@ def handle_zero_div():
     except Exception as e:
         logger.warn(e)
 
-    print('The app hasn\'t crashed, but check bugsnag.com to view notifications')
+    print('The app hasn\'t crashed, but check https://app.bugsnag.com to view notifications')
 
 def log_error():
     """Simply logs an error, which will also be sent to your Bugsnag dashboard.

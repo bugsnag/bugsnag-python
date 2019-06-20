@@ -1,3 +1,4 @@
+import tornado
 from tornado.web import RequestHandler
 from tornado.web import HTTPError
 
@@ -38,6 +39,7 @@ class BugsnagRequestHandler(RequestHandler):
         RequestHandler._handle_request_exception(self, exc)
 
     def prepare(self):
+        bugsnag.configure().runtime_versions['tornado'] = tornado.version
         if bugsnag.configuration.auto_capture_sessions:
             bugsnag.start_session()
 

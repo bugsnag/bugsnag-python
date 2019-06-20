@@ -1,7 +1,16 @@
 from webob import Request
+import sys
 
 import bugsnag
 from bugsnag.wsgi import request_path
+
+bottle_present = False
+if 'bottle' in sys.modules:
+    bottle_present = True
+    try:
+        import bottle
+    except ImportError:
+        bottle_present = False
 
 
 def add_wsgi_request_data_to_notification(notification):
@@ -37,7 +46,6 @@ class WrappedWSGIApp(object):
         self.environ = environ
 
         bugsnag.configure_request(wsgi_environ=self.environ)
-
         try:
             if bugsnag.configuration.auto_capture_sessions:
                 bugsnag.start_session()
@@ -86,6 +94,8 @@ class BugsnagMiddleware(object):
 
     def __init__(self, application):
         middleware = bugsnag.configure().internal_middleware
+        if bottle_present:
+            bugsnag.configure().runtime_versions['bottle'] = bottle.__version__
         middleware.before_notify(add_wsgi_request_data_to_notification)
         self.application = application
 

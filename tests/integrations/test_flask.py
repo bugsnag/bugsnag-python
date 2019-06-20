@@ -1,3 +1,4 @@
+import flask
 from flask import Flask
 from bugsnag.flask import handle_exceptions
 import bugsnag.notification
@@ -211,3 +212,21 @@ class TestFlask(IntegrationTest):
                 "framework": "Flask"
             }
         })
+
+    def test_appends_framework_version(self):
+        app = Flask("bugsnag")
+
+        @app.route("/hello")
+        def hello():
+            raise SentinelError("oops")
+
+        handle_exceptions(app)
+        app.test_client().get('/hello')
+
+        self.assertEqual(len(self.server.received), 1)
+
+        payload = self.server.received[0]['json_body']
+        device_data = payload['events'][0]['device']
+
+        self.assertEqual(device_data['runtimeVersions']['flask'],
+                         flask.__version__)
