@@ -1,5 +1,6 @@
 import sys
 import os
+import re
 from tests.utils import IntegrationTest
 
 import django
@@ -105,5 +106,8 @@ class DjangoMiddlewareTests(IntegrationTest):
         payload = self.server.received[0]['json_body']
         device_data = payload['events'][0]['device']
 
-        self.assertEqual(device_data['runtimeVersions']['django'],
-                         django.__version__)
+        self.assertEquals(len(device_data['runtimeVersions']), 2)
+        self.assertTrue(re.match(r'\d+\.\d+\.\d+',
+                                 device_data['runtimeVersions']['python']))
+        self.assertTrue(re.match(r'\d+\.\d+\.\d+',
+                                 device_data['runtimeVersions']['django']))

@@ -1,4 +1,4 @@
-import flask
+import re
 from flask import Flask
 from bugsnag.flask import handle_exceptions
 import bugsnag.notification
@@ -228,5 +228,8 @@ class TestFlask(IntegrationTest):
         payload = self.server.received[0]['json_body']
         device_data = payload['events'][0]['device']
 
-        self.assertEqual(device_data['runtimeVersions']['flask'],
-                         flask.__version__)
+        self.assertEquals(len(device_data['runtimeVersions']), 2)
+        self.assertTrue(re.match(r'\d+\.\d+\.\d+',
+                                 device_data['runtimeVersions']['python']))
+        self.assertTrue(re.match(r'\d+\.\d+\.\d+',
+                                 device_data['runtimeVersions']['flask']))
