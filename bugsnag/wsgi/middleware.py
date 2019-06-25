@@ -4,6 +4,8 @@ import sys
 import bugsnag
 from bugsnag.wsgi import request_path
 
+# Attempt to import bottle for runtime version report, but only if already
+# in use in app
 bottle_present = False
 if 'bottle' in sys.modules:
     bottle_present = True
