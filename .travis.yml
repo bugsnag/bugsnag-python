@@ -7,10 +7,6 @@ matrix:
     install: travis_retry pip install coveralls 'tox<3' 'idna<2.8' 'pycparser<2.19'
     dist: trusty
   - python: 2.6
-    env: TOXENV=py26-requests-test
-    install: travis_retry pip install coveralls 'tox<3' 'idna<2.8' 'pycparser<2.19'
-    dist: trusty
-  - python: 2.6
     env: TOXENV=py26-wsgi
     install: travis_retry pip install coveralls 'tox<3' 'idna<2.8' 'pycparser<2.19'
     dist: trusty
@@ -24,7 +20,7 @@ matrix:
   - python: 2.7
     env: TOXENV=py27-test
   - python: 2.7
-    env: TOXENV=py27-requests-test
+    env: TOXENV=py27-requests
   - python: 2.7
     env: TOXENV=py27-wsgi
   - python: 2.7
@@ -50,14 +46,14 @@ matrix:
   - python: 3.4
     env: TOXENV=py34-test
   - python: 3.4
-    env: TOXENV=py34-requests-test
+    env: TOXENV=py34-requests
   - python: 3.4
     env: TOXENV=py34-wsgi
 
   - python: 3.5
     env: TOXENV=py35-test
   - python: 3.5
-    env: TOXENV=py35-requests-test
+    env: TOXENV=py35-requests
   - python: 3.5
     env: TOXENV=py35-wsgi
   - python: 3.5
@@ -72,7 +68,7 @@ matrix:
   - python: 3.6
     env: TOXENV=py36-test
   - python: 3.6
-    env: TOXENV=py36-requests-test
+    env: TOXENV=py36-requests
   - python: 3.6
     env: TOXENV=py36-wsgi
   - python: 3.6
@@ -91,7 +87,7 @@ matrix:
   - python: 3.7
     env: TOXENV=py37-test
   - python: 3.7
-    env: TOXENV=py37-requests-test
+    env: TOXENV=py37-requests
   - python: 3.7
     env: TOXENV=py37-wsgi
   - python: 3.7
@@ -110,7 +106,7 @@ matrix:
   - python: 3.8
     env: TOXENV=py38-test
   - python: 3.8
-    env: TOXENV=py38-requests-test
+    env: TOXENV=py38-requests
   - python: 3.8
     env: TOXENV=py38-wsgi
   - python: 3.8
