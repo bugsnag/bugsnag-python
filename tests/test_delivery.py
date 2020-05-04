@@ -1,5 +1,11 @@
+import sys
+
 from bugsnag import Configuration
-from bugsnag.delivery import (UrllibDelivery, create_default_delivery)
+from bugsnag.delivery import (
+    UrllibDelivery,
+    RequestsDelivery,
+    create_default_delivery
+)
 
 from tests.utils import IntegrationTest
 
@@ -34,4 +40,7 @@ class DeliveryTest(IntegrationTest):
     def test_create_default_delivery(self):
         delivery = create_default_delivery()
 
-        self.assertTrue(isinstance(delivery, UrllibDelivery))
+        if 'requests' in sys.modules:
+            self.assertTrue(isinstance(delivery, RequestsDelivery))
+        else:
+            self.assertTrue(isinstance(delivery, UrllibDelivery))
