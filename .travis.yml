@@ -67,7 +67,7 @@ matrix:
   - python: 3.5
     env: TOXENV=py35-django110-migrate1-django1
   - python: 3.5
-    env: TOXENV=py35-lint
+    env: TOXENV=py27-django111-migrate1-django1
 
   - python: 3.6
     env: TOXENV=py36-test
@@ -87,8 +87,46 @@ matrix:
     env: TOXENV=py36-django20-migrate1-django1
   - python: 3.6
     env: TOXENV=py36-django21-migrate1-django1
-  - python: 3.6
-    env: TOXENV=py36-lint
+
+  - python: 3.7
+    env: TOXENV=py37-test
+  - python: 3.7
+    env: TOXENV=py37-requests-test
+  - python: 3.7
+    env: TOXENV=py37-wsgi
+  - python: 3.7
+    env: TOXENV=py37-django18-migrate1-django1
+  - python: 3.7
+    env: TOXENV=py37-django19-migrate1-django1
+  - python: 3.7
+    env: TOXENV=py37-django110-migrate1-django1
+  - python: 3.7
+    env: TOXENV=py37-django111-migrate1-django1
+  - python: 3.7
+    env: TOXENV=py37-django20-migrate1-django1
+  - python: 3.7
+    env: TOXENV=py37-django21-migrate1-django1
+
+  - python: 3.8
+    env: TOXENV=py38-test
+  - python: 3.8
+    env: TOXENV=py38-requests-test
+  - python: 3.8
+    env: TOXENV=py38-wsgi
+  - python: 3.8
+    env: TOXENV=py38-django18-migrate1-django1
+  - python: 3.8
+    env: TOXENV=py38-django19-migrate1-django1
+  - python: 3.8
+    env: TOXENV=py38-django110-migrate1-django1
+  - python: 3.8
+    env: TOXENV=py38-django111-migrate1-django1
+  - python: 3.8
+    env: TOXENV=py38-django20-migrate1-django1
+  - python: 3.8
+    env: TOXENV=py38-django21-migrate1-django1
+  - python: 3.8
+    env: TOXENV=py38-lint
 
 install: travis_retry pip install coveralls tox
 
