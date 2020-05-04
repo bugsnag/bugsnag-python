@@ -67,7 +67,7 @@ matrix:
   - python: 3.5
     env: TOXENV=py35-django110-migrate1-django1
   - python: 3.5
-    env: TOXENV=py27-django111-migrate1-django1
+    env: TOXENV=py35-django111-migrate1-django1
 
   - python: 3.6
     env: TOXENV=py36-test
