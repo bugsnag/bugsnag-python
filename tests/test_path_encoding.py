@@ -1,6 +1,10 @@
+# coding=utf-8
+
 import unittest
-import unittest.mock
-import urllib.parse
+from six.moves import urllib
+
+from bugsnag.notification import Notification
+from bugsnag.configuration import (Configuration, RequestConfiguration)
 
 
 class PathEncodingTest(unittest.TestCase):
@@ -17,8 +21,14 @@ class PathEncodingTest(unittest.TestCase):
         environ = self.environ.copy()
         environ['PATH_INFO'] = '/hello/world'
 
-        notification = unittest.mock.Mock()
-        notification.request_config.wsgi_environ = environ
+        bugsnag.configure_request(wsgi_environ=environ)
+
+        config = Configuration()
+        notification = Notification(
+            Exception("oops"),
+            config,
+            RequestConfiguration.get_instance()
+        )
 
         bugsnag.wsgi.middleware.add_wsgi_request_data_to_notification(
             notification
@@ -26,26 +36,34 @@ class PathEncodingTest(unittest.TestCase):
 
         self.assertEqual(
             'http://localhost/hello/world',
-            notification.add_tab.call_args_list[0][0][1]['url']
+            notification.meta_data['request']['url']
         )
 
     def test_wrongly_encoded_url_should_not_raise(self):
         import bugsnag.wsgi.middleware
 
         environ = self.environ.copy()
-        # https://github.com/python/cpython/blob/master/Lib/wsgiref/simple_server.py#L85
-        environ['PATH_INFO'] = urllib.parse.unquote('/%83', 'latin-1')
+        environ['PATH_INFO'] = '/%83'
 
-        notification = unittest.mock.Mock()
-        notification.request_config.wsgi_environ = environ
+        bugsnag.configure_request(wsgi_environ=environ)
+
+        config = Configuration()
+        notification = Notification(
+            Exception("oops"),
+            config,
+            RequestConfiguration.get_instance()
+        )
 
         bugsnag.wsgi.middleware.add_wsgi_request_data_to_notification(
             notification
         )
 
+        # We have to use "urllib.parse.quote" here because the exact output
+        # differs on different Python versions because of how they handle
+        # invalid encoding sequences
         self.assertEqual(
-            'http://localhost/%C2%83',
-            notification.add_tab.call_args_list[0][0][1]['url']
+            'http://localhost/%s' % urllib.parse.quote('%83'),
+            notification.meta_data['request']['url']
         )
 
     def test_path_supports_emoji(self):
@@ -54,8 +72,14 @@ class PathEncodingTest(unittest.TestCase):
         environ = self.environ.copy()
         environ['PATH_INFO'] = '/😇'
 
-        notification = unittest.mock.Mock()
-        notification.request_config.wsgi_environ = environ
+        config = Configuration()
+        notification = Notification(
+            Exception("oops"),
+            config,
+            RequestConfiguration.get_instance()
+        )
+
+        bugsnag.configure_request(wsgi_environ=environ)
 
         bugsnag.wsgi.middleware.add_wsgi_request_data_to_notification(
             notification
@@ -64,7 +88,7 @@ class PathEncodingTest(unittest.TestCase):
         # You can validate this by using "encodeURIComponent" in a browser.
         self.assertEqual(
             'http://localhost/%F0%9F%98%87',
-            notification.add_tab.call_args_list[0][0][1]['url']
+            notification.meta_data['request']['url']
         )
 
     def test_path_supports_non_ascii_characters(self):
@@ -73,8 +97,14 @@ class PathEncodingTest(unittest.TestCase):
         environ = self.environ.copy()
         environ['PATH_INFO'] = '/ôßłガ'
 
-        notification = unittest.mock.Mock()
-        notification.request_config.wsgi_environ = environ
+        config = Configuration()
+        notification = Notification(
+            Exception("oops"),
+            config,
+            RequestConfiguration.get_instance()
+        )
+
+        bugsnag.configure_request(wsgi_environ=environ)
 
         bugsnag.wsgi.middleware.add_wsgi_request_data_to_notification(
             notification
@@ -83,7 +113,7 @@ class PathEncodingTest(unittest.TestCase):
         # You can validate this by using "encodeURIComponent" in a browser.
         self.assertEqual(
             'http://localhost/%C3%B4%C3%9F%C5%82%E3%82%AC',
-            notification.add_tab.call_args_list[0][0][1]['url']
+            notification.meta_data['request']['url']
         )
 
 
