@@ -15,10 +15,9 @@ matrix:
   - python: 3.3
     install:
     - travis_retry pip install coveralls 'virtualenv<16'
-    - virtualenv venv --no-wheel --no-download
-    - source venv/bin/activate
     - pip install 'tox<3' 'pluggy<0.6.0' nose-cov webtest
-    script: nosetests --tests=tests integrations/test_wsgi.py -sv --with-coverage --cover-package=bugsnag
+    script:
+      - TOXENV=py33-test,py33-requests,py33-wsgi,py33-flask tox
     dist: trusty
 
   - python: 3.4
