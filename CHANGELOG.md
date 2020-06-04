@@ -1,6 +1,13 @@
 Changelog
 =========
 
+## 3.6.1 (2020-06-04)
+
+### Fixes
+
+* WSGI middleware will no longer raise when given a badly encoded URL
+  [#188](https://github.com/bugsnag/bugsnag-python/pull/188)
+
 ## 3.6.0 (2019-06-25)
 
 ### Enhancements
