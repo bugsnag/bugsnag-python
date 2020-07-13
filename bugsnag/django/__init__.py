@@ -57,8 +57,10 @@ def add_django_request_to_notification(notification):
     }
     if req["content_type"] == "application/json":
         if req["method"] == "POST":
-            req["POST"] = request.body
-    
+            ub = request.body.decode('utf-8')
+            req["POST"] = json.loads(ub)
+
+    notification.add_tab("request", req)
     notification.add_tab("environment", dict(request.META))
 
 
