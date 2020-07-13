@@ -54,13 +54,14 @@ class DjangoMiddlewareTests(IntegrationTest):
             'method': 'POST',
             'url': 'http://testserver/notify/',
             'path': '/notify/',
-            'POST': {'test':['post']},
+            'POST': {'test': ['post']},
             'encoding': None,
             'GET': {}
         })
 
     def test_notify_json_post(self):
-        response = self.client.post('/notify/', {"test": "post"}, content_type="application/json")
+        response = self.client.post('/notify/', {"test": "post"},
+                                    content_type="application/json")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(self.server.received), 1)
         payload = self.server.received[0]['json_body']
@@ -70,7 +71,7 @@ class DjangoMiddlewareTests(IntegrationTest):
             'url': 'http://testserver/notify/',
             'content_type': 'application/json',
             'path': '/notify/',
-            'POST': {'test':'post'},
+            'POST': {'test': 'post'},
             'encoding': None,
             'GET': {}
         })

@@ -54,12 +54,13 @@ def add_django_request_to_notification(notification):
         'POST': dict(request.POST),
         'url': request.build_absolute_uri(),
     }
-    if 'CONTENT_TYPE' in request.META and request.META['CONTENT_TYPE'] == 'application/json':
-        req["content_type"] = request.META['CONTENT_TYPE']
-        if req["method"] == "POST":
-            body = request.body.decode('utf-8') 
-            uo = json.loads(body.replace("'", '"'))
-            req["POST"] = uo
+    if 'CONTENT_TYPE' in request.META:
+        if request.META['CONTENT_TYPE'] == 'application/json':
+            req["content_type"] = request.META['CONTENT_TYPE']
+            if req["method"] == "POST":
+                body = request.body.decode('utf-8')
+                uo = json.loads(body.replace("'", '"'))
+                req["POST"] = uo
 
     notification.add_tab("request", req)
     notification.add_tab("environment", dict(request.META))
