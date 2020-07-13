@@ -11,6 +11,7 @@ except ImportError:
     from django.urls import resolve
 
 import bugsnag
+import json
 
 
 def add_django_request_to_notification(notification):
@@ -45,7 +46,6 @@ def add_django_request_to_notification(notification):
 
     if getattr(request, "session", None):
         notification.add_tab("session", dict(request.session))
-    
     req = {
         'method': request.method,
         'path': request.path,
@@ -54,11 +54,12 @@ def add_django_request_to_notification(notification):
         'POST': dict(request.POST),
         'url': request.build_absolute_uri(),
     }
-    if hasattr(request, 'content_type') and request.content_type == 'application/json':
-        req["content_type"] = request.content_type
-        if req["method"] == "POST":
-            ub = request.body.decode('utf-8')
-            req["POST"] = json.loads(ub)
+    if hasattr(request, 'content_type'):
+        if request.content_type == 'application/json':
+            req["content_type"] = request.content_type
+            if req["method"] == "POST":
+                ub = request.body.decode('utf-8')
+                req["POST"] = json.loads(ub)
 
     notification.add_tab("request", req)
     notification.add_tab("environment", dict(request.META))
