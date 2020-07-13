@@ -52,10 +52,10 @@ def add_django_request_to_notification(notification):
         'encoding': request.encoding,
         'GET': dict(request.GET),
         'POST': dict(request.POST),
-        'content_type': request.content_type,
         'url': request.build_absolute_uri(),
     }
-    if req["content_type"] == "application/json":
+    if hasattr(request, 'content_type') and request.content_type == 'application/json':
+        req["content_type"] = request.content_type
         if req["method"] == "POST":
             ub = request.body.decode('utf-8')
             req["POST"] = json.loads(ub)
