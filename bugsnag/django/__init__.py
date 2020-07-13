@@ -45,14 +45,20 @@ def add_django_request_to_notification(notification):
 
     if getattr(request, "session", None):
         notification.add_tab("session", dict(request.session))
-    notification.add_tab("request", {
+    
+    req = {
         'method': request.method,
         'path': request.path,
         'encoding': request.encoding,
         'GET': dict(request.GET),
         'POST': dict(request.POST),
+        'content_type': request.content_type,
         'url': request.build_absolute_uri(),
-    })
+    }
+    if req["content_type"] == "application/json":
+        if req["method"] == "POST":
+            req["POST"] = request.body
+    
     notification.add_tab("environment", dict(request.META))
 
 
