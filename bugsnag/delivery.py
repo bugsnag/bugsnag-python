@@ -25,6 +25,9 @@ try:
 except ImportError:
     requests = None
 
+DEFAULT_ENDPOINT = 'https://notify.bugsnag.com'
+DEFAULT_SESSIONS_ENDPOINT = 'https://sessions.bugsnag.com'
+
 
 def create_default_delivery():
     if requests is not None:
