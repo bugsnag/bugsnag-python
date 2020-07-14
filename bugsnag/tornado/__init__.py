@@ -1,13 +1,42 @@
 import tornado
 from tornado.web import RequestHandler
 from tornado.web import HTTPError
-
+import urllib.parse
 import bugsnag
+import json
 
 
 class BugsnagRequestHandler(RequestHandler):
-    def _handle_request_exception(self, exc):
+    def add_tornado_request_to_notification(self, notification):
+        if not hasattr(self, "request"):
+            return
 
+        try:
+            request_tab = {
+                'method': self.request.method,
+                'path': self.request.uri,
+                'GET': {},
+                'POST': {},
+                'url': '{0}://{1}{2}'.format(self.request.protocol,
+                                             self.request.host,
+                                             self.request.uri),
+            }
+            if (len(self.request.body) > 0):
+                headers = self.request.headers
+                body = self.request.body.decode('utf-8')
+                if headers.get('Content-Type') == 'application/json':
+                    if request_tab["method"] == "POST":
+                        request_tab["POST"] = json.loads(body)
+                else:
+                    request_tab["POST"] = urllib.parse.parse_qs(body)
+
+            notification.add_tab("request", request_tab)
+        except Exception:
+            pass
+
+        notification.add_tab("environment", dict(self.request.headers))
+
+    def _handle_request_exception(self, exc):
         options = {
             "user": {"id": self.request.remote_ip},
             "context": self._get_context(),
@@ -39,7 +68,10 @@ class BugsnagRequestHandler(RequestHandler):
         RequestHandler._handle_request_exception(self, exc)
 
     def prepare(self):
+        middleware = bugsnag.configure().internal_middleware
         bugsnag.configure().runtime_versions['tornado'] = tornado.version
+        middleware.before_notify(self.add_tornado_request_to_notification)
+
         if bugsnag.configuration.auto_capture_sessions:
             bugsnag.start_session()
 
