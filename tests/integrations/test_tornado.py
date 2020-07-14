@@ -1,18 +1,13 @@
-import os
-import sys
 import bugsnag
 import json
 from tests.utils import IntegrationTest
-import tornado
-EXAMPLE_PATH = os.path.join(__file__, '..', '..', 'fixtures', 'tornado')
-sys.path.append(os.path.abspath(EXAMPLE_PATH))
-
-import server  # noqa: E402
+from tornado.testing import AsyncHTTPTestCase
+import tests.fixtures.tornado.server
 
 
-class TornadoTests(tornado.testing.AsyncHTTPTestCase, IntegrationTest):
+class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
     def get_app(self):
-        return server.make_app()
+        return tests.fixtures.tornado.server.make_app()
 
     def setUp(self):
         super(TornadoTests, self).setUp()
