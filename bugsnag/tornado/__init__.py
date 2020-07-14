@@ -24,7 +24,7 @@ class BugsnagRequestHandler(RequestHandler):
             if (len(self.request.body) > 0):
                 headers = self.request.headers
                 body = self.request.body.decode('utf-8')
-                if headers.get('Content-Type') == 'application/json':
+                if headers.get('Content-Type').lower().startswith('application/json'):
                     if request_tab["method"] == "POST":
                         request_tab["POST"] = json.loads(body)
                 else:

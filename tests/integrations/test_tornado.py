@@ -61,9 +61,48 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
 
         payload = self.server.received[0]['json_body']
         event = payload['events'][0]
-        print(event['metaData']['request'])
         self.assertEqual(event['metaData']['request']["method"], "POST")
         self.assertEqual(event['metaData']['request']["path"], "/notify")
         self.assertEqual(event['metaData']['request']["POST"],
+                         {'test': 'json_post'})
+        self.assertEqual(event['metaData']['request']["GET"], {})
+
+    def test_unhandled(self):
+        response = self.fetch('/crash', method="GET")
+        self.assertEqual(response.code, 500)
+        self.assertEqual(len(self.server.received), 1)
+
+        payload = self.server.received[0]['json_body']
+        event = payload['events'][0]
+        self.assertEqual(event['metaData']['request']["method"], "GET")
+        self.assertEqual(event['metaData']['request']["path"], "/crash")
+        self.assertEqual(event['metaData']['request']["POST"], {})
+        self.assertEqual(event['metaData']['request']["GET"], {})
+
+    def test_unhandled_post(self):
+        response = self.fetch('/crash', method="POST", body="test=post")
+        self.assertEqual(response.code, 500)
+        self.assertEqual(len(self.server.received), 1)
+
+        payload = self.server.received[0]['json_body']
+        event = payload['events'][0]
+        self.assertEqual(event['metaData']['request']["method"], "POST")
+        self.assertEqual(event['metaData']['request']["path"], "/crash")
+        self.assertEqual(event['metaData']['request']["POST"], 
+                         {'test': ['post']})
+        self.assertEqual(event['metaData']['request']["GET"], {})
+
+    def test_unhandled_json_post(self):
+        body = json.dumps({'test': 'json_post'})
+        response = self.fetch('/crash', method="POST", body=body,
+                              headers={'Content-Type': 'application/json'})
+        self.assertEqual(response.code, 500)
+        self.assertEqual(len(self.server.received), 1)
+
+        payload = self.server.received[0]['json_body']
+        event = payload['events'][0]
+        self.assertEqual(event['metaData']['request']["method"], "POST")
+        self.assertEqual(event['metaData']['request']["path"], "/crash")
+        self.assertEqual(event['metaData']['request']["POST"], 
                          {'test': 'json_post'})
         self.assertEqual(event['metaData']['request']["GET"], {})

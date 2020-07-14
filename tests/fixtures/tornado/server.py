@@ -15,6 +15,10 @@ class CrashHandler(BugsnagRequestHandler):
         raise Exception("Bugsnag Tornado demo says: It crashed! Go check " +
                         "bugsnag.com for a new notification!")
 
+    def post(self):
+        raise Exception("Bugsnag Tornado demo says: It crashed! Go check " +
+                        "bugsnag.com for a new notification!")
+
 
 class CrashWithCallbackHandler(BugsnagRequestHandler):
     def get(self):
