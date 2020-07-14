@@ -1,6 +1,12 @@
 Changelog
 =========
 
+## TBD
+
+### Enhancements
+
+* Enable session tracking by default
+
 ## 3.6.1 (2020-06-04)
 
 ### Fixes

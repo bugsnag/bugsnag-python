@@ -77,7 +77,7 @@ class Configuration(_BaseConfiguration):
         ]
         self.endpoint = "https://notify.bugsnag.com"
         self.session_endpoint = "https://sessions.bugsnag.com"
-        self.auto_capture_sessions = False
+        self.auto_capture_sessions = True
         self.traceback_exclude_modules = []
 
         self.middleware = MiddlewareStack()
