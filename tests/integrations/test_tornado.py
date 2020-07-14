@@ -88,7 +88,7 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
         event = payload['events'][0]
         self.assertEqual(event['metaData']['request']["method"], "POST")
         self.assertEqual(event['metaData']['request']["path"], "/crash")
-        self.assertEqual(event['metaData']['request']["POST"], 
+        self.assertEqual(event['metaData']['request']["POST"],
                          {'test': ['post']})
         self.assertEqual(event['metaData']['request']["GET"], {})
 
@@ -103,6 +103,6 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
         event = payload['events'][0]
         self.assertEqual(event['metaData']['request']["method"], "POST")
         self.assertEqual(event['metaData']['request']["path"], "/crash")
-        self.assertEqual(event['metaData']['request']["POST"], 
+        self.assertEqual(event['metaData']['request']["POST"],
                          {'test': 'json_post'})
         self.assertEqual(event['metaData']['request']["GET"], {})
