@@ -3,7 +3,7 @@ language: python
 matrix:
   include:
   - python: 2.6
-    env: TOXENV=py26-test,py26-wsgi,py26-flask,py26-tornado
+    env: TOXENV=py26-test,py26-wsgi,py26-flask
     install: travis_retry pip install coveralls 'tox<3' 'idna<2.8' 'pycparser<2.19'
     dist: trusty
 
