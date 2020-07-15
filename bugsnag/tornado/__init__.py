@@ -11,31 +11,30 @@ class BugsnagRequestHandler(RequestHandler):
         if not hasattr(self, "request"):
             return
 
-        try:
-            request_tab = {
-                'method': self.request.method,
-                'path': self.request.uri,
-                'GET': {},
-                'POST': {},
-                'url': '{0}://{1}{2}'.format(self.request.protocol,
-                                             self.request.host,
-                                             self.request.uri),
-            }
-            if (len(self.request.body) > 0):
-                headers = self.request.headers
-                body = self.request.body.decode('utf-8')
-                aj = 'application/json'
-                if headers.get('Content-Type').lower().startswith(aj):
-                    if request_tab["method"] == "POST":
+        request_tab = {
+            'method': self.request.method,
+            'path': self.request.uri,
+            'GET': urllib.parse.parse_qs(self.request.query),
+            'POST': {},
+            'url': self.request.full_url(),
+        }
+        if (len(self.request.body) > 0):
+            headers = self.request.headers
+            body = self.request.body.decode('utf-8')
+            aj = 'application/json'
+            if headers.get('Content-Type', '').lower().startswith(aj):
+                if request_tab["method"] == "POST":
+                    try:
                         request_tab["POST"] = json.loads(body)
-                else:
-                    request_tab["POST"] = urllib.parse.parse_qs(body)
+                    except Exception:
+                        pass
+            else:
+                request_tab["POST"] = self.request.body_arguments
 
-            notification.add_tab("request", request_tab)
-        except Exception:
-            pass
+        notification.add_tab("request", request_tab)
 
-        notification.add_tab("environment", dict(self.request.headers))
+        notification.add_tab("environment",
+                             tornado.wsgi.WSGIContainer.environ(self.request))
 
     def _handle_request_exception(self, exc):
         options = {

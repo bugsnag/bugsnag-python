@@ -2,12 +2,12 @@ import bugsnag
 import json
 from tests.utils import IntegrationTest
 from tornado.testing import AsyncHTTPTestCase
-import tests.fixtures.tornado.server
+from tests.fixtures.tornado import server
 
 
 class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
     def get_app(self):
-        return tests.fixtures.tornado.server.make_app()
+        return server.make_app()
 
     def setUp(self):
         super(TornadoTests, self).setUp()
@@ -25,19 +25,31 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
 
         payload = self.server.received[0]['json_body']
         event = payload['events'][0]
-        # self.assertEqual(event['metaData']['request'], {
-        #     'method': 'GET',
-        #     'url': 'http://testserver/notify',
-        #     'path': '/notify',
-        #     'POST': {},
-        #     'GET': {}
-        # })
-        # SN: The server port changes on each run, hence breaking
-        # out the asserts
-        self.assertEqual(event['metaData']['request']["method"], "GET")
-        self.assertEqual(event['metaData']['request']["path"], "/notify")
-        self.assertEqual(event['metaData']['request']["POST"], {})
-        self.assertEqual(event['metaData']['request']["GET"], {})
+        expectedUrl = 'http://127.0.0.1:{}/notify'.format(self.get_http_port())
+        self.assertEqual(event['metaData']['request'], {
+            'method': 'GET',
+            'url': expectedUrl,
+            'path': '/notify',
+            'POST': {},
+            'GET': {}
+        })
+
+    def test_notify_get(self):
+        response = self.fetch('/notify?test=get', method="GET")
+        self.assertEqual(response.code, 200)
+        self.assertEqual(len(self.server.received), 1)
+
+        payload = self.server.received[0]['json_body']
+        event = payload['events'][0]
+        p = self.get_http_port()
+        expectedUrl = 'http://127.0.0.1:{}/notify?test=get'.format(p)
+        self.assertEqual(event['metaData']['request'], {
+            'method': 'GET',
+            'url': expectedUrl,
+            'path': '/notify?test=get',
+            'POST': {},
+            'GET': {'test': ['get']}
+        })
 
     def test_notify_post(self):
         response = self.fetch('/notify', method="POST", body="test=post")
@@ -46,11 +58,14 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
 
         payload = self.server.received[0]['json_body']
         event = payload['events'][0]
-        self.assertEqual(event['metaData']['request']["method"], "POST")
-        self.assertEqual(event['metaData']['request']["path"], "/notify")
-        self.assertEqual(event['metaData']['request']["POST"],
-                         {'test': ['post']})
-        self.assertEqual(event['metaData']['request']["GET"], {})
+        expectedUrl = 'http://127.0.0.1:{}/notify'.format(self.get_http_port())
+        self.assertEqual(event['metaData']['request'], {
+            'method': 'POST',
+            'url': expectedUrl,
+            'path': '/notify',
+            'POST': {'test': ['post']},
+            'GET': {}
+        })
 
     def test_notify_json_post(self):
         body = json.dumps({'test': 'json_post'})
@@ -61,11 +76,14 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
 
         payload = self.server.received[0]['json_body']
         event = payload['events'][0]
-        self.assertEqual(event['metaData']['request']["method"], "POST")
-        self.assertEqual(event['metaData']['request']["path"], "/notify")
-        self.assertEqual(event['metaData']['request']["POST"],
-                         {'test': 'json_post'})
-        self.assertEqual(event['metaData']['request']["GET"], {})
+        expectedUrl = 'http://127.0.0.1:{}/notify'.format(self.get_http_port())
+        self.assertEqual(event['metaData']['request'], {
+            'method': 'POST',
+            'url': expectedUrl,
+            'path': '/notify',
+            'POST': {'test': 'json_post'},
+            'GET': {}
+        })
 
     def test_unhandled(self):
         response = self.fetch('/crash', method="GET")
@@ -74,10 +92,15 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
 
         payload = self.server.received[0]['json_body']
         event = payload['events'][0]
-        self.assertEqual(event['metaData']['request']["method"], "GET")
-        self.assertEqual(event['metaData']['request']["path"], "/crash")
-        self.assertEqual(event['metaData']['request']["POST"], {})
-        self.assertEqual(event['metaData']['request']["GET"], {})
+        expectedUrl = 'http://127.0.0.1:{}/crash'.format(self.get_http_port())
+        self.assertEqual(event['metaData']['request'], {
+            'method': 'GET',
+            'url': expectedUrl,
+            'arguments': {},
+            'path': '/crash',
+            'POST': {},
+            'GET': {}
+        })
 
     def test_unhandled_post(self):
         response = self.fetch('/crash', method="POST", body="test=post")
@@ -86,11 +109,15 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
 
         payload = self.server.received[0]['json_body']
         event = payload['events'][0]
-        self.assertEqual(event['metaData']['request']["method"], "POST")
-        self.assertEqual(event['metaData']['request']["path"], "/crash")
-        self.assertEqual(event['metaData']['request']["POST"],
-                         {'test': ['post']})
-        self.assertEqual(event['metaData']['request']["GET"], {})
+        expectedUrl = 'http://127.0.0.1:{}/crash'.format(self.get_http_port())
+        self.assertEqual(event['metaData']['request'], {
+            'method': 'POST',
+            'url': expectedUrl,
+            'arguments': {'test': ['post']},
+            'path': '/crash',
+            'POST': {'test': ['post']},
+            'GET': {}
+        })
 
     def test_unhandled_json_post(self):
         body = json.dumps({'test': 'json_post'})
@@ -101,8 +128,12 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
 
         payload = self.server.received[0]['json_body']
         event = payload['events'][0]
-        self.assertEqual(event['metaData']['request']["method"], "POST")
-        self.assertEqual(event['metaData']['request']["path"], "/crash")
-        self.assertEqual(event['metaData']['request']["POST"],
-                         {'test': 'json_post'})
-        self.assertEqual(event['metaData']['request']["GET"], {})
+        expectedUrl = 'http://127.0.0.1:{}/crash'.format(self.get_http_port())
+        self.assertEqual(event['metaData']['request'], {
+            'method': 'POST',
+            'url': expectedUrl,
+            'arguments': {},
+            'path': '/crash',
+            'POST': {'test': 'json_post'},
+            'GET': {}
+        })

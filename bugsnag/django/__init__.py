@@ -56,7 +56,7 @@ def add_django_request_to_notification(notification):
     }
     try:
         aj = 'application/json'
-        if request.META.get('CONTENT_TYPE').lower().startswith(aj):
+        if request.META.get('CONTENT_TYPE', '').lower().startswith(aj):
             if request_tab["method"] == "POST":
                 body = request.body.decode('utf-8')
                 request_tab["POST"] = json.loads(body)

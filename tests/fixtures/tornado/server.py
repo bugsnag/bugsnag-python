@@ -1,13 +1,7 @@
 from tornado.ioloop import IOLoop
 from tornado.web import Application, url
 import bugsnag
-import markdown
 from bugsnag.tornado import BugsnagRequestHandler
-
-
-class IndexHandler(BugsnagRequestHandler):
-    def get(self):
-        self.write(markdown.markdown(open('README.md').read()))
 
 
 class CrashHandler(BugsnagRequestHandler):
@@ -67,7 +61,6 @@ bugsnag.configure(
 
 def make_app():
     return Application([
-        url(r"/", IndexHandler),
         url(r"/crash", CrashHandler),
         url(r"/crash_with_callback", CrashWithCallbackHandler),
         url(r"/notify", NotifyHandler),
