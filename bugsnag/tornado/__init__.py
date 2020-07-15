@@ -1,7 +1,7 @@
 import tornado
 from tornado.web import RequestHandler
 from tornado.web import HTTPError
-import urllib.parse
+from six.moves import urllib
 import bugsnag
 import json
 
