@@ -5,7 +5,7 @@ import sys
 import datetime
 import re
 
-from six import u
+from six import u, PY3 as is_py3
 from bugsnag.utils import SanitizingJSONEncoder, FilterDict, ThreadLocals
 
 
@@ -67,6 +67,15 @@ class TestUtils(unittest.TestCase):
         sane_data = encoder.filter_string_values(data)
         self.assertEqual(sane_data,
                          {"metadata": {"another_password": "[FILTERED]"}})
+
+    def test_decode_bytes(self):
+        if not is_py3:
+            return
+
+        data = FilterDict({b"metadata": "value"})
+        encoder = SanitizingJSONEncoder(keyword_filters=["password"])
+        sane_data = json.loads(encoder.encode(data))
+        self.assertEqual(sane_data, {"metadata": "value"})
 
     def test_unfiltered_encode(self):
         data = {"metadata": {"another_password": "My password"}}
