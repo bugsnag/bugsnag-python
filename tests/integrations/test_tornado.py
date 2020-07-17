@@ -46,7 +46,7 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
         self.assertEqual(event['metaData']['request'], {
             'method': 'GET',
             'url': expectedUrl,
-            'path': '/notify?test=get',
+            'path': '/notify',
             'POST': {},
             'GET': {'test': ['get']}
         })

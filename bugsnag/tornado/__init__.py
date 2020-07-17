@@ -13,7 +13,7 @@ class BugsnagRequestHandler(RequestHandler):
 
         request_tab = {
             'method': self.request.method,
-            'path': self.request.uri,
+            'path': self.request.path,
             'GET': urllib.parse.parse_qs(self.request.query),
             'POST': {},
             'url': self.request.full_url(),
