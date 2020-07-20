@@ -181,7 +181,3 @@ def notifywithcontext():
         severity='info'
     )
     return 'The context and severity were changed.'
-
-
-if __name__ == '__main__':
-    app.run(port=3000)
