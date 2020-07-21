@@ -14,9 +14,17 @@ import warnings
 
 from bugsnag.sessiontracker import SessionMiddleware
 from bugsnag.middleware import DefaultMiddleware, MiddlewareStack
-from bugsnag.utils import fully_qualified_class_name, ThreadLocals
+from bugsnag.utils import fully_qualified_class_name
 from bugsnag.delivery import (create_default_delivery, DEFAULT_ENDPOINT,
                               DEFAULT_SESSIONS_ENDPOINT)
+
+try:
+    from contextvars import ContextVar
+    _request_info = ContextVar('bugsnag-request', default=None)  # type: ignore
+except ImportError:
+    from bugsnag.utils import ThreadContextVar
+    # flake8: noqa
+    _request_info = ThreadContextVar('bugsnag-request', default=None)  # type: ignore
 
 
 class _BaseConfiguration(object):
@@ -133,11 +141,15 @@ class RequestConfiguration(_BaseConfiguration):
         """
         Get this thread's instance of the RequestConfiguration.
         """
-        tls = ThreadLocals.get_instance()
-        instance = tls.get_item("bugsnag", None)
-        if not instance:
+
+        try:
+            instance = _request_info.get()
+        except LookupError:
+            instance = None
+
+        if instance is None:
             instance = RequestConfiguration()
-            tls.set_item("bugsnag", instance)
+            _request_info.set(instance)  # type: ignore
 
         return instance
 
@@ -146,9 +158,7 @@ class RequestConfiguration(_BaseConfiguration):
         """
         Clear this thread's instance of the RequestConfiguration.
         """
-        tls = ThreadLocals.get_instance()
-        if tls.has_item("bugsnag"):
-            tls.del_item("bugsnag")
+        _request_info.set(None)
 
     def __init__(self):
         self.context = None

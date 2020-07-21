@@ -7,10 +7,14 @@ import re
 
 from six import u, PY3 as is_py3
 from bugsnag.utils import (SanitizingJSONEncoder, FilterDict, ThreadLocals,
-                           is_json_content_type, parse_content_type)
+                           is_json_content_type, parse_content_type,
+                           ThreadContextVar)
 
 
 class TestUtils(unittest.TestCase):
+    def tearDown(self):
+        super(TestUtils, self).tearDown()
+        ThreadLocals.LOCALS = None
 
     def test_encode_filters(self):
         data = FilterDict({"credit_card": "123213213123", "password": "456",
@@ -97,6 +101,19 @@ class TestUtils(unittest.TestCase):
         self.assertFalse(locs.has_item(key))
         item = locs.get_item(key, "default")
         self.assertEqual(item, "default")
+
+    def test_thread_context_vars_default(self):
+        token = ThreadContextVar("TEST_contextvars")
+        self.assertEqual(None, token.get())  # default value is none
+
+    def test_thread_context_vars_set_default_value(self):
+        token = ThreadContextVar("TEST_contextvars", {'pips': 3})
+        self.assertEqual({'pips': 3}, token.get())
+
+    def test_thread_context_vars_set_new_value(self):
+        token = ThreadContextVar("TEST_contextvars", {'pips': 3})
+        token.set({'carrots': 'no'})
+        self.assertEqual({'carrots': 'no'}, token.get())
 
     def test_encoding_recursive(self):
         """
