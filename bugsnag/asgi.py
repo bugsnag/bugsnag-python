@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Any, List, Dict, Union
 
 import bugsnag
 
@@ -11,15 +12,59 @@ SEVERITY_REASON = {
     }
 }
 
+DEFAULT_PORTS = {"http": 80, "https": 443, "ws": 80, "wss": 443}
+
+
+def parse_host_header(headers: Dict[bytes, bytes]) -> Union[None, str]:
+    if b'host' in headers:
+        try:
+            return headers[b'host'].decode('latin-1')
+        except Exception:
+            pass
+    return None
+
+
+def parse_server_host(scheme: str, server) -> Union[None, str]:
+    if len(server) == 2:
+        hostname, port = server
+        if port == DEFAULT_PORTS[scheme]:
+            return hostname
+        else:
+            return '{}:{}'.format(hostname, port)
+    return None
+
+
+def parse_url(request: dict, server: List[Any]) -> str:
+    scheme = request.get('scheme', 'http')
+    query = request.get('query', None)
+    path = request.get('path', '/')
+    headers = request.get('headers', dict())
+    host = parse_host_header(headers) or parse_server_host(scheme, server)
+    url = ''
+    if host is not None:
+        url = '{}://{}'.format(scheme, host)
+    url += path
+    if query is not None and len(query) > 0:
+        if type(query) == str:
+            url += '?{}'.format(query)
+        elif type(query) == bytes:
+            try:
+                url += '?{}'.format(query.decode())
+            except Exception:
+                pass
+
+    return url
+
 
 class RequestMetadata(Enum):
     http_method = ('httpMethod', ['method', 'http_method'])
     http_version = ('httpVersion', ['http_version'])
     path = ('path', ['path'])
+    scheme = ('scheme', ['scheme'])
     type = ('type', ['type'])
     query = ('query', ['query_string'])
 
-    def __init__(self, metadata_key, scope_keys):
+    def __init__(self, metadata_key: str, scope_keys: List[str]):
         self.metadata_key = metadata_key
         self.scope_keys = scope_keys
 
@@ -47,10 +92,11 @@ class BugsnagMiddleware:
 
             scope = event.request_config.asgi_scope
             request = dict()
+            server = []
             if 'client' in scope and len(scope['client']) > 0:
                 request['clientIp'] = scope['client'][0]
-            if 'server' in scope:
-                request['url'] = ':'.join([str(it) for it in scope['server']])
+            if 'server' in scope and type(scope['server']) in [list, tuple]:
+                server = scope['server']
             if 'headers' in scope:
                 request['headers'] = dict(
                         [i for i in scope['headers'] if len(i) == 2])
@@ -59,6 +105,8 @@ class BugsnagMiddleware:
                     if item in scope:
                         request[prop.metadata_key] = scope[item]
                         break
+
+            request['url'] = parse_url(request, server)
 
             event.add_tab("request", request)
 

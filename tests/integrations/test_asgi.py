@@ -47,7 +47,7 @@ class TestASGIMiddleware(IntegrationTest):
         self.assertEqual('/', request['path'])
         self.assertEqual('GET', request['httpMethod'])
         self.assertEqual('http', request['type'])
-        self.assertEqual('testserver:80', request['url'])
+        self.assertEqual('http://testserver/', request['url'])
 
         exception = payload['events'][0]['exceptions'][0]
         self.assertEqual('tests.utils.ScaryException', exception['errorClass'])
@@ -69,7 +69,7 @@ class TestASGIMiddleware(IntegrationTest):
         self.assertEqual('/', request['path'])
         self.assertEqual('GET', request['httpMethod'])
         self.assertEqual('http', request['type'])
-        self.assertEqual('testserver:80', request['url'])
+        self.assertEqual('http://testserver/', request['url'])
         self.assertEqual('testclient', request['clientIp'])
         self.assertEqual('testclient', request['headers']['user-agent'])
 
@@ -100,7 +100,7 @@ class TestASGIMiddleware(IntegrationTest):
         self.assertEqual('/', request['path'])
         self.assertEqual('GET', request['httpMethod'])
         self.assertEqual('http', request['type'])
-        self.assertEqual('testserver:80', request['url'])
+        self.assertEqual('http://testserver/', request['url'])
         self.assertEqual('35b', metadata['wave']['size'])
 
         exception = payload['events'][0]['exceptions'][0]
@@ -128,10 +128,26 @@ class TestASGIMiddleware(IntegrationTest):
         self.assertEqual('/', request['path'])
         self.assertNotIn('httpMethod', request)
         self.assertEqual('websocket', request['type'])
-        self.assertEqual('testserver:80', request['url'])
+        self.assertEqual('ws://testserver/', request['url'])
         self.assertEqual('13', request['headers']['sec-websocket-version'])
 
         exception = payload['events'][0]['exceptions'][0]
         self.assertEqual('tests.utils.ScaryException', exception['errorClass'])
         self.assertEqual('invalid inputs', exception['message'])
         self.assertEqual('app', exception['stacktrace'][0]['method'])
+
+    def test_url_components(self):
+        app = Starlette()
+
+        @app.route('/path')
+        async def index(req):
+            raise ScaryException('forgot the map')
+
+        app = TestClient(BugsnagMiddleware(app))
+
+        self.assertRaises(ScaryException, lambda: app.get('/path?page=6#top'))
+        self.assertSentReportCount(1)
+
+        payload = self.server.received[0]['json_body']
+        request = payload['events'][0]['metaData']['request']
+        self.assertEqual('http://testserver/path?page=6', request['url'])
