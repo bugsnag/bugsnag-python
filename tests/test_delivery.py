@@ -1,3 +1,4 @@
+import warnings
 import sys
 
 from bugsnag import Configuration
@@ -44,3 +45,24 @@ class DeliveryTest(IntegrationTest):
             self.assertTrue(isinstance(delivery, RequestsDelivery))
         else:
             self.assertTrue(isinstance(delivery, UrllibDelivery))
+
+    def test_misconfigured_sessions_endpoint_sends_warning(self):
+        delivery = create_default_delivery()
+
+        with warnings.catch_warnings(record=True) as warn:
+            warnings.simplefilter("always")
+            delivery.deliver_sessions(self.config, '{"apiKey":"aaab"}')
+            self.assertEqual(1, len(warn))
+            self.assertEqual(0, len(self.server.received))
+            self.assertTrue('No sessions will be sent' in str(warn[0].message))
+            delivery.deliver_sessions(self.config, '{"apiKey":"aaab"}')
+            self.assertEqual(1, len(warn))
+            self.assertEqual(0, len(self.server.received))
+
+        self.config.configure(session_endpoint=self.server.url)
+
+        with warnings.catch_warnings(record=True) as warn:
+            warnings.simplefilter("always")
+            delivery.deliver_sessions(self.config, '{"apiKey":"aaab"}')
+            self.assertEqual(0, len(warn))
+            self.assertEqual(1, len(self.server.received))

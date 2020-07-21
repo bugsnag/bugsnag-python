@@ -15,7 +15,8 @@ import warnings
 from bugsnag.sessiontracker import SessionMiddleware
 from bugsnag.middleware import DefaultMiddleware, MiddlewareStack
 from bugsnag.utils import fully_qualified_class_name, ThreadLocals
-from bugsnag.delivery import create_default_delivery
+from bugsnag.delivery import (create_default_delivery, DEFAULT_ENDPOINT,
+                              DEFAULT_SESSIONS_ENDPOINT)
 
 
 class _BaseConfiguration(object):
@@ -75,9 +76,9 @@ class Configuration(_BaseConfiguration):
             "django.http.Http404",
             "django.http.response.Http404",
         ]
-        self.endpoint = "https://notify.bugsnag.com"
-        self.session_endpoint = "https://sessions.bugsnag.com"
-        self.auto_capture_sessions = False
+        self.endpoint = DEFAULT_ENDPOINT
+        self.session_endpoint = DEFAULT_SESSIONS_ENDPOINT
+        self.auto_capture_sessions = True
         self.traceback_exclude_modules = []
 
         self.middleware = MiddlewareStack()
