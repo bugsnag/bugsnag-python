@@ -97,7 +97,7 @@ class TestConfiguration(unittest.TestCase):
 
     def test_session_tracking_defaults(self):
         c = Configuration()
-        self.assertEqual(c.auto_capture_sessions, False)
+        self.assertTrue(c.auto_capture_sessions)
         self.assertEqual(c.session_endpoint, "https://sessions.bugsnag.com")
 
     def test_default_middleware_location(self):

@@ -1,6 +1,7 @@
 from threading import Thread
 import sys
 import json
+import warnings
 
 from time import strftime, gmtime
 
@@ -25,6 +26,9 @@ try:
 except ImportError:
     requests = None
 
+DEFAULT_ENDPOINT = 'https://notify.bugsnag.com'
+DEFAULT_SESSIONS_ENDPOINT = 'https://sessions.bugsnag.com'
+
 
 def create_default_delivery():
     if requests is not None:
@@ -46,6 +50,8 @@ class Delivery(object):
     """
     Mechanism for sending a request to Bugsnag
     """
+    def __init__(self):
+        self.sent_session_warning = False
 
     def deliver(self, config, payload):
         """
@@ -57,17 +63,21 @@ class Delivery(object):
         """
         Sends sessions to Bugsnag
         """
-        pass
+        if (config.endpoint != DEFAULT_ENDPOINT and config.session_endpoint ==
+                DEFAULT_SESSIONS_ENDPOINT):
+            if not self.sent_session_warning:
+                warnings.warn('The session endpoint has not been configured. '
+                              'No sessions will be sent to Bugsnag.')
+                self.sent_session_warning = True
+        else:
+            options = {
+                'endpoint': config.session_endpoint,
+                'success': 202,
+            }
+            self.deliver(config, payload, options)
 
 
 class UrllibDelivery(Delivery):
-
-    def deliver_sessions(self, config, payload):
-        options = {
-            'endpoint': config.session_endpoint,
-            'success': 202,
-        }
-        self.deliver(config, payload, options)
 
     def deliver(self, config, payload, options={}):
 
@@ -108,13 +118,6 @@ class UrllibDelivery(Delivery):
 
 
 class RequestsDelivery(Delivery):
-
-    def deliver_sessions(self, config, payload):
-        options = {
-            'endpoint': config.session_endpoint,
-            'success': 202,
-        }
-        self.deliver(config, payload, options)
 
     def deliver(self, config, payload, options={}):
 
