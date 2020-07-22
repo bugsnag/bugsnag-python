@@ -17,10 +17,7 @@ DEFAULT_PORTS = {"http": 80, "https": 443, "ws": 80, "wss": 443}
 
 def parse_host_header(headers: Dict[bytes, bytes]) -> Union[None, str]:
     if b'host' in headers:
-        try:
-            return headers[b'host'].decode('latin-1')
-        except Exception:
-            pass
+        return headers[b'host'].decode('latin-1', 'ignore')
     return None
 
 
@@ -42,16 +39,10 @@ def parse_url(request: dict, server: List[Any]) -> str:
     host = parse_host_header(headers) or parse_server_host(scheme, server)
     url = ''
     if host is not None:
-        url = '{}://{}'.format(scheme, host)
+        url += '{}://{}'.format(scheme, host)
     url += path
     if query is not None and len(query) > 0:
-        if type(query) == str:
-            url += '?{}'.format(query)
-        elif type(query) == bytes:
-            try:
-                url += '?{}'.format(query.decode())
-            except Exception:
-                pass
+        url += '?{}'.format(query.decode('utf-8', 'ignore'))
 
     return url
 
