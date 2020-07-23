@@ -18,18 +18,18 @@ class BugsnagRequestHandler(RequestHandler):
             'POST': {},
             'url': self.request.full_url(),
         }
-        if (len(self.request.body) > 0):
-            headers = self.request.headers
-            body = self.request.body.decode('utf-8')
-            aj = 'application/json'
-            if headers.get('Content-Type', '').lower().startswith(aj):
-                if request_tab["method"] == "POST":
-                    try:
+        try:
+            if (len(self.request.body) > 0):
+                headers = self.request.headers
+                body = self.request.body.decode('utf-8')
+                aj = 'application/json'
+                if headers.get('Content-Type', '').lower().startswith(aj):
+                    if request_tab["method"] == "POST":
                         request_tab["POST"] = json.loads(body)
-                    except Exception:
-                        pass
-            else:
-                request_tab["POST"] = self.request.body_arguments
+                else:
+                    request_tab["POST"] = self.request.body_arguments
+        except Exception:
+            pass
 
         notification.add_tab("request", request_tab)
 
