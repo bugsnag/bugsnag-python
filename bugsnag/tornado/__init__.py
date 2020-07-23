@@ -21,7 +21,7 @@ class BugsnagRequestHandler(RequestHandler):
         try:
             if (len(self.request.body) > 0):
                 headers = self.request.headers
-                body = self.request.body.decode('utf-8')
+                body = self.request.body.decode('utf-8', 'replace')
                 aj = 'application/json'
                 if headers.get('Content-Type', '').lower().startswith(aj):
                     if request_tab["method"] == "POST":
