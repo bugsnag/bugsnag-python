@@ -2,6 +2,7 @@
 
 # Packages
 *.egg
+*.egg*
 *.egg-info
 dist
 build
@@ -28,3 +29,4 @@ pip-log.txt
 
 #IDE files
 .vscode
+my_env

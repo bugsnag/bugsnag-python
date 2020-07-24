@@ -10,30 +10,30 @@ matrix:
   - python: "2.7_with_system_site_packages"
     env: TOXENV=py27-test
   - python: 2.7
-    env: TOXENV=py27-test,py27-requests,py27-wsgi,py27-flask,py27-django18-migrate1-django1,py27-django19-migrate1-django1,py27-django110-migrate1-django1,py27-django111-migrate1-django1
+    env: TOXENV=py27-test,py27-requests,py27-wsgi,py27-flask,py27-django18-migrate1-django1,py27-django19-migrate1-django1,py27-django110-migrate1-django1,py27-django111-migrate1-django1,py27-tornado
 
   - python: 3.3
     install:
     - travis_retry pip install coveralls 'virtualenv<16'
     - pip install 'tox<3' 'pluggy<0.6.0' nose-cov webtest
     script:
-      - TOXENV=py33-test,py33-requests,py33-wsgi,py33-flask tox
+      - TOXENV=py33-test,py33-requests,py33-wsgi,py33-flask,py33-tornado tox
     dist: trusty
 
   - python: 3.4
-    env: TOXENV=py34-test,py34-requests,py34-wsgi,py34-flask
+    env: TOXENV=py34-test,py34-requests,py34-wsgi,py34-flask,py34-tornado
 
   - python: 3.5
-    env: TOXENV=py35-test,py35-requests,py35-wsgi,py35-flask,py35-django18-migrate1-django1,py35-django19-migrate1-django1,py35-django110-migrate1-django1,py35-django111-migrate1-django1
+    env: TOXENV=py35-test,py35-requests,py35-wsgi,py35-flask,py35-django18-migrate1-django1,py35-django19-migrate1-django1,py35-django110-migrate1-django1,py35-django111-migrate1-django1,py35-tornado
 
   - python: 3.6
-    env: TOXENV=py36-test,py36-requests,py36-wsgi,py36-flask,py36-django18-migrate1-django1,py36-django19-migrate1-django1,py36-django110-migrate1-django1,py36-django111-migrate1-django1,py36-django20-migrate1-django1,py36-django21-migrate1-django1
+    env: TOXENV=py36-test,py36-requests,py36-wsgi,py36-flask,py36-django18-migrate1-django1,py36-django19-migrate1-django1,py36-django110-migrate1-django1,py36-django111-migrate1-django1,py36-django20-migrate1-django1,py36-django21-migrate1-django1,py36-tornado
 
   - python: 3.7
-    env: TOXENV=py37-test,py37-requests,py37-wsgi,py37-flask,py37-django18-migrate1-django1,py37-django19-migrate1-django1,py37-django110-migrate1-django1,py37-django111-migrate1-django1,py37-django20-migrate1-django1,py37-django21-migrate1-django1
+    env: TOXENV=py37-test,py37-requests,py37-wsgi,py37-flask,py37-django18-migrate1-django1,py37-django19-migrate1-django1,py37-django110-migrate1-django1,py37-django111-migrate1-django1,py37-django20-migrate1-django1,py37-django21-migrate1-django1,py37-tornado
 
   - python: 3.8
-    env: TOXENV=py38-test,py38-requests,py38-wsgi,py38-flask,py38-django18-migrate1-django1,py38-django111-migrate1-django1,py38-django20-migrate1-django1,py38-django21-migrate1-django1,py38-lint
+    env: TOXENV=py38-test,py38-requests,py38-wsgi,py38-flask,py38-django18-migrate1-django1,py38-django111-migrate1-django1,py38-django20-migrate1-django1,py38-django21-migrate1-django1,py38-tornado,py38-lint
 
 install:
   - travis_retry pip install coveralls tox

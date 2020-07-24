@@ -44,6 +44,55 @@ class DjangoMiddlewareTests(IntegrationTest):
             'GET': {}
         })
 
+    def test_notify_post(self):
+        response = self.client.post('/notify/', {"test": "post"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(self.server.received), 1)
+        payload = self.server.received[0]['json_body']
+        event = payload['events'][0]
+        self.assertEqual(event['metaData']['request'], {
+            'method': 'POST',
+            'url': 'http://testserver/notify/',
+            'path': '/notify/',
+            'POST': {'test': ['post']},
+            'encoding': None,
+            'GET': {}
+        })
+
+    def test_notify_json_post(self):
+        response = self.client.post('/notify/', '{"test": "post"}',
+                                    content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(self.server.received), 1)
+        payload = self.server.received[0]['json_body']
+        event = payload['events'][0]
+        self.assertEqual(event['metaData']['request'], {
+            'method': 'POST',
+            'url': 'http://testserver/notify/',
+            'path': '/notify/',
+            'POST': {'test': 'post'},
+            'encoding': None,
+            'GET': {}
+        })
+
+    def test_notify_bad_json_post(self):
+        response = self.client.post('/notify/', 'not json',
+                                    content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(self.server.received), 1)
+        payload = self.server.received[0]['json_body']
+        event = payload['events'][0]
+        # SN: NOTE: we expect POST to be {} because bad json should not parse,
+        # however we do expect reqest metaData to be set, of course
+        self.assertEqual(event['metaData']['request'], {
+            'method': 'POST',
+            'url': 'http://testserver/notify/',
+            'path': '/notify/',
+            'POST': {},
+            'encoding': None,
+            'GET': {}
+        })
+
     def test_unhandled_exception(self):
         with self.assertRaises(Exception):
             self.client.get('/crash/')
