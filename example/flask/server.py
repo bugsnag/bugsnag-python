@@ -4,7 +4,7 @@
 # reporting configured in your Python Flask code. The key steps are:
 #
 # 1. call `bugsnag.configure(api_key={your api key})`
-# 2. attach the bugsnag.flash `handle_exceptions` wrapper to your app
+# 2. attach the bugsnag.flask `handle_exceptions` wrapper to your app
 # ***********************************************************
 
 from flask import Flask, request, render_template
@@ -29,7 +29,7 @@ bugsnag.configure(
     # until the request is done, you can set to false
     asynchronous=True,
 
-    # Defaults to false, this allows you to log each session which will be used
+    # Defaults to True, this allows you to log each session which will be used
     # to calculate crash rates in your dashboard for each release.
     auto_capture_sessions=True,
 
@@ -162,7 +162,7 @@ def notifywithmetadata():
             }
         },
     )
-    return ('Metadata was added to the notification, check' +
+    return ('Metadata was added to the notification, check ' +
             '<a href=\"bugsnag.com\">bugsnag.com</a> ' +
             ' to view on the "Request info" and "Resolve info" tabs')
 
