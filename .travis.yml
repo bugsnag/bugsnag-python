@@ -33,7 +33,7 @@ matrix:
     env: TOXENV=py37-test,py37-requests,py37-asgi,py37-wsgi,py37-flask,py37-django18-migrate1-django1,py37-django19-migrate1-django1,py37-django110-migrate1-django1,py37-django111-migrate1-django1,py37-django20-migrate1-django1,py37-django21-migrate1-django1,py37-tornado
 
   - python: 3.8
-    env: TOXENV=py38-test,py38-requests,py38-asgi,py38-wsgi,py38-flask,py38-django18-migrate1-django1,py38-django111-migrate1-django1,py38-django20-migrate1-django1,py38-django21-migrate1-django1,py38-tornado,py38-lint
+    env: TOXENV=py38-test,py38-asynctest,py38-requests,py38-asgi,py38-wsgi,py38-flask,py38-django18-migrate1-django1,py38-django111-migrate1-django1,py38-django20-migrate1-django1,py38-django21-migrate1-django1,py38-tornado,py38-lint
 
 install:
   - travis_retry pip install coveralls tox
