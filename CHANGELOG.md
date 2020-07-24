@@ -7,6 +7,10 @@ Changelog
 
 * Enable session tracking by default
 
+* Support reporting events from ASGI-based web servers and frameworks. See the
+  [documentation](https://docs.bugsnag.com/platforms/python/asgi/) for more
+  information about getting started.
+
 ## 3.6.1 (2020-06-04)
 
 ### Fixes

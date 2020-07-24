@@ -19,6 +19,7 @@ Library versions:
 - python version:
 - bugsnag-python version:
 - integration version(s)
+  - asgi:
   - celery:
   - django:
   - flask:

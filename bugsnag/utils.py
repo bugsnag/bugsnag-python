@@ -128,6 +128,14 @@ class SanitizingJSONEncoder(JSONEncoder):
         Safely sets the provided key on the dictionary by coercing the key
         to a string
         """
+        if six.PY3 and isinstance(key, bytes):
+            try:
+                key = six.text_type(key, encoding='utf-8', errors='replace')
+                clean_dict[key] = clean_value
+            except Exception:
+                bugsnag.logger.exception(
+                    'Could not add sanitize key for dictionary, '
+                    'dropping value.')
         if isinstance(key, six.string_types):
             clean_dict[key] = clean_value
         else:
