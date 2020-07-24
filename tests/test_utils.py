@@ -6,7 +6,8 @@ import datetime
 import re
 
 from six import u, PY3 as is_py3
-from bugsnag.utils import SanitizingJSONEncoder, FilterDict, ThreadLocals
+from bugsnag.utils import (SanitizingJSONEncoder, FilterDict, ThreadLocals,
+                           is_json_content_type, parse_content_type)
 
 
 class TestUtils(unittest.TestCase):
@@ -328,3 +329,32 @@ encoder.encode(data)
                                 },
                             }
                         })
+
+    def test_parse_invalid_content_type(self):
+        info = parse_content_type('invalid-type')
+        self.assertEqual(('invalid-type', None, None, None), info)
+
+    def test_parse_invalid_content_type_params(self):
+        info = parse_content_type('invalid-type;schema=http://example.com/b')
+        self.assertEqual(('invalid-type', None, None,
+                          'schema=http://example.com/b'), info)
+
+    def test_parse_parameters(self):
+        info = parse_content_type('text/plain;charset=utf-32')
+        self.assertEqual(('text', 'plain', None, 'charset=utf-32'), info)
+
+    def test_parse_suffix(self):
+        info = parse_content_type('application/hal+json;charset=utf-8')
+        self.assertEqual(('application', 'hal', 'json', 'charset=utf-8'), info)
+
+    def test_json_content_type(self):
+        self.assertTrue(is_json_content_type('application/json'))
+        self.assertTrue(is_json_content_type('application/hal+json'))
+        self.assertTrue(is_json_content_type('application/other+json'))
+        self.assertTrue(is_json_content_type(
+            'application/schema+json;schema=http://example.com/schema-2'))
+        self.assertTrue(is_json_content_type('application/json;charset=utf-8'))
+        self.assertFalse(is_json_content_type('text/json'))
+        self.assertFalse(is_json_content_type('text/plain'))
+        self.assertFalse(is_json_content_type('json'))
+        self.assertFalse(is_json_content_type('application/jsonfoo'))

@@ -85,6 +85,35 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
             'GET': {}
         })
 
+    def test_notify_json_subtype_post(self):
+        body = {
+            '$id': 'https://example.com/person.schema.json',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
+            'title': 'Dog',
+            'type': 'object',
+            "properties": {
+                'sound': {
+                    'type': 'str',
+                    'description': 'The sound the dog makes'
+                }
+            }
+        }
+        headers = {'Content-Type': 'application/schema+json'}
+        response = self.fetch('/notify', method="POST", body=json.dumps(body),
+                              headers=headers)
+        self.assertEqual(response.code, 200)
+        self.assertEqual(len(self.server.received), 1)
+
+        payload = self.server.received[0]['json_body']
+        event = payload['events'][0]
+        self.assertEqual(event['metaData']['request'], {
+            'method': 'POST',
+            'url': 'http://127.0.0.1:{}/notify'.format(self.get_http_port()),
+            'path': '/notify',
+            'POST': body,
+            'GET': {}
+        })
+
     def test_unhandled(self):
         response = self.fetch('/crash', method="GET")
         self.assertEqual(response.code, 500)
