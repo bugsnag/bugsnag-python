@@ -23,7 +23,7 @@ try:
 
     import requests
 except ImportError:
-    requests = None
+    requests = None  # type: ignore
 
 
 def create_default_delivery():
