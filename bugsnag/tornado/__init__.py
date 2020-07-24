@@ -2,6 +2,7 @@ import tornado
 from tornado.web import RequestHandler
 from tornado.web import HTTPError
 from six.moves import urllib
+from bugsnag.utils import is_json_content_type
 import bugsnag
 import json
 
@@ -22,10 +23,9 @@ class BugsnagRequestHandler(RequestHandler):
             if (len(self.request.body) > 0):
                 headers = self.request.headers
                 body = self.request.body.decode('utf-8', 'replace')
-                aj = 'application/json'
-                if headers.get('Content-Type', '').lower().startswith(aj):
-                    if request_tab["method"] == "POST":
-                        request_tab["POST"] = json.loads(body)
+                is_json = is_json_content_type(headers.get('Content-Type', ''))
+                if is_json and request_tab["method"] == "POST":
+                    request_tab["POST"] = json.loads(body)
                 else:
                     request_tab["POST"] = self.request.body_arguments
         except Exception:

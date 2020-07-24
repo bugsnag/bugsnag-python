@@ -171,6 +171,48 @@ class FilterDict(dict):
     pass
 
 
+def parse_content_type(value):
+    """
+    Generate a tuple of (type, subtype, suffix, parameters) from a type based
+    on RFC 6838
+
+    >>> parse_content_type("text/plain")
+    >>> ("text", "plain", None, None)
+    >>> parse_content_type("application/hal+json")
+    >>> ("application", "hal", "json", None)
+    >>> parse_content_type("application/json;schema=\"https://example.com/a\"")
+    >>> ("application", "json", None, "schema=https://example.com/a")
+    """
+    if ';' in value:
+        types, parameters = value.split(';', 1)
+    else:
+        types, parameters = value, None
+    if '/' in types:
+        maintype, subtype = types.split('/', 1)
+        if '+' in subtype:
+            subtype, suffix = subtype.split('+', 1)
+            return (maintype, subtype, suffix, parameters)
+        else:
+            return (maintype, subtype, None, parameters)
+    else:
+        return (types, None, None, parameters)
+
+
+def is_json_content_type(value):  # type: (str) -> bool
+    """
+    Check if a content type is JSON-parseable
+
+    >>> is_json_content_type('text/plain')
+    >>> False
+    >>> is_json_content_type('application/schema+json')
+    >>> True
+    >>> is_json_content_type('application/json')
+    >>> True
+    """
+    type, subtype, suffix, _ = parse_content_type(value.lower())
+    return type == 'application' and (subtype == 'json' or suffix == 'json')
+
+
 def fully_qualified_class_name(obj):
     module = inspect.getmodule(obj)
     if module is not None and module.__name__ != "__main__":

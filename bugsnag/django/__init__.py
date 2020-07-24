@@ -11,6 +11,7 @@ except ImportError:
     from django.urls import resolve
 
 import bugsnag
+from bugsnag.utils import is_json_content_type
 import json
 
 
@@ -55,11 +56,10 @@ def add_django_request_to_notification(notification):
         'url': request.build_absolute_uri(),
     }
     try:
-        aj = 'application/json'
-        if request.META.get('CONTENT_TYPE', '').lower().startswith(aj):
-            if request_tab["method"] == "POST":
-                body = request.body.decode('utf-8', 'replace')
-                request_tab["POST"] = json.loads(body)
+        is_json = is_json_content_type(request.META.get('CONTENT_TYPE', ''))
+        if is_json and request_tab["method"] == "POST":
+            body = request.body.decode('utf-8', 'replace')
+            request_tab["POST"] = json.loads(body)
     except Exception:
         pass
 
