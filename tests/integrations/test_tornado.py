@@ -166,3 +166,8 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
             'POST': {'test': 'json_post'},
             'GET': {}
         })
+
+    def test_ignored_http_error(self):
+        response = self.fetch('/unknown_endpoint')
+        self.assertEqual(response.code, 404)
+        self.assertEqual(len(self.server.received), 0)
