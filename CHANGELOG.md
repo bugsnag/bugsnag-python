@@ -8,6 +8,9 @@ Changelog
 * Ensure session counts on events do not increment with future events by copying
   the session information into each event
 
+* Fix erroneously delivered sessions when session tracking is disabled by
+  release stages
+
 ## 3.7.0 (2020-07-27)
 
 ### Enhancements

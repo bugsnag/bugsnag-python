@@ -100,7 +100,7 @@ class SessionTracker(object):
             bugsnag.logger.debug("Not delivering due to an invalid api_key")
             return
 
-        if not self.config.should_notify:
+        if not self.config.should_notify():
             bugsnag.logger.debug("Not delivering due to release_stages")
             return
 

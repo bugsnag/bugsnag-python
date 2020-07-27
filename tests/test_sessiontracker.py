@@ -98,3 +98,38 @@ class TestConfiguration(IntegrationTest):
         self.assertEqual(sesevents['unhandled'], 0)
         self.assertTrue('handled' in sesevents)
         self.assertEqual(sesevents['handled'], 1)
+
+    def test_session_tracker_does_not_send_when_nothing_to_send(self):
+        client = Client(
+            api_key='fff',
+            session_endpoint=self.server.url,
+            asynchronous=False,
+            release_stage="dev",
+            notify_release_stages=["prod"],
+        )
+        client.session_tracker.send_sessions()
+        self.assertEqual(0, len(self.server.received))
+
+    def test_session_tracker_does_not_send_when_disabled(self):
+        client = Client(
+            api_key='fff',
+            session_endpoint=self.server.url,
+            asynchronous=False,
+            release_stage="dev",
+            notify_release_stages=["prod"],
+        )
+        client.session_tracker.start_session()
+        client.session_tracker.send_sessions()
+        self.assertEqual(0, len(self.server.received))
+
+    def test_session_tracker_does_not_send_when_misconfigured(self):
+        client = Client(
+            api_key=None,
+            session_endpoint=self.server.url,
+            asynchronous=False,
+            release_stage="dev",
+            notify_release_stages=["prod"],
+        )
+        client.session_tracker.start_session()
+        client.session_tracker.send_sessions()
+        self.assertEqual(0, len(self.server.received))
