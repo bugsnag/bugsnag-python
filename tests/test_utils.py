@@ -5,11 +5,16 @@ import sys
 import datetime
 import re
 
-from six import u
-from bugsnag.utils import SanitizingJSONEncoder, FilterDict, ThreadLocals
+from six import u, PY3 as is_py3
+from bugsnag.utils import (SanitizingJSONEncoder, FilterDict, ThreadLocals,
+                           is_json_content_type, parse_content_type,
+                           ThreadContextVar)
 
 
 class TestUtils(unittest.TestCase):
+    def tearDown(self):
+        super(TestUtils, self).tearDown()
+        ThreadLocals.LOCALS = None
 
     def test_encode_filters(self):
         data = FilterDict({"credit_card": "123213213123", "password": "456",
@@ -68,6 +73,15 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(sane_data,
                          {"metadata": {"another_password": "[FILTERED]"}})
 
+    def test_decode_bytes(self):
+        if not is_py3:
+            return
+
+        data = FilterDict({b"metadata": "value"})
+        encoder = SanitizingJSONEncoder(keyword_filters=["password"])
+        sane_data = json.loads(encoder.encode(data))
+        self.assertEqual(sane_data, {"metadata": "value"})
+
     def test_unfiltered_encode(self):
         data = {"metadata": {"another_password": "My password"}}
         encoder = SanitizingJSONEncoder(keyword_filters=["password"])
@@ -87,6 +101,19 @@ class TestUtils(unittest.TestCase):
         self.assertFalse(locs.has_item(key))
         item = locs.get_item(key, "default")
         self.assertEqual(item, "default")
+
+    def test_thread_context_vars_default(self):
+        token = ThreadContextVar("TEST_contextvars")
+        self.assertEqual(None, token.get())  # default value is none
+
+    def test_thread_context_vars_set_default_value(self):
+        token = ThreadContextVar("TEST_contextvars", {'pips': 3})
+        self.assertEqual({'pips': 3}, token.get())
+
+    def test_thread_context_vars_set_new_value(self):
+        token = ThreadContextVar("TEST_contextvars", {'pips': 3})
+        token.set({'carrots': 'no'})
+        self.assertEqual({'carrots': 'no'}, token.get())
 
     def test_encoding_recursive(self):
         """
@@ -319,3 +346,32 @@ encoder.encode(data)
                                 },
                             }
                         })
+
+    def test_parse_invalid_content_type(self):
+        info = parse_content_type('invalid-type')
+        self.assertEqual(('invalid-type', None, None, None), info)
+
+    def test_parse_invalid_content_type_params(self):
+        info = parse_content_type('invalid-type;schema=http://example.com/b')
+        self.assertEqual(('invalid-type', None, None,
+                          'schema=http://example.com/b'), info)
+
+    def test_parse_parameters(self):
+        info = parse_content_type('text/plain;charset=utf-32')
+        self.assertEqual(('text', 'plain', None, 'charset=utf-32'), info)
+
+    def test_parse_suffix(self):
+        info = parse_content_type('application/hal+json;charset=utf-8')
+        self.assertEqual(('application', 'hal', 'json', 'charset=utf-8'), info)
+
+    def test_json_content_type(self):
+        self.assertTrue(is_json_content_type('application/json'))
+        self.assertTrue(is_json_content_type('application/hal+json'))
+        self.assertTrue(is_json_content_type('application/other+json'))
+        self.assertTrue(is_json_content_type(
+            'application/schema+json;schema=http://example.com/schema-2'))
+        self.assertTrue(is_json_content_type('application/json;charset=utf-8'))
+        self.assertFalse(is_json_content_type('text/json'))
+        self.assertFalse(is_json_content_type('text/plain'))
+        self.assertFalse(is_json_content_type('json'))
+        self.assertFalse(is_json_content_type('application/jsonfoo'))

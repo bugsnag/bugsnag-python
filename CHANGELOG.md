@@ -1,6 +1,29 @@
 Changelog
 =========
 
+## 3.7.0 (2020-07-27)
+
+### Enhancements
+
+* Enable session tracking by default. This feature powers stability metrics on
+  the Bugsnag dashboard.
+  [#194](https://github.com/bugsnag/bugsnag-python/pull/194)
+
+* Support reporting events from ASGI-based web servers and frameworks. See the
+  [documentation](https://docs.bugsnag.com/platforms/python/asgi/) for more
+  information about getting started.
+  [#195](https://github.com/bugsnag/bugsnag-python/pull/195)
+
+* [Django, Tornado] Add parsed JSON body content to events for requests with
+  JSON content types. The body content can be filtered on the Bugsnag dashboard
+  [#192](https://github.com/bugsnag/bugsnag-python/pull/192)
+
+### Fixes
+
+* Fix diagnostic data being swapped between contexts and attached to an
+  unrelated Bugsnag event when using `asyncio` features
+  [#199](https://github.com/bugsnag/bugsnag-python/pull/199)
+
 ## 3.6.1 (2020-06-04)
 
 ### Fixes

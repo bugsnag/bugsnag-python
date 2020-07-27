@@ -5,7 +5,7 @@ from bugsnag import Client
 from bugsnag.notification import Notification
 from bugsnag.configuration import Configuration
 from bugsnag.sessiontracker import SessionTracker
-from bugsnag.utils import ThreadLocals, package_version
+from bugsnag.utils import package_version
 from tests.utils import IntegrationTest
 
 
@@ -22,30 +22,6 @@ class TestConfiguration(IntegrationTest):
         self.assertEqual(len(tracker.session_counts), 1)
         for key, value in tracker.session_counts.items():
             self.assertEqual(value, 1)
-
-    def test_session_tracker_stores_session_in_threadlocals(self):
-        locs = ThreadLocals.get_instance()
-        tracker = SessionTracker(self.config)
-        tracker.auto_sessions = True
-        tracker.start_session()
-        session = locs.get_item('bugsnag-session')
-        self.assertTrue('id' in session)
-        self.assertTrue('startedAt' in session)
-        self.assertTrue('events' in session)
-        self.assertTrue('handled' in session['events'])
-        self.assertTrue('unhandled' in session['events'])
-        self.assertEqual(session['events']['handled'], 0)
-        self.assertEqual(session['events']['unhandled'], 0)
-
-    def test_session_tracker_sessions_are_unique(self):
-        tracker = SessionTracker(self.config)
-        tracker.auto_sessions = True
-        locs = ThreadLocals.get_instance()
-        tracker.start_session()
-        session_one = locs.get_item('bugsnag-session').copy()
-        tracker.start_session()
-        session_two = locs.get_item('bugsnag-session').copy()
-        self.assertNotEqual(session_one['id'], session_two['id'])
 
     def test_session_tracker_send_sessions_sends_sessions(self):
         client = Client(

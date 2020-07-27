@@ -1,3 +1,4 @@
+import json
 import re
 from flask import Flask
 from bugsnag.flask import handle_exceptions
@@ -102,8 +103,18 @@ class TestFlask(IntegrationTest):
             raise SentinelError("oops")
 
         handle_exceptions(app)
+        body = {
+            '_links': {
+                'self': {
+                    'href': 'http://example.com/api/resource/a'
+                }
+            },
+            'id': 'res-a',
+            'name': 'Resource A'
+        }
         app.test_client().post(
-            '/ajax', data='{"key": "value"}', content_type='application/json')
+            '/ajax', data=json.dumps(body),
+            content_type='application/hal+json')
 
         self.assertEqual(1, len(self.server.received))
         payload = self.server.received[0]['json_body']
@@ -112,8 +123,7 @@ class TestFlask(IntegrationTest):
                          'test_flask.SentinelError')
         self.assertEqual(event['metaData']['request']['url'],
                          'http://localhost/ajax')
-        self.assertEqual(event['metaData']['request']['data'],
-                         dict(key='value'))
+        self.assertEqual(event['metaData']['request']['data'], body)
 
     def test_bugsnag_includes_request_when_json_malformed(self):
         app = Flask("bugsnag")
