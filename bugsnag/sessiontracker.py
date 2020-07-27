@@ -4,9 +4,16 @@ from time import strftime, gmtime
 from threading import Lock, Timer
 import atexit
 
+try:
+    from contextvars import ContextVar
+    _session_info = ContextVar('bugsnag-session', default={})  # type: ignore
+except ImportError:
+    from bugsnag.utils import ThreadContextVar
+    # flake8: noqa
+    _session_info = ThreadContextVar('bugsnag-session', default={})  # type: ignore
+
 import bugsnag
-from bugsnag.utils import package_version, ThreadLocals, \
-    FilterDict, SanitizingJSONEncoder
+from bugsnag.utils import package_version, FilterDict, SanitizingJSONEncoder
 from bugsnag.notification import Notification
 
 
@@ -38,8 +45,7 @@ class SessionTracker(object):
                 'unhandled': 0
             }
         }
-        tls = ThreadLocals.get_instance()
-        tls.set_item("bugsnag-session", new_session)
+        _session_info.set(new_session)
         self.__queue_session(start_time)
 
     def send_sessions(self):
@@ -134,8 +140,7 @@ class SessionMiddleware(object):
         self.bugsnag = bugsnag
 
     def __call__(self, notification):
-        tls = ThreadLocals.get_instance()
-        session = tls.get_item('bugsnag-session', {}).copy()
+        session = _session_info.get()
         if session:
             if notification.unhandled:
                 session['events']['unhandled'] += 1

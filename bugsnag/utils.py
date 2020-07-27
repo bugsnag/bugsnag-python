@@ -265,3 +265,21 @@ class ThreadLocals(object):
 
     def del_item(self, key):
         return delattr(ThreadLocals.LOCALS, key)
+
+
+class ThreadContextVar(object):
+    """
+    A wrapper around ThreadLocals to mimic the API of contextvars
+    """
+    def __init__(self, name, default=None):
+        self.name = name
+        ThreadLocals.get_instance().set_item(name, default)
+
+    def get(self):
+        local = ThreadLocals.get_instance()
+        if local.has_item(self.name):
+            return local.get_item(self.name)
+        raise LookupError("No value for '{}'".format(self.name))
+
+    def set(self, new_value):
+        ThreadLocals.get_instance().set_item(self.name, new_value)

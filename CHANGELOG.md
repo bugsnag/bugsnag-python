@@ -11,6 +11,12 @@ Changelog
   [documentation](https://docs.bugsnag.com/platforms/python/asgi/) for more
   information about getting started.
 
+### Fixes
+
+* Fix diagnostic data being swapped between contexts and attached to an
+  unrelated Bugsnag event when using `asyncio` features
+  [#199](https://github.com/bugsnag/bugsnag-python/pull/199)
+
 ## 3.6.1 (2020-06-04)
 
 ### Fixes
