@@ -24,7 +24,7 @@ file and configure your API key.
 
 1. Run the application.
     ```shell
-    python server.py
+    env FLASK_APP=server.py python -m flask run
     ```
 
 1. View the example page which will (most likely) be served at: http://localhost:3000

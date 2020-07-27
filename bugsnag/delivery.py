@@ -24,7 +24,7 @@ try:
 
     import requests
 except ImportError:
-    requests = None
+    requests = None  # type: ignore
 
 DEFAULT_ENDPOINT = 'https://notify.bugsnag.com'
 DEFAULT_SESSIONS_ENDPOINT = 'https://sessions.bugsnag.com'
