@@ -1,3 +1,4 @@
+import os
 import sys
 
 from bugsnag import Client, Configuration
@@ -10,6 +11,7 @@ class ClientTest(IntegrationTest):
 
         self.client = Client(api_key='testing client key',
                              use_ssl=False, endpoint=self.server.address,
+                             project_root=os.path.join(os.getcwd(), 'tests'),
                              asynchronous=False,
                              install_sys_hook=False)
 
