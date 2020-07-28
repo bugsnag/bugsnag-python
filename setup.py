@@ -41,7 +41,7 @@ setup(
         'Programming Language :: Python :: 3.8',
         'Topic :: Software Development'
     ],
-    test_suite='nose.collector',
+    test_suite='tests',
     install_requires=['webob', 'six>=1.9,<2'],
     extras_require={
         'flask': ['flask', 'blinker']

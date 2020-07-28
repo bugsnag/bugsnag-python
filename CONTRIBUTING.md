@@ -11,19 +11,45 @@ Contributing
 Running the tests
 -----------------
 
-- Install the development dependencies:
+The quickest way to get feedback is to run the unit tests.
 
-      pip install -r dev_requirements.txt
+1.  Install the development dependencies:
 
-- Run the tests:
+    ```
+    pip install -r dev_requirements.txt
+    ```
 
-      tox
+2.  Run the unit tests
 
+    ```
+    py.test tests --ignore=tests/integrations
+    ```
 
-- Lint the changes:
+3.  Lint changes
 
-      flake8 bugsnag
+    ```
+    flake8 bugsnag tests
+    ```
 
+The integration environments are managed via [tox](https://tox.readthedocs.io/).
+Some of the integration tests require conflicting dependencies, so the
+environment matrix ensures each set is tested. Running `tox` will run every
+configuration, or individual environments can be specified to run python version
++ configuration pairs. The complete list of configurations is available in
+`tox.ini`.
+
+Examples:
+
+```sh
+# Run the unit tests and linter on python 3.8
+tox -e py38-tests,py38-lint
+
+# Run the Flask integration tests on python 2.7 and 3.5
+tox -e py27-flask,py35-flask
+
+# Run async support tests
+tox -e py38-asynctests
+```
 
 Running the example django app
 ------------------------------
