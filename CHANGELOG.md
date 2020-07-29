@@ -1,6 +1,14 @@
 Changelog
 =========
 
+## TBD
+
+### Enhancements
+
+* Support forcing an individual event to be sent synchronously to Bugsnag.
+  Given a configuration where asynchronous=True (the default setting), use
+  `notify(ex, asynchronous=False)` to block until the event is delivered.
+
 ## 3.7.1 (2020-07-30)
 
 ### Fixes

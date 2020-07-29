@@ -716,3 +716,9 @@ class TestBugsnag(IntegrationTest):
                 "name": "test middleware"
             }
         })
+
+    def test_synchronous_individual_notify(self):
+        bugsnag.configure(asynchronous=True)
+        bugsnag.notify(ScaryException('unexpected failover'),
+                       asynchronous=False)
+        assert len(self.server.received) == 1
