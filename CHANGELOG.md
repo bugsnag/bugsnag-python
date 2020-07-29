@@ -1,6 +1,13 @@
 Changelog
 =========
 
+## TBD
+
+### Fixes
+
+* Ensure session counts on events do not increment with future events by copying
+  the session information into each event
+
 ## 3.7.0 (2020-07-27)
 
 ### Enhancements

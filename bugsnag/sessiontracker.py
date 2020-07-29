@@ -1,4 +1,5 @@
 from __future__ import print_function
+from copy import deepcopy
 from uuid import uuid4
 from time import strftime, gmtime
 from threading import Lock, Timer
@@ -146,5 +147,5 @@ class SessionMiddleware(object):
                 session['events']['unhandled'] += 1
             else:
                 session['events']['handled'] += 1
-            notification.session = session
+            notification.session = deepcopy(session)
         self.bugsnag(notification)
