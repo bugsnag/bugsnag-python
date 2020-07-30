@@ -1,15 +1,17 @@
 Changelog
 =========
 
-## TBD
+## 3.7.1 (2020-07-30)
 
 ### Fixes
 
 * Ensure session counts on events do not increment with future events by copying
   the session information into each event
+  [#201](https://github.com/bugsnag/bugsnag-python/pull/201)
 
 * Fix erroneously delivered sessions when session tracking is disabled by
   release stages
+  [#202](https://github.com/bugsnag/bugsnag-python/pull/202)
 
 ## 3.7.0 (2020-07-27)
 
