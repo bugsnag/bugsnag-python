@@ -24,13 +24,13 @@ matrix:
     env: TOXENV=py34-test,py34-bottle,py34-requests,py34-wsgi,py34-flask,py34-tornado
 
   - python: 3.5
-    env: TOXENV=py35-test,py35-bottle,py35-celery,py35-requests,py35-wsgi,py35-flask,py35-django18-migrate1-django1,py35-django19-migrate1-django1,py35-django110-migrate1-django1,py35-django111-migrate1-django1,py35-tornado
+    env: TOXENV=py35-test,py35-bottle,py35-celery,py35-asynctest,py35-requests,py35-wsgi,py35-flask,py35-django18-migrate1-django1,py35-django19-migrate1-django1,py35-django110-migrate1-django1,py35-django111-migrate1-django1,py35-tornado
 
   - python: 3.6
-    env: TOXENV=py36-test,py36-bottle,py36-celery,py36-requests,py36-asgi,py36-wsgi,py36-flask,py36-django18-migrate1-django1,py36-django19-migrate1-django1,py36-django110-migrate1-django1,py36-django111-migrate1-django1,py36-django20-migrate1-django1,py36-django21-migrate1-django1,py36-tornado
+    env: TOXENV=py36-test,py36-bottle,py36-celery,py36-asynctest,py36-requests,py36-asgi,py36-wsgi,py36-flask,py36-django18-migrate1-django1,py36-django19-migrate1-django1,py36-django110-migrate1-django1,py36-django111-migrate1-django1,py36-django20-migrate1-django1,py36-django21-migrate1-django1,py36-tornado
 
   - python: 3.7
-    env: TOXENV=py37-test,py37-bottle,py37-celery,py37-requests,py37-asgi,py37-wsgi,py37-flask,py37-django18-migrate1-django1,py37-django19-migrate1-django1,py37-django110-migrate1-django1,py37-django111-migrate1-django1,py37-django20-migrate1-django1,py37-django21-migrate1-django1,py37-tornado
+    env: TOXENV=py37-test,py37-bottle,py37-celery,py37-asynctest,py37-requests,py37-asgi,py37-wsgi,py37-flask,py37-django18-migrate1-django1,py37-django19-migrate1-django1,py37-django110-migrate1-django1,py37-django111-migrate1-django1,py37-django20-migrate1-django1,py37-django21-migrate1-django1,py37-tornado
 
   - python: 3.8
     env: TOXENV=py38-test,py38-bottle,py38-celery,py38-asynctest,py38-requests,py38-asgi,py38-wsgi,py38-flask,py38-django18-migrate1-django1,py38-django111-migrate1-django1,py38-django20-migrate1-django1,py38-django21-migrate1-django1,py38-tornado,py38-lint

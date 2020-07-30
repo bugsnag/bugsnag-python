@@ -3,35 +3,6 @@ import json
 from typing import Dict, Any
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from threading import Thread
-from unittest import IsolatedAsyncioTestCase
-
-import bugsnag
-
-
-class AsyncIntegrationTest(IsolatedAsyncioTestCase):
-    async def asyncSetUp(self):
-        self.server = FakeBugsnag()
-        bugsnag.configure(asynchronous=True,
-                          endpoint=self.server.events_url,
-                          session_endpoint=self.server.sessions_url,
-                          api_key='ffffffffffffffffff')
-
-    async def asyncTearDown(self):
-        self.server.shutdown()
-
-    async def last_event_request(self):
-        """
-        Waits for a request to be received by the event server, timing out
-        after a few seconds
-        """
-        async def poll():
-            while len(self.server.events_received) == 0:
-                await asyncio.sleep(0.1)
-            return self.server.events_received[0]
-        try:
-            return await asyncio.wait_for(poll(), timeout=1.0)
-        except asyncio.TimeoutError:
-            assert 0, 'Timeout while waiting for a request'
 
 
 class ASGITestClient:
@@ -125,3 +96,17 @@ class FakeBugsnag:
         self.server.shutdown()
         self.thread.join()
         self.server.server_close()
+
+    async def last_event_request(self, timeout=1.0):
+        """
+        Waits for a request to be received by the event server, timing out
+        after a few seconds
+        """
+        async def poll():
+            while len(self.events_received) == 0:
+                await asyncio.sleep(0.1)
+            return self.events_received[0]
+        try:
+            return await asyncio.wait_for(poll(), timeout=timeout)
+        except asyncio.TimeoutError:
+            assert 0, 'Timeout while waiting for a request'
