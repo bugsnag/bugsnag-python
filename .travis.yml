@@ -15,7 +15,7 @@ matrix:
   - python: 3.3
     install:
     - travis_retry pip install coveralls 'virtualenv<16'
-    - pip install 'tox<3' 'pluggy<0.6.0' nose-cov webtest
+    - pip install 'tox<3' 'pluggy<0.6.0' webtest
     script:
       - TOXENV=py33-test,py33-requests,py33-wsgi,py33-flask,py33-tornado tox
     dist: trusty

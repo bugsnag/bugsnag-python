@@ -1,5 +1,6 @@
 import inspect
 import json
+import os
 import sys
 import unittest
 
@@ -109,6 +110,7 @@ class TestNotification(unittest.TestCase):
     def test_no_traceback_exclude_modules(self):
         from tests.fixtures import helpers
         config = Configuration()
+        config.configure(project_root=os.path.join(os.getcwd(), 'tests'))
 
         notification = helpers.invoke_exception_on_other_file(config)
 
@@ -121,7 +123,7 @@ class TestNotification(unittest.TestCase):
     def test_traceback_exclude_modules(self):
         # Make sure samples.py is compiling to pyc
         import py_compile
-        py_compile.compile('./fixtures/helpers.py')
+        py_compile.compile('./tests/fixtures/helpers.py')
 
         from tests.fixtures import helpers
         reload(helpers)  # .py variation might be loaded from previous test.
@@ -133,6 +135,7 @@ class TestNotification(unittest.TestCase):
             self.assertTrue(helpers.__file__.endswith('.pyc'))
 
         config = Configuration()
+        config.configure(project_root=os.path.join(os.getcwd(), 'tests'))
         config.traceback_exclude_modules = [helpers]
 
         notification = helpers.invoke_exception_on_other_file(config)

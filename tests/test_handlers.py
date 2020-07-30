@@ -19,6 +19,7 @@ def use_client_logger(func):
                         asynchronous=False)
         handler = client.log_handler()
         logger = logging.getLogger(__name__)
+        logger.setLevel(logging.INFO)
         logger.addHandler(handler)
         try:
             func(obj, handler, logger)
@@ -121,6 +122,7 @@ class HandlersTest(IntegrationTest):
     def test_severity_info(self):
         handler = BugsnagHandler()
         logger = logging.getLogger(__name__)
+        logger.setLevel(logging.INFO)
         logger.addHandler(handler)
 
         logger.info('The system is down')
@@ -140,6 +142,7 @@ class HandlersTest(IntegrationTest):
     def test_levelname_message(self):
         handler = BugsnagHandler()
         logger = logging.getLogger(__name__)
+        logger.setLevel(logging.INFO)
         logger.addHandler(handler)
 
         class MessageFilter(logging.Filter):

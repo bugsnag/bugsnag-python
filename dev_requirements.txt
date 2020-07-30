@@ -2,7 +2,7 @@ twine
 wheel
 
 tox
-nose-cov
+pytest-cov
 coveralls
 flake8
 
