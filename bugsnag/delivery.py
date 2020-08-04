@@ -53,7 +53,7 @@ class Delivery(object):
     def __init__(self):
         self.sent_session_warning = False
 
-    def deliver(self, config, payload):
+    def deliver(self, config, payload, options={}):
         """
         Sends error reports to Bugsnag
         """
