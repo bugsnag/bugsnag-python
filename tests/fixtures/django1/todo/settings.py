@@ -1,5 +1,5 @@
 """
-Django settings for bugsnag_demo project.
+Django settings for todo project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/1.6/topics/settings/
@@ -10,10 +10,11 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+from os.path import dirname, abspath, join
 
 import django
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+BASE_DIR = dirname(dirname(abspath(__file__)))
 
 
 # Quick-start development settings - unsuitable for production
@@ -23,11 +24,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 SECRET_KEY = '3n3h7r@tpqnwqtt8#avxh_t75k_6zf3x)@6cg!u(&xmz79(26h'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 TEMPLATE_DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['0.0.0.0', 'localhost']
 
 
 # Application definition
@@ -56,9 +57,9 @@ if django.VERSION >= (1, 10):
 else:
     MIDDLEWARE_CLASSES = _MIDDLEWARE
 
-ROOT_URLCONF = 'bugsnag_demo.urls'
+ROOT_URLCONF = 'todo.urls'
 
-WSGI_APPLICATION = 'bugsnag_demo.wsgi.application'
+WSGI_APPLICATION = 'todo.wsgi.application'
 
 
 # Database
@@ -90,8 +91,12 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+TEMPLATES = [{
+    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+    'DIRS': [join(BASE_DIR, 'templates')]
+}]
+
 BUGSNAG = {
-    "api_key": "066f5ad3590596f9aa8d601ea89af845",
-    "endpoint": os.environ.get('BUGSNAG_API', 'https://notify.bugsnag.com'),
-    "asynchronous": False,
+    'api_key': 'a05afff2bd2ffaf0ab0f52715bbdcffd',
+    'project_root': BASE_DIR,
 }
