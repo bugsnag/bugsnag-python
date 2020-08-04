@@ -2,6 +2,7 @@ twine
 wheel
 
 tox
+tox-factor
 pytest-cov
 coveralls
 flake8
