@@ -13,6 +13,8 @@ Changelog
 
 * Fix missing reports from failed celery tasks when the worker would terminate
   prior to the event being sent to bugsnag
+* [Django] Fix missing event context when a route did not have a name. Routes
+  without names will now use the namespace-qualified view function name.
 
 ## 3.7.1 (2020-07-30)
 

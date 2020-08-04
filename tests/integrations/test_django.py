@@ -48,6 +48,7 @@ def test_notify(bugsnag_server, django_client):
     exception = event['exceptions'][0]
 
     assert payload['apiKey'] == 'a05afff2bd2ffaf0ab0f52715bbdcffd'
+    assert event['context'] == 'notes.views.handle_notify'
     assert event['severityReason'] == {'type': 'handledException'}
     assert event['device']['runtimeVersions']['django'] == django.__version__
     assert event['metaData']['request'] == {
@@ -85,6 +86,7 @@ def test_notify_custom_info(bugsnag_server, django_client):
     event = payload['events'][0]
 
     assert payload['apiKey'] == 'a05afff2bd2ffaf0ab0f52715bbdcffd'
+    assert event['context'] == 'custom_info'
     assert event['severityReason'] == {'type': 'userSpecifiedSeverity'}
     assert event['severity'] == 'info'
 
@@ -101,6 +103,7 @@ def test_notify_post_body(bugsnag_server, django_client):
     exception = event['exceptions'][0]
 
     assert payload['apiKey'] == 'a05afff2bd2ffaf0ab0f52715bbdcffd'
+    assert event['context'] == 'notes.views.handle_notify'
     assert event['severityReason'] == {'type': 'handledException'}
     assert event['severity'] == 'warning'
     assert event['device']['runtimeVersions']['django'] == django.__version__
@@ -142,6 +145,7 @@ def test_unhandled_exception(bugsnag_server, django_client):
     exception = event['exceptions'][0]
 
     assert payload['apiKey'] == 'a05afff2bd2ffaf0ab0f52715bbdcffd'
+    assert event['context'] == 'crash'
     assert event['severityReason'] == {
         'type': 'unhandledExceptionMiddleware',
         'attributes':  {'framework': 'Django'}
@@ -186,6 +190,7 @@ def test_unhandled_exception_in_template(bugsnag_server, django_client):
     exception = event['exceptions'][0]
 
     assert payload['apiKey'] == 'a05afff2bd2ffaf0ab0f52715bbdcffd'
+    assert event['context'] == 'notes.views.unhandled_crash_in_template'
     assert event['severityReason'] == {
         'type': 'unhandledExceptionMiddleware',
         'attributes':  {'framework': 'Django'}
@@ -225,6 +230,7 @@ def test_report_error_from_http404handler(bugsnag_server, django_client):
     exception = event['exceptions'][0]
 
     assert payload['apiKey'] == 'a05afff2bd2ffaf0ab0f52715bbdcffd'
+    assert event['context'] == 'crash'
     assert event['severityReason'] == {
         'type': 'unhandledExceptionMiddleware',
         'attributes':  {'framework': 'Django'}
@@ -269,6 +275,7 @@ def test_notify_appends_user_data(bugsnag_server, django_client):
     exception = event['exceptions'][0]
 
     assert payload['apiKey'] == 'a05afff2bd2ffaf0ab0f52715bbdcffd'
+    assert event['context'] == 'notes.views.handle_notify'
     assert event['severityReason'] == {'type': 'handledException'}
     assert event['device']['runtimeVersions']['django'] == django.__version__
     assert event['metaData']['custom']['unhappy'] == 'nonexistent-file'
@@ -312,6 +319,7 @@ def test_crash_appends_user_data(bugsnag_server, django_client):
     exception = event['exceptions'][0]
 
     assert payload['apiKey'] == 'a05afff2bd2ffaf0ab0f52715bbdcffd'
+    assert event['context'] == 'crash'
     assert event['severityReason'] == {
         'type': 'unhandledExceptionMiddleware',
         'attributes':  {'framework': 'Django'}

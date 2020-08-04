@@ -6,9 +6,9 @@ from django.conf import settings
 from django.core.signals import request_started
 
 try:
-    from django.core.urlresolvers import resolve
+    from django.core.urlresolvers import resolve, Resolver404
 except ImportError:
-    from django.urls import resolve
+    from django.urls import resolve, Resolver404
 
 import bugsnag
 from bugsnag.utils import is_json_content_type
@@ -22,9 +22,15 @@ def add_django_request_to_notification(notification):
     request = notification.request_config.django_request
 
     if notification.context is None:
-        route = resolve(request.path_info)
-        if route:
+        try:
+            route = resolve(request.path_info)
+        except Resolver404:
+            pass
+
+        if route and route.url_name:
             notification.context = route.url_name
+        elif route and route.view_name:
+            notification.context = route.view_name
         else:
             notification.context = "%s %s" % (request.method,
                                               request.path_info)
