@@ -35,6 +35,9 @@ matrix:
   - python: 3.8
     env: TOXFACTOR=py38
 
+  - python: 3.9-dev
+    env: TOXFACTOR=py39
+
 install:
   - travis_retry pip install coveralls tox tox-factor
 
