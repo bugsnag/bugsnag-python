@@ -61,7 +61,7 @@ class Client(object):
 
         return ClientContext(self, exceptions, **options)
 
-    def notify(self, exception, **options):
+    def notify(self, exception, asynchronous=None, **options):
         """
         Notify bugsnag of an exception.
 
@@ -71,9 +71,10 @@ class Client(object):
         notification = Notification(exception, self.configuration,
                                     RequestConfiguration.get_instance(),
                                     **options)
-        self.deliver(notification)
+        self.deliver(notification, asynchronous=asynchronous)
 
-    def notify_exc_info(self, exc_type, exc_value, traceback, **options):
+    def notify_exc_info(self, exc_type, exc_value, traceback,
+                        asynchronous=None, **options):
         """
         Notify bugsnag of an exception via exc_info.
 
@@ -85,7 +86,7 @@ class Client(object):
         notification = Notification(exception, self.configuration,
                                     RequestConfiguration.get_instance(),
                                     **options)
-        self.deliver(notification)
+        self.deliver(notification, asynchronous=asynchronous)
 
     def excepthook(self, exc_type, exc_value, traceback):
         if self.configuration.auto_notify:
@@ -116,7 +117,8 @@ class Client(object):
             sys.excepthook = self.sys_excepthook
             self.sys_excepthook = None
 
-    def deliver(self, notification):  # type: (Notification) -> None
+    def deliver(self, notification,
+                asynchronous=None):  # type: ignore
         """
         Deliver the exception notification to Bugsnag.
         """
@@ -129,6 +131,11 @@ class Client(object):
             initial_reason = notification.severity_reason.copy()
 
             def send_payload():
+                if asynchronous is None:
+                    options = {}
+                else:
+                    options = {'asynchronous': asynchronous}
+
                 if notification.api_key is None:
                     bugsnag.logger.warning(
                         "No API key configured, couldn't notify")
@@ -142,7 +149,7 @@ class Client(object):
                 payload = notification._payload()
                 try:
                     self.configuration.delivery.deliver(self.configuration,
-                                                        payload)
+                                                        payload, options)
                 except Exception as e:
                     bugsnag.logger.exception('Notifying Bugsnag failed %s', e)
                 # Trigger session delivery

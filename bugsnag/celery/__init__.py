@@ -16,6 +16,7 @@ def failure_handler(sender, task_id, exception, args, kwargs, traceback, einfo,
     bugsnag.auto_notify(exception, traceback=traceback,
                         context=sender.name,
                         extra_data=task,
+                        asynchronous=False,
                         severity_reason={
                             'type': 'unhandledExceptionMiddleware',
                             'attributes': {
