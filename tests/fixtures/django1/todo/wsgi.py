@@ -1,5 +1,5 @@
 """
-WSGI config for bugsnag_demo project.
+WSGI config for todo project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -10,5 +10,5 @@ https://docs.djangoproject.com/en/1.6/howto/deployment/wsgi/
 import os
 
 from django.core.wsgi import get_wsgi_application
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "bugsnag_demo.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "todo.settings")
 application = get_wsgi_application()
