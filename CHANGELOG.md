@@ -11,6 +11,7 @@ Changelog
 
 ### Fixes
 
+* Warn for incorrectly typed configuration options
 * Fix missing reports from failed celery tasks when the worker would terminate
   prior to the event being sent to bugsnag
 
