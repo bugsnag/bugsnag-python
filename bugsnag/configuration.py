@@ -129,7 +129,7 @@ class Configuration(_BaseConfiguration):
         """
         return self._api_key
 
-    @api_key.setter
+    @api_key.setter  # type: ignore
     @validate_required_str_setter
     def api_key(self, value):
         self._api_key = value
@@ -141,7 +141,7 @@ class Configuration(_BaseConfiguration):
         """
         return self._app_version
 
-    @app_version.setter
+    @app_version.setter  # type: ignore
     @validate_str_setter
     def app_version(self, value):
         self._app_version = value
@@ -153,7 +153,7 @@ class Configuration(_BaseConfiguration):
         """
         return self._asynchronous
 
-    @asynchronous.setter
+    @asynchronous.setter  # type: ignore
     @validate_bool_setter
     def asynchronous(self, value):
         self._asynchronous = value
@@ -166,7 +166,7 @@ class Configuration(_BaseConfiguration):
         """
         return self._auto_capture_sessions
 
-    @auto_capture_sessions.setter
+    @auto_capture_sessions.setter  # type: ignore
     @validate_bool_setter
     def auto_capture_sessions(self, value):
         self._auto_capture_sessions = value
@@ -178,7 +178,7 @@ class Configuration(_BaseConfiguration):
         """
         return self._auto_notify
 
-    @auto_notify.setter
+    @auto_notify.setter  # type: ignore
     @validate_bool_setter
     def auto_notify(self, value):
         self._auto_notify = value
@@ -191,7 +191,7 @@ class Configuration(_BaseConfiguration):
         """
         return self._delivery
 
-    @delivery.setter
+    @delivery.setter  # type: ignore
     def delivery(self, value):
         if hasattr(value, 'deliver') and callable(value.deliver):
             self._delivery = value
@@ -210,7 +210,7 @@ class Configuration(_BaseConfiguration):
         """
         return self._endpoint
 
-    @endpoint.setter
+    @endpoint.setter  # type: ignore
     @validate_required_str_setter
     def endpoint(self, value):
         self._endpoint = value
@@ -223,7 +223,7 @@ class Configuration(_BaseConfiguration):
         """
         return self._hostname
 
-    @hostname.setter
+    @hostname.setter  # type: ignore
     @validate_str_setter
     def hostname(self, value):
         self._hostname = value
@@ -237,7 +237,7 @@ class Configuration(_BaseConfiguration):
         """
         return self._ignore_classes
 
-    @ignore_classes.setter
+    @ignore_classes.setter  # type: ignore
     @validate_iterable_setter
     def ignore_classes(self, value):
         self._ignore_classes = value
@@ -251,7 +251,7 @@ class Configuration(_BaseConfiguration):
         """
         return self._lib_root
 
-    @lib_root.setter
+    @lib_root.setter  # type: ignore
     @validate_str_setter
     def lib_root(self, value):
         self._lib_root = value
@@ -265,7 +265,7 @@ class Configuration(_BaseConfiguration):
         """
         return self._notify_release_stages
 
-    @notify_release_stages.setter
+    @notify_release_stages.setter  # type: ignore
     @validate_iterable_setter
     def notify_release_stages(self, value):
         self._notify_release_stages = value
@@ -283,7 +283,7 @@ class Configuration(_BaseConfiguration):
         """
         return self._params_filters
 
-    @params_filters.setter
+    @params_filters.setter  # type: ignore
     @validate_iterable_setter
     def params_filters(self, value):
         self._params_filters = value
@@ -298,7 +298,7 @@ class Configuration(_BaseConfiguration):
         """
         return self._project_root
 
-    @project_root.setter
+    @project_root.setter  # type: ignore
     @validate_str_setter
     def project_root(self, value):
         self._project_root = value
@@ -310,7 +310,7 @@ class Configuration(_BaseConfiguration):
         """
         return self._proxy_host
 
-    @proxy_host.setter
+    @proxy_host.setter  # type: ignore
     @validate_str_setter
     def proxy_host(self, value):
         self._proxy_host = value
@@ -324,7 +324,7 @@ class Configuration(_BaseConfiguration):
         """
         return self._release_stage
 
-    @release_stage.setter
+    @release_stage.setter  # type: ignore
     @validate_str_setter
     def release_stage(self, value):
         self._release_stage = value
@@ -337,7 +337,7 @@ class Configuration(_BaseConfiguration):
         """
         return self._send_code
 
-    @send_code.setter
+    @send_code.setter  # type: ignore
     @validate_bool_setter
     def send_code(self, value):
         self._send_code = value
@@ -352,7 +352,7 @@ class Configuration(_BaseConfiguration):
         """
         return self._session_endpoint
 
-    @session_endpoint.setter
+    @session_endpoint.setter  # type: ignore
     @validate_required_str_setter
     def session_endpoint(self, value):
         self._session_endpoint = value
@@ -364,7 +364,7 @@ class Configuration(_BaseConfiguration):
         """
         return self._traceback_exclude_modules
 
-    @traceback_exclude_modules.setter
+    @traceback_exclude_modules.setter  # type: ignore
     @validate_iterable_setter
     def traceback_exclude_modules(self, value):
         self._traceback_exclude_modules = value
@@ -377,7 +377,7 @@ class Configuration(_BaseConfiguration):
         """
         return self._use_ssl
 
-    @use_ssl.setter
+    @use_ssl.setter  # type: ignore
     @validate_bool_setter
     def use_ssl(self, value):
         warnings.warn('use_ssl is deprecated in favor of including the '
