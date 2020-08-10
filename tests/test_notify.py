@@ -80,7 +80,7 @@ class TestBugsnag(IntegrationTest):
         bugsnag.notify(ScaryException('unexpected failover'))
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
-        self.assertEqual('343.2.10', event['appVersion'])
+        self.assertEqual('343.2.10', event['app']['version'])
 
     def test_notify_override_context(self):
         bugsnag.notify(ScaryException('unexpected failover'),

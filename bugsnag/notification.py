@@ -232,7 +232,9 @@ class Notification(object):
                 "severityReason": self.severity_reason,
                 "unhandled": self.unhandled,
                 "releaseStage": self.release_stage,
-                "appVersion": self.app_version,
+                "app": {
+                    "version": self.app_version,
+                },
                 "context": self.context,
                 "groupingHash": self.grouping_hash,
                 "exceptions": [{
