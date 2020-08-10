@@ -8,6 +8,9 @@ Changelog
 * Support forcing an individual event to be sent synchronously to Bugsnag.
   Given a configuration where asynchronous=True (the default setting), use
   `notify(ex, asynchronous=False)` to block until the event is delivered.
+* Support configuring app type, which is a searchable field on the Bugsnag
+  dashboard. Set `Configuration.app_type` to add a `type` property to the app
+  metadata of an event.
 
 ### Fixes
 

@@ -68,6 +68,7 @@ class Configuration(_BaseConfiguration):
         self.delivery = create_default_delivery()
         self.lib_root = get_python_lib()
         self.project_root = os.getcwd()
+        self.app_type = None
         self.app_version = None
         self.params_filters = ["password", "password_confirmation", "cookie",
                                "authorization"]
@@ -111,7 +112,7 @@ class Configuration(_BaseConfiguration):
             'ignore_classes', 'lib_root', 'notify_release_stages',
             'params_filters', 'project_root', 'proxy_host', 'release_stage',
             'send_code', 'session_endpoint', 'traceback_exclude_modules',
-            'use_ssl',
+            'use_ssl', 'app_type',
         ]
 
         for option_name in options.keys():
@@ -133,6 +134,18 @@ class Configuration(_BaseConfiguration):
     @validate_required_str_setter
     def api_key(self, value):
         self._api_key = value
+
+    @property
+    def app_type(self):
+        """
+        Category for the current application or task
+        """
+        return self._app_type
+
+    @app_type.setter  # type: ignore
+    @validate_str_setter
+    def app_type(self, value):
+        self._app_type = value
 
     @property
     def app_version(self):

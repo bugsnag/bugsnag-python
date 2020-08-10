@@ -159,3 +159,26 @@ class TestNotification(unittest.TestCase):
         device = payload['events'][0]['device']
         self.assertEqual('test_host_name', device['hostname'])
         self.assertEqual('9.9.9', device['runtimeVersions']['python'])
+
+    def test_default_app_type(self):
+        """
+        app_type is None by default
+        """
+        config = Configuration()
+        notification = Notification(Exception("oops"), config, {})
+        payload = json.loads(notification._payload())
+        app = payload['events'][0]['app']
+
+        assert app['type'] is None
+
+    def test_configured_app_type(self):
+        """
+        It should include app type if specified
+        """
+        config = Configuration()
+        config.configure(app_type='rq')
+        notification = Notification(Exception("oops"), config, {})
+        payload = json.loads(notification._payload())
+        app = payload['events'][0]['app']
+
+        assert app['type'] == 'rq'
