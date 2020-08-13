@@ -1,9 +1,11 @@
 from __future__ import division, print_function, absolute_import
 
+from functools import wraps, partial
 import inspect
 import six
 from json import JSONEncoder
 from threading import local as threadlocal
+import warnings
 
 import bugsnag
 
@@ -231,6 +233,38 @@ def package_version(package_name):
             return pkg_resources.get_distribution(package_name).version
         except pkg_resources.DistributionNotFound:
             return None
+
+
+def _validate_setter(types, func, future_error=False):
+    """
+    Check that the first argument of a function is of a provided set of types
+    before calling the body of the wrapped function, printing a runtime warning
+    if the validation fails.
+    """
+    @wraps(func)
+    def wrapper(obj, value):
+        option_name = func.__name__
+        if value is None or isinstance(value, types):
+            func(obj, value)
+        else:
+            error_format = '{0} should be {1}, got {2}'
+            if future_error:
+                error_format += '. This will be an error in a future release.'
+            actual = type(value).__name__
+            if types == six.string_types:
+                requirement = 'str'
+            else:
+                requirement = ' or '.join([t.__name__ for t in types])
+            message = error_format.format(option_name, requirement, actual)
+            warnings.warn(message, RuntimeWarning)
+    return wrapper
+
+
+validate_str_setter = partial(_validate_setter, six.string_types)
+validate_required_str_setter = partial(_validate_setter, six.string_types,
+                                       future_error=True)
+validate_bool_setter = partial(_validate_setter, (bool,))
+validate_iterable_setter = partial(_validate_setter, (list, tuple))
 
 
 def merge_dicts(lhs, rhs):

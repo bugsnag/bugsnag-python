@@ -58,7 +58,7 @@ class TestBugsnag(IntegrationTest):
         self.assertEqual('dev', event['releaseStage'])
 
     def test_notify_unconfigured_release_stage(self):
-        bugsnag.configure(release_stage=['pickles'])
+        bugsnag.configure(release_stage='pickles')
         bugsnag.notify(ScaryException('unexpected failover'))
         self.assertEqual(0, len(self.server.received))
 
