@@ -50,6 +50,7 @@ class Notification(object):
 
         self.release_stage = get_config("release_stage")
         self.app_version = get_config("app_version")
+        self.app_type = get_config("app_type")
         self.hostname = get_config("hostname")
         self.runtime_versions = get_config("runtime_versions")
         self.send_code = get_config("send_code")
@@ -232,7 +233,10 @@ class Notification(object):
                 "severityReason": self.severity_reason,
                 "unhandled": self.unhandled,
                 "releaseStage": self.release_stage,
-                "appVersion": self.app_version,
+                "app": {
+                    "version": self.app_version,
+                    "type": self.app_type,
+                },
                 "context": self.context,
                 "groupingHash": self.grouping_hash,
                 "exceptions": [{

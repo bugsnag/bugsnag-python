@@ -138,6 +138,21 @@ class TestConfiguration(unittest.TestCase):
             assert len(record) == 1
             assert c.endpoint == 'https://notify.example.com'
 
+    def test_validate_app_type(self):
+        c = Configuration()
+        assert c.app_type is None
+        with pytest.warns(RuntimeWarning) as record:
+            c.configure(app_type=[])
+
+            assert len(record) == 1
+            assert str(record[0].message) == 'app_type should be str, got list'
+            assert c.app_type is None
+
+            c.configure(app_type='rq')
+
+            assert len(record) == 1
+            assert c.app_type == 'rq'
+
     def test_validate_app_version(self):
         c = Configuration()
         with pytest.warns(RuntimeWarning) as record:

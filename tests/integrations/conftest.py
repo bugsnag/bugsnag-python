@@ -11,4 +11,5 @@ def bugsnag_server():
 
     yield server
 
+    bugsnag.configure(app_type=None)
     server.shutdown()

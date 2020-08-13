@@ -80,7 +80,7 @@ class TestBugsnag(IntegrationTest):
         bugsnag.notify(ScaryException('unexpected failover'))
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
-        self.assertEqual('343.2.10', event['appVersion'])
+        self.assertEqual('343.2.10', event['app']['version'])
 
     def test_notify_override_context(self):
         bugsnag.notify(ScaryException('unexpected failover'),
@@ -188,6 +188,31 @@ class TestBugsnag(IntegrationTest):
         bugsnag.configure(api_key=None)
         bugsnag.notify(ScaryException('unexpected failover'))
         self.assertEqual(0, len(self.server.received))
+
+    def test_notify_custom_app_type(self):
+        bugsnag.notify(ScaryException('unexpected failover'), app_type='work')
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertEqual('work', event['app']['type'])
+
+    def test_notify_callback_app_type(self):
+
+        def callback(report):
+            report.app_type = 'whopper'
+
+        bugsnag.configure(app_type='rq')
+        bugsnag.before_notify(callback)
+        bugsnag.notify(ScaryException('unexpected failover'))
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertEqual('whopper', event['app']['type'])
+
+    def test_notify_configured_app_type(self):
+        bugsnag.configure(app_type='rq')
+        bugsnag.notify(ScaryException('unexpected failover'))
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertEqual('rq', event['app']['type'])
 
     def test_notify_sends_when_before_notify_throws(self):
 
