@@ -1,46 +1,48 @@
 ---
 name: Bug report
 about: Create a report to help us improve the library
+title: ''
+labels: ''
+assignees: ''
 
 ---
 
-### Description
-<!-- A quick description of what you're trying to accomplish -->
+<!-- Before raising, please check if somebody else has already reported your issue. -->
 
-### Issue
-<!--
-  What went wrong?
--->
+### Describe the bug
+A clear and concise description of what the bug is.
+
+### Steps to reproduce
+1. Go to '...'
+2. Click on '....'
+3. Scroll down to '....'
+4. See error
 
 ### Environment
-
-Library versions:
-
-- python version:
-- bugsnag-python version:
-- integration version(s)
-  - asgi:
-  - celery:
-  - django:
-  - flask:
-  - tornado:
-  - wsgi:
+* Bugsnag version:
+* Python version:
+* Integration framework version:
+    * ASGI:
+    * Celery:
+    * Django:
+    * Flask:
+    * Tornado:
+    * WSGI:
 
 <!--
   Below are a few approaches you might take to communicate the issue, in
   descending order of awesomeness. Please choose one and feel free to delete
   the others from this template.
 -->
-### Example Repo
+
+### Example Repo <!-- Option 1 -->
 
 - [ ] Create a minimal repository that can reproduce the issue
 - [ ] Link to it here:
 
-### Example code snippet
+### Example code snippet <!-- Option 2 -->
 
-```python
-import bugsnag
-
+```
 # (Insert code sample to reproduce the problem)
 ```
 
