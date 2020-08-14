@@ -70,7 +70,8 @@ def add_django_request_to_notification(notification):
         pass
 
     notification.add_tab("request", request_tab)
-    notification.add_tab("environment", dict(request.META))
+    if bugsnag.configure().send_environment:
+        notification.add_tab("environment", dict(request.META))
 
 
 def configure():

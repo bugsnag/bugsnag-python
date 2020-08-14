@@ -15,7 +15,8 @@ def add_flask_request_to_notification(notification):
     if "id" not in notification.user:
         notification.set_user(id=flask.request.remote_addr)
     notification.add_tab("session", dict(flask.session))
-    notification.add_tab("environment", dict(flask.request.environ))
+    if bugsnag.configure().send_environment:
+        notification.add_tab("environment", dict(flask.request.environ))
     notification.add_tab("request", {
         "url": flask.request.base_url,
         "headers": dict(flask.request.headers),

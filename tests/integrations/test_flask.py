@@ -47,10 +47,29 @@ class TestFlask(IntegrationTest):
 
         self.assertEqual(1, len(self.server.received))
         payload = self.server.received[0]['json_body']
-        self.assertEqual(payload['events'][0]['exceptions'][0]['errorClass'],
+        event = payload['events'][0]
+        self.assertEqual(event['exceptions'][0]['errorClass'],
                          'test_flask.SentinelError')
-        self.assertEqual(payload['events'][0]['metaData']['request']['url'],
+        self.assertEqual(event['metaData']['request']['url'],
                          'http://localhost/hello')
+        self.assertEqual(event['metaData']['environment']['REMOTE_ADDR'],
+                         '127.0.0.1')
+
+    def test_disable_environment(self):
+        bugsnag.configure(send_environment=False)
+
+        app = Flask("bugsnag")
+
+        @app.route("/hello")
+        def hello():
+            raise SentinelError("oops")
+
+        handle_exceptions(app)
+        app.test_client().get('/hello')
+
+        self.assertEqual(1, len(self.server.received))
+        payload = self.server.received[0]['json_body']
+        assert 'environment' not in payload['events'][0]['metaData']
 
     def test_bugsnag_notify(self):
         app = Flask("bugsnag")

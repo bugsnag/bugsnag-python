@@ -69,17 +69,37 @@ class TestASGIMiddleware(AsyncIntegrationTest):
 
         payload = await self.last_event_request()
         request = payload['events'][0]['metaData']['request']
+        environment = payload['events'][0]['metaData']['environment']
         self.assertEqual('/', request['path'])
         self.assertEqual('GET', request['httpMethod'])
         self.assertEqual('http', request['type'])
         self.assertEqual('http://testserver/', request['url'])
         self.assertEqual('testclient', request['clientIp'])
         self.assertEqual('testclient', request['headers']['user-agent'])
+        self.assertEqual('/', environment['path'])
 
         exception = payload['events'][0]['exceptions'][0]
         self.assertEqual('test_async_asgi.CustomException',
                          exception['errorClass'])
         self.assertEqual('forgot the map', exception['message'])
+
+    async def test_disable_environment(self):
+        bugsnag.configure(send_environment=False)
+
+        async def app(scope, recv, send):
+            raise CustomException('forgot the map')
+
+        app = ASGITestClient(BugsnagMiddleware(app))
+
+        try:
+            await app.request('/')
+            assert 0, 'An exception should have been raised'
+        except CustomException:
+            pass
+
+        payload = await self.last_event_request()
+        metadata = payload['events'][0]['metaData']
+        assert 'environment' not in metadata
 
     async def test_custom_metadata(self):
         async def next_func():
