@@ -11,6 +11,9 @@ Changelog
 * Support configuring app type, which is a searchable field on the Bugsnag
   dashboard. Set `Configuration.app_type` to add a `type` property to the app
   metadata of an event.
+* Support disabling automatic attachment of the request environment to events.
+  Set `Configuration.send_environment` to `False` to remove the metadata.
+* [ASGI] Collect request enviroment in an "environment" metadata section
 
 ### Fixes
 

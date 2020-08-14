@@ -39,6 +39,23 @@ class TestBottle(IntegrationTest):
         runtime_versions = event['device']['runtimeVersions']
         self.assertEqual(runtime_versions['bottle'], '0.12.18')
 
+    def test_disable_environment(self):
+        bugsnag.configure(send_environment=False)
+
+        @route('/beans')
+        def index():
+            raise Exception('oh no!')
+
+        app = bottle.app()
+        app.catchall = False
+        app = TestApp(BugsnagMiddleware(app))
+
+        self.assertRaises(Exception, lambda: app.get('/beans'))
+        self.assertEqual(1, len(self.server.received))
+        payload = self.server.received[0]['json_body']
+        metadata = payload['events'][0]['metaData']
+        assert 'environment' not in metadata
+
     def test_template_error(self):
         @route('/berries/<variety>')
         def index(variety):

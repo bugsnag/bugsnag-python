@@ -63,6 +63,7 @@ class Configuration(_BaseConfiguration):
         self.notify_release_stages = None
         self.auto_notify = True
         self.send_code = True
+        self.send_environment = True
         self.asynchronous = True
         self.use_ssl = True  # Deprecated
         self.delivery = create_default_delivery()
@@ -112,7 +113,7 @@ class Configuration(_BaseConfiguration):
             'ignore_classes', 'lib_root', 'notify_release_stages',
             'params_filters', 'project_root', 'proxy_host', 'release_stage',
             'send_code', 'session_endpoint', 'traceback_exclude_modules',
-            'use_ssl', 'app_type',
+            'use_ssl', 'app_type', 'send_environment',
         ]
 
         for option_name in options.keys():
@@ -354,6 +355,19 @@ class Configuration(_BaseConfiguration):
     @validate_bool_setter
     def send_code(self, value):
         self._send_code = value
+
+    @property
+    def send_environment(self):
+        """
+        If the request environment should be automatically collected and
+        attached to events
+        """
+        return self._send_environment
+
+    @send_environment.setter  # type: ignore
+    @validate_bool_setter
+    def send_environment(self, value):
+        self._send_environment = value
 
     @property
     def session_endpoint(self):

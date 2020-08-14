@@ -1,3 +1,4 @@
+import bugsnag
 import pytest
 import django
 from django.contrib.auth.models import User
@@ -51,6 +52,7 @@ def test_notify(bugsnag_server, django_client):
     assert event['context'] == 'notes.views.handle_notify'
     assert event['severityReason'] == {'type': 'handledException'}
     assert event['device']['runtimeVersions']['django'] == django.__version__
+    assert event['metaData']['environment']['REQUEST_METHOD'] == 'GET'
     assert event['metaData']['request'] == {
         'method': 'GET',
         'url': 'http://testserver/notes/handled-exception/?foo=strawberry',
@@ -77,6 +79,16 @@ def test_notify(bugsnag_server, django_client):
         'lineNumber': 42,
         'method': 'handle_notify',
     }
+
+
+def test_disable_environment(bugsnag_server, django_client):
+    bugsnag.configure(send_environment=False)
+    response = django_client.get('/notes/handled-exception/?foo=strawberry')
+    assert response.status_code == 200
+
+    bugsnag_server.wait_for_request()
+    payload = bugsnag_server.received[0]['json_body']
+    assert 'environment' not in payload['events'][0]['metaData']
 
 
 def test_notify_custom_info(bugsnag_server, django_client):

@@ -100,6 +100,8 @@ class BugsnagMiddleware:
             request['url'] = parse_url(request, server)
 
             event.add_tab("request", request)
+            if bugsnag.configure().send_environment:
+                event.add_tab("environment", scope)
 
         stack.before_notify(add_request_info)
 

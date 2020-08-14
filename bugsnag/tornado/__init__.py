@@ -33,8 +33,9 @@ class BugsnagRequestHandler(RequestHandler):
 
         notification.add_tab("request", request_tab)
 
-        notification.add_tab("environment",
-                             tornado.wsgi.WSGIContainer.environ(self.request))
+        if bugsnag.configure().send_environment:
+            env = tornado.wsgi.WSGIContainer.environ(self.request)
+            notification.add_tab("environment", env)
 
     def _handle_request_exception(self, exc):
         options = {
