@@ -19,6 +19,7 @@ from bugsnag.utils import (fully_qualified_class_name, validate_str_setter,
                            validate_required_str_setter)
 from bugsnag.delivery import (create_default_delivery, DEFAULT_ENDPOINT,
                               DEFAULT_SESSIONS_ENDPOINT)
+from bugsnag.uwsgi import warn_if_running_uwsgi_without_threads
 
 try:
     from contextvars import ContextVar
@@ -171,6 +172,8 @@ class Configuration(_BaseConfiguration):
     @validate_bool_setter
     def asynchronous(self, value):
         self._asynchronous = value
+        if value:
+            warn_if_running_uwsgi_without_threads()
 
     @property
     def auto_capture_sessions(self):
