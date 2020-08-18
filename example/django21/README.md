@@ -14,7 +14,7 @@ To get set up, follow the instructions below. Don't forget to replace the placeh
 1. Clone the repo and `cd` into this directory:
     ```shell
     git clone https://github.com/bugsnag/bugsnag-python.git
-    cd bugsnag-python/example/django
+    cd bugsnag-python/example/django21
     ```
 
 1. Install dependencies
