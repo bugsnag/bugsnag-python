@@ -1,0 +1,16 @@
+{% if latest_notes_list %}
+    <ul>
+    {% for note in latest_notes_list %}
+        <li><a href="{% url 'detail' note.id %}">{{ note.note_text }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No notes available</p>
+{% endif %}
+
+<form action="{% url 'add' %}" method="post">
+{% csrf_token %}
+<label for="note_text">Add new note:</label>
+<input type="text" value="" name="note_text" id="note_text"/>
+<input type="submit" value="Save" />
+</form>
