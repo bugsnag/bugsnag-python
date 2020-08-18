@@ -47,7 +47,8 @@ class DefaultMiddleware(object):
                 notification.add_tab(name, dictionary)
 
         notification.add_tab("request", config.get("request_data"))
-        notification.add_tab("environment", config.get("environment_data"))
+        if bugsnag.configure().send_environment:
+            notification.add_tab("environment", config.get("environment_data"))
         notification.add_tab("session", config.get("session_data"))
         notification.add_tab("extraData", config.get("extra_data"))
 

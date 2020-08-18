@@ -1,6 +1,43 @@
 Changelog
 =========
 
+## 3.8.0 (2020-08-18)
+
+### Enhancements
+
+* Support forcing an individual event to be sent synchronously to Bugsnag.
+  Given a configuration where asynchronous=True (the default setting), use
+  `notify(ex, asynchronous=False)` to block until the event is delivered.
+  [#207](https://github.com/bugsnag/bugsnag-python/pull/207)
+
+* Support configuring app type, which is a searchable field on the Bugsnag
+  dashboard. Set `Configuration.app_type` to add a `type` property to the app
+  metadata of an event.
+  [#212](https://github.com/bugsnag/bugsnag-python/pull/212)
+
+* Support disabling automatic attachment of the request environment to events.
+  Set `Configuration.send_environment` to `False` to remove the metadata.
+  [#214](https://github.com/bugsnag/bugsnag-python/pull/214)
+
+* [ASGI] Collect request enviroment in an "environment" metadata section
+  [#214](https://github.com/bugsnag/bugsnag-python/pull/214)
+
+### Fixes
+
+* Warn for incorrectly typed configuration options
+  [#211](https://github.com/bugsnag/bugsnag-python/pull/211)
+
+* Warn if running under uWSGI without thread support
+  [#215](https://github.com/bugsnag/bugsnag-python/pull/215)
+
+* Fix missing reports from failed celery tasks when the worker would terminate
+  prior to the event being sent to bugsnag
+  [#207](https://github.com/bugsnag/bugsnag-python/pull/207)
+
+* [Django] Fix missing event context when a route did not have a name. Routes
+  without names will now use the namespace-qualified view function name.
+  [#210](https://github.com/bugsnag/bugsnag-python/pull/210)
+
 ## 3.7.1 (2020-07-30)
 
 ### Fixes

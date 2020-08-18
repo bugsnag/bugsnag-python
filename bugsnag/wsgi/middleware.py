@@ -30,7 +30,9 @@ def add_wsgi_request_data_to_notification(notification):
         "headers": dict(request.headers),
         "params": dict(request.params),
     })
-    notification.add_tab("environment", dict(request.environ))
+
+    if bugsnag.configure().send_environment:
+        notification.add_tab("environment", dict(request.environ))
 
 
 class WrappedWSGIApp(object):

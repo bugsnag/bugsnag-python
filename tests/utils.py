@@ -8,6 +8,10 @@ from six.moves import BaseHTTPServer
 import bugsnag
 
 
+class MissingRequestError(Exception):
+    pass
+
+
 class IntegrationTest(unittest.TestCase):
 
     @classmethod
@@ -90,6 +94,14 @@ class FakeBugsnagServer(object):
         self.server.shutdown()
         self.thread.join()
         self.server.server_close()
+
+    def wait_for_request(self, timeout=2):
+        start = time.time()
+        while (len(self.received) == 0):
+            if (time.time() - start > timeout):
+                raise MissingRequestError("No request received before timeout")
+
+            time.sleep(0.25)
 
 
 class ScaryException(Exception):

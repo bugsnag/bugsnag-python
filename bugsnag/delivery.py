@@ -53,7 +53,7 @@ class Delivery(object):
     def __init__(self):
         self.sent_session_warning = False
 
-    def deliver(self, config, payload):
+    def deliver(self, config, payload, options={}):
         """
         Sends error reports to Bugsnag
         """
@@ -75,6 +75,12 @@ class Delivery(object):
                 'success': 202,
             }
             self.deliver(config, payload, options)
+
+    def queue_request(self, request, config, options):
+        if config.asynchronous and options.pop('asynchronous', True):
+            Thread(target=request).start()
+        else:
+            request()
 
 
 class UrllibDelivery(Delivery):
@@ -111,10 +117,7 @@ class UrllibDelivery(Delivery):
                 bugsnag.logger.warning(
                     'Delivery to %s failed, status %d' % (uri, status))
 
-        if config.asynchronous:
-            Thread(target=request).start()
-        else:
-            request()
+        self.queue_request(request, config, options)
 
 
 class RequestsDelivery(Delivery):
@@ -147,7 +150,4 @@ class RequestsDelivery(Delivery):
                 bugsnag.logger.warning(
                     'Delivery to %s failed, status %d' % (uri, status))
 
-        if config.asynchronous:
-            Thread(target=request).start()
-        else:
-            request()
+        self.queue_request(request, config, options)

@@ -52,6 +52,21 @@ class TestWSGI(IntegrationTest):
         self.assertEqual(event['metaData']['environment']['PATH_INFO'],
                          '/beans')
 
+    def test_disable_environment(self):
+        bugsnag.configure(send_environment=False)
+
+        class CrashOnStartApp(object):
+            def __init__(self, environ, start_response):
+                raise SentinelError("oops")
+
+        app = TestApp(BugsnagMiddleware(CrashOnStartApp))
+
+        self.assertRaises(SentinelError, lambda: app.get('/beans'))
+
+        self.assertEqual(1, len(self.server.received))
+        payload = self.server.received[0]['json_body']
+        assert 'environment' not in payload['events'][0]['metaData']
+
     def test_bugsnag_middleware_crash_on_iter(self):
         class CrashOnIterApp(Iterator):
             def __init__(self, environ, start_response):
