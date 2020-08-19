@@ -15,5 +15,6 @@ def bugsnag_server():
     # Reset shared client config
     global_setup.configuration = bugsnag.Configuration()
     global_setup.default_client.configuration = global_setup.configuration
+    global_setup.default_client.uninstall_sys_hook()
 
     server.shutdown()
