@@ -257,7 +257,7 @@ class TestFlask(IntegrationTest):
         payload = self.server.received[0]['json_body']
         device_data = payload['events'][0]['device']
 
-        self.assertEquals(len(device_data['runtimeVersions']), 2)
+        self.assertEquals(len(device_data['runtimeVersions']), 3)
         self.assertTrue(re.match(r'\d+\.\d+\.\d+',
                                  device_data['runtimeVersions']['python']))
         self.assertTrue(re.match(r'\d+\.\d+\.\d+',

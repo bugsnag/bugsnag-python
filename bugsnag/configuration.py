@@ -97,7 +97,10 @@ class Configuration(_BaseConfiguration):
         else:
             self.hostname = None
 
-        self.runtime_versions = {"python": platform.python_version()}
+        self.runtime_versions = {
+            "python": platform.python_version(),
+            "platform": platform.platform(),
+        }
 
     def configure(self, **options):
         """
