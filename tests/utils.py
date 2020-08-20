@@ -22,6 +22,7 @@ class IntegrationTest(unittest.TestCase):
         self.server.received = []
 
     def tearDown(self):
+        bugsnag.legacy.default_client.uninstall_sys_hook()
         client = bugsnag.Client()
         client.configuration.api_key = 'some key'
         bugsnag.legacy.default_client = client

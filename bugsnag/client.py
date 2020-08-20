@@ -1,4 +1,5 @@
 import sys
+import threading
 
 from functools import wraps
 from types import FunctionType
@@ -110,12 +111,30 @@ class Client(object):
         sys.excepthook = excepthook
         sys.excepthook.bugsnag_client = self
 
+        if hasattr(threading, 'excepthook'):
+            self.threading_excepthook = threading.excepthook
+
+            def threadhook(args):
+                self.excepthook(args[0], args[1], args[2])
+
+                if self.threading_excepthook:
+                    self.threading_excepthook(args)
+
+            threading.excepthook = threadhook
+            threading.excepthook.bugsnag_client = self
+
     def uninstall_sys_hook(self):
         client = getattr(sys.excepthook, 'bugsnag_client', None)
 
         if client is self:
             sys.excepthook = self.sys_excepthook
             self.sys_excepthook = None
+
+        if hasattr(threading, 'excepthook'):
+            client = getattr(threading.excepthook, 'bugsnag_client', None)
+            if client is self:
+                threading.excepthook = self.threading_excepthook
+                self.threading_excepthook = None
 
     def deliver(self, notification,
                 asynchronous=None):  # type: ignore

@@ -1,6 +1,13 @@
 Changelog
 =========
 
+## TBD
+
+### Enhancements
+
+* Support reporting exceptions thrown from threads using
+  [`threading.excepthook`](https://docs.python.org/3.8/library/threading.html#threading.excepthook)
+
 ## 3.8.0 (2020-08-18)
 
 ### Enhancements
