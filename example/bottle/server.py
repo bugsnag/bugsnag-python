@@ -3,9 +3,7 @@ import bugsnag
 
 from bugsnag.wsgi.middleware import BugsnagMiddleware
 
-bugsnag.configure(
-    api_key='some-api-key',
-)
+bugsnag.configure(api_key='some-api-key',)
 
 
 @route('/')
@@ -25,12 +23,15 @@ def handle_zero_div():
     """Deliberately triggers a handled exception, and reports it to Bugsnag.
     """
     try:
-        x = 1/0
+        x = 1 / 0
+        print("x: ", x)
     except Exception as e:
         bugsnag.notify(e)
 
-    return ('The app hasn\'t crashed, but check https://app.bugsnag.com ' +
-            'to view notifications')
+    return (
+        'The app hasn\'t crashed, but check https://app.bugsnag.com '
+        + 'to view notifications'
+    )
 
 
 app = app()
