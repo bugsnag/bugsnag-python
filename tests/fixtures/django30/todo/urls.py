@@ -6,11 +6,11 @@ urlpatterns = [
 ]
 
 
-def handler404(request, exception):
+def handler404(request, *args, **kwargs):
     if 'poorly-handled-404' in request.path:
         raise Exception('nah')
 
-    response = HttpResponseNotFound(b'Terrible happenings!',
+    response = HttpResponseNotFound('Terrible happenings!',
                                     content_type='text/plain')
     response.status_code = 404
     return response

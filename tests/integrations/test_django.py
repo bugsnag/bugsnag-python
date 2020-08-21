@@ -242,7 +242,7 @@ def test_report_error_from_http404handler(bugsnag_server, django_client):
     exception = event['exceptions'][0]
 
     assert payload['apiKey'] == 'a05afff2bd2ffaf0ab0f52715bbdcffd'
-    assert event['context'] == 'crash'
+    assert event['context'] == 'GET /notes/poorly-handled-404'
     assert event['severityReason'] == {
         'type': 'unhandledExceptionMiddleware',
         'attributes':  {'framework': 'Django'}
@@ -261,16 +261,16 @@ def test_report_error_from_http404handler(bugsnag_server, django_client):
     assert exception['stacktrace'][0] == {
         'method': 'handler404',
         'file': 'todo/urls.py',
-        'lineNumber': 10,
+        'lineNumber': 11,
         'inProject': True,
         'code': {
-            '7': '',
-            '8': 'def handler404(request, exception):',
-            '9': "    if request.path == '/notes/poorly-handled-404':",
-            '10': "         raise Exception('nah')",
-            '11': '',
-            '12': "    response = HttpResponseNotFound('Terrible happenings!',",  # noqa: E501
-            '13': "                                    content_type='text/plain')",  # noqa: E501
+            '8': '',
+            '9': 'def handler404(request, *args, **kwargs):',
+            '10': "    if 'poorly-handled-404' in request.path:",
+            '11': "        raise Exception('nah')",
+            '12': '',
+            '13': "    response = HttpResponseNotFound('Terrible happenings!',",  # noqa: E501
+            '14': "                                    content_type='text/plain')",  # noqa: E501
         },
     }
 
