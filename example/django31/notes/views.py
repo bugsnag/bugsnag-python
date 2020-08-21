@@ -47,6 +47,9 @@ def handle_notify(request):
 
 
 def handle_notify_custom_info(request):
-    bugsnag.notify(Exception('something bad happened'), severity='info',
-                   context='custom_info')
+    bugsnag.notify(
+        Exception('something bad happened'),
+        severity='info',
+        context='custom_info',
+    )
     return HttpResponse('sent!', content_type='text/html')

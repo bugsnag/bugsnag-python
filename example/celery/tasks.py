@@ -25,9 +25,11 @@ celery = Celery('tasks', broker='redis://localhost', backend='redis')
 bugsnag.configure(api_key="066f5ad3590596f9aa8d601ea89af845")
 connect_failure_handler()
 
+
 @celery.task(name='tasks.divide')
 def divide(x, y):
     return x / y
+
 
 if __name__ == "__main__":
     divide.delay(1, 0)

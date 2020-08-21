@@ -20,37 +20,28 @@ app = Flask(__name__)
 bugsnag.configure(
     # get your own api key at bugsnag.com
     api_key='YOUR_API_KEY_HERE',
-
     # if you track deploys or session rates, make sure to set the correct
     # version.
     app_version='1.2.3',
-
     # By default, requests are sent asynchronously. If you would like to block
     # until the request is done, you can set to false
     asynchronous=True,
-
     # Defaults to True, this allows you to log each session which will be used
     # to calculate crash rates in your dashboard for each release.
     auto_capture_sessions=True,
-
     # Sets which exception classes should never be sent to Bugsnag.
     ignore_classes=['Http404', 'DontCare'],
-
     # Defines the release stage for all events that occur in this app.
     release_stage='development',
-
     # Defines which release stages bugsnag should report. e.g. ignore staging
     # errors.
     notify_release_stages=['development', 'production'],
-
     # Any param key that contains one of these strings will be filtered out of
     # all error reports.
     params_filters=["credit_card_number", "password", "ssn"],
-
     # We mark stacktrace lines as inProject if they come from files inside
     # root:
     # project_root = "/path/to/your/app",
-
     # Useful if you are wrapping bugsnag.notify() in with your own library, to
     # ensure errors group properly.
     # traceback_exclude_module = [myapp.custom_logging],
@@ -73,24 +64,23 @@ def callback(notification):
         # in your app, you can pull these details from session.
         'name': 'Alan Turing',
         'email': 'turing@code.net',
-        'id': '1234567890'
+        'id': '1234567890',
     }
 
-    notification.add_tab(
-        'company', {
-            'name': 'Stark Industries'
-        }
-    )
+    notification.add_tab('company', {'name': 'Stark Industries'})
 
     if notification.context == 'GET /crashcallback':
         # The callback will evaluate all exceptions, but in this example only
         # errors from @app.route('/crashcallback') will have the below data
         # added to their error reports.
-        notification.add_tab('Diagnostics', {
-            'message': 'Flask demo: Everything is fine',
-            'status': 200,
-            'password': 'password1'  # this will be filtered
-        })
+        notification.add_tab(
+            'Diagnostics',
+            {
+                'message': 'Flask demo: Everything is fine',
+                'status': 200,
+                'password': 'password1',  # this will be filtered
+            },
+        )
     # note that if you return false from the callback, this will cancel the
     # entire error report.
 
@@ -122,7 +112,7 @@ def crashcallback():
     Deliberately raises an unhandled error which will have diagnostic data
     attached by the global callback function, and crash the app.
     """
-    raise(Exception('SomethingBad'))
+    raise (Exception('SomethingBad'))
 
 
 @app.route('/handled')
@@ -131,14 +121,16 @@ def handle_zero_div():
     Deliberately triggers a handled exception, and reports it to Bugsnag.
     """
     try:
-        x = 1/0
+        x = 1 / 0
         print('{} is x'.format(x))
     except Exception as e:
         bugsnag.notify(e)
 
-    return ('The app hasn\'t crashed, but check ' +
-            '<a href=\"https://app.bugsnag.com\">app.bugsnag.com</a> to view' +
-            ' notifications')
+    return (
+        'The app hasn\'t crashed, but check '
+        + '<a href=\"https://app.bugsnag.com\">app.bugsnag.com</a> to view'
+        + ' notifications'
+    )
 
 
 @app.route('/notifywithmetadata')
@@ -154,17 +146,19 @@ def notifywithmetadata():
         meta_data={
             'Request info': {
                 'route': 'notifywithmetadata',
-                'headers': request.headers
+                'headers': request.headers,
             },
             'Resolve info': {
                 'status': 200,
-                'message': 'Metadata has been added to this notification'
-            }
+                'message': 'Metadata has been added to this notification',
+            },
         },
     )
-    return ('Metadata was added to the notification, check ' +
-            '<a href=\"bugsnag.com\">bugsnag.com</a> ' +
-            ' to view on the "Request info" and "Resolve info" tabs')
+    return (
+        'Metadata was added to the notification, check '
+        + '<a href=\"bugsnag.com\">bugsnag.com</a> '
+        + ' to view on the "Request info" and "Resolve info" tabs'
+    )
 
 
 @app.route('/notifywithcontext')
@@ -178,6 +172,6 @@ def notifywithcontext():
     bugsnag.notify(
         Exception('Flask demo: Manual notification with context and severity'),
         context='notifywithcontext',
-        severity='info'
+        severity='info',
     )
     return 'The context and severity were changed.'
