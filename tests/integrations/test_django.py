@@ -231,7 +231,6 @@ def test_ignores_http404(bugsnag_server, django_client):
     assert len(bugsnag_server.received) == 0
 
 
-@pytest.mark.skip(reason="not currently working correctly")
 def test_report_error_from_http404handler(bugsnag_server, django_client):
     with pytest.raises(Exception):
         django_client.get('/notes/poorly-handled-404')

@@ -7,6 +7,8 @@ Changelog
 
 * Support reporting exceptions thrown from threads using
   [`threading.excepthook`](https://docs.python.org/3.8/library/threading.html#threading.excepthook)
+* [Django] Capture errors which occur outside of the request/response middleware
+  chain, like uncaught exceptions within 404 or 500 handlers.
 
 ## 3.8.0 (2020-08-18)
 
