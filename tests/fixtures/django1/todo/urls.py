@@ -1,11 +1,16 @@
-from django.conf.urls import url
-from notes import views
+from django.conf.urls import include, url
+from django.http import HttpResponseNotFound
 
 urlpatterns = [
-    url(r'^$', views.index),
-    url(r'^notes/unhandled-crash/$', views.unhandled_crash, name='crash'),
-    url(r'^notes/unhandled-template-crash/$',
-        views.unhandled_crash_in_template),
-    url(r'^notes/handled-exception/$', views.handle_notify),
-    url(r'^notes/handled-exception-custom/$', views.handle_notify_custom_info),
+    url(r'^notes/', include('notes.urls'))
 ]
+
+
+def handler404(request, *args, **kwargs):
+    if 'poorly-handled-404' in request.path:
+        raise Exception('nah')
+
+    response = HttpResponseNotFound('Terrible happenings!',
+                                    content_type='text/plain')
+    response.status_code = 404
+    return response

@@ -1,4 +1,5 @@
 import types
+import sys
 
 from bugsnag.configuration import RequestConfiguration
 from bugsnag.client import Client
@@ -97,6 +98,25 @@ def auto_notify(exception, **options):
             }),
             **options
         )
+
+
+def auto_notify_exc_info(exc_info=None, **options):
+    """
+    Notify bugsnag of a exc_info tuple if auto_notify is enabled
+    """
+    if configuration.auto_notify:
+        info = exc_info or sys.exc_info()
+        if info is not None:
+            exc_type, value, tb = info
+            default_client.notify_exc_info(
+                exc_type, value, tb,
+                unhandled=options.pop('unhandled', True),
+                severity=options.pop('severity', 'error'),
+                severity_reason=options.pop('severity_reason', {
+                    'type': 'unhandledException'
+                }),
+                **options
+            )
 
 
 def before_notify(callback):

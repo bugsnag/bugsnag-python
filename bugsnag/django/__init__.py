@@ -3,7 +3,7 @@ from __future__ import division, print_function, absolute_import
 import six
 import django
 from django.conf import settings
-from django.core.signals import request_started
+from django.core.signals import request_started, got_request_exception
 
 try:
     from django.core.urlresolvers import resolve, Resolver404
@@ -25,7 +25,7 @@ def add_django_request_to_notification(notification):
         try:
             route = resolve(request.path_info)
         except Resolver404:
-            pass
+            route = None
 
         if route and route.url_name:
             notification.context = route.url_name
@@ -80,6 +80,7 @@ def configure():
         bugsnag.configure(release_stage='development')
 
     request_started.connect(__track_session)
+    got_request_exception.connect(__handle_request_exception)
 
     # Import Bugsnag settings from settings.py
     django_bugsnag_settings = getattr(settings, 'BUGSNAG', {})
@@ -94,3 +95,16 @@ def configure():
 def __track_session(sender, **extra):
     if bugsnag.configuration.auto_capture_sessions:
         bugsnag.start_session()
+
+
+def __handle_request_exception(sender, **kwargs):
+    request = kwargs.get('request', None)
+    if request is not None:
+        bugsnag.configure_request(django_request=request)
+    try:
+        bugsnag.auto_notify_exc_info(severity_reason={
+            "type": "unhandledExceptionMiddleware",
+            "attributes": {"framework": "Django"}
+        })
+    except Exception:
+        bugsnag.logger.exception("Error in exception middleware")
