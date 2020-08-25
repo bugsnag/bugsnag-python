@@ -1,4 +1,3 @@
-from __future__ import print_function
 from copy import deepcopy
 from uuid import uuid4
 from time import strftime, gmtime

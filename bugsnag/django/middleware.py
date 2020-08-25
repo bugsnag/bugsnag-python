@@ -1,5 +1,3 @@
-from __future__ import division, print_function, absolute_import
-
 try:
     from django.utils.deprecation import MiddlewareMixin
 except ImportError:
