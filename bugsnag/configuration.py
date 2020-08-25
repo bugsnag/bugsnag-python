@@ -66,7 +66,6 @@ class Configuration(_BaseConfiguration):
         self.send_code = True
         self.send_environment = True
         self.asynchronous = True
-        self.use_ssl = True  # Deprecated
         self.delivery = create_default_delivery()
         self.lib_root = get_python_lib()
         self.project_root = os.getcwd()
@@ -114,7 +113,7 @@ class Configuration(_BaseConfiguration):
             'ignore_classes', 'lib_root', 'notify_release_stages',
             'params_filters', 'project_root', 'proxy_host', 'release_stage',
             'send_code', 'session_endpoint', 'traceback_exclude_modules',
-            'use_ssl', 'app_type', 'send_environment',
+            'app_type', 'send_environment',
         ]
 
         for option_name in options.keys():
@@ -399,22 +398,6 @@ class Configuration(_BaseConfiguration):
     def traceback_exclude_modules(self, value):
         self._traceback_exclude_modules = value
 
-    @property
-    def use_ssl(self):
-        """
-        This property is used to determine the protocol of endpoint and is
-        deprecated in favor of including the protocol in the endpoint property.
-        """
-        return self._use_ssl
-
-    @use_ssl.setter  # type: ignore
-    @validate_bool_setter
-    def use_ssl(self, value):
-        warnings.warn('use_ssl is deprecated in favor of including the '
-                      'protocol in the endpoint property and will be removed '
-                      'in a future release', DeprecationWarning)
-        self._use_ssl = value
-
     def should_notify(self):  # type: () -> bool
         return self.notify_release_stages is None or \
             (isinstance(self.notify_release_stages, (tuple, list)) and
@@ -423,23 +406,6 @@ class Configuration(_BaseConfiguration):
     def should_ignore(self, exception):  # type: (Exception) -> bool
         return self.ignore_classes is not None and \
             fully_qualified_class_name(exception) in self.ignore_classes
-
-    def get_endpoint(self):  # type: () -> str
-        warnings.warn('get_endpoint and use_ssl are deprecated in favor '
-                      'of including the protocol in the endpoint '
-                      'configuration option and will be removed in a future '
-                      'release', DeprecationWarning)
-
-        def format_endpoint(endpoint):
-            proto = "https" if self.use_ssl is True else "http"
-            return "%s://%s" % (proto, endpoint)
-
-        if '://' not in self.endpoint:
-            return format_endpoint(self.endpoint)
-        elif self.use_ssl is not None:
-            return format_endpoint(self.endpoint.split('://')[1])
-
-        return self.endpoint
 
 
 class RequestConfiguration(_BaseConfiguration):

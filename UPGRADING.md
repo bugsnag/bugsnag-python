@@ -8,6 +8,13 @@ now at
 [end-of-life](https://docs.python.org/devguide/#status-of-python-branches).
 Please upgrade.
 
+### Removal of deprecated properties from 2.x
+
+The properties deprecated in the 3.0.0 release have been removed. See the below
+guide for migrating from 2.x to 3.x to remove use of `get_endpoint()` and
+`use_ssl`.
+
+
 ## Migrating from 2.x to 3.x
 
 A few configuration properties were deprecated in the transition from 2.x to

@@ -11,50 +11,6 @@ import pytest
 
 class TestConfiguration(unittest.TestCase):
 
-    def test_get_endpoint_use_ssl(self):
-        c = Configuration()
-        c.use_ssl = True
-        self.assertEqual(c.get_endpoint(), "https://notify.bugsnag.com")
-
-    def test_get_endpoint_no_use_ssl(self):
-        c = Configuration()
-        c.use_ssl = False
-        self.assertEqual(c.get_endpoint(), "http://notify.bugsnag.com")
-
-    def test_custom_get_endpoint_default_ssl(self):
-        c = Configuration()
-        c.endpoint = "localhost:1234"
-        self.assertEqual(c.get_endpoint(), "https://localhost:1234")
-
-    def test_custom_get_endpoint_use_ssl(self):
-        c = Configuration()
-        c.use_ssl = True
-        c.endpoint = "localhost:1234"
-        self.assertEqual(c.get_endpoint(), "https://localhost:1234")
-
-    def test_custom_get_endpoint_no_use_ssl(self):
-        c = Configuration()
-        c.use_ssl = False
-        c.endpoint = "localhost:1234"
-        self.assertEqual(c.get_endpoint(), "http://localhost:1234")
-
-    def test_full_custom_get_endpoint(self):
-        c = Configuration()
-        c.endpoint = "https://localhost:1234"
-        self.assertEqual(c.get_endpoint(), "https://localhost:1234")
-
-    def test_full_custom_get_endpoint_use_ssl(self):
-        c = Configuration()
-        c.use_ssl = True
-        c.endpoint = "https://localhost:1234"
-        self.assertEqual(c.get_endpoint(), "https://localhost:1234")
-
-    def test_full_custom_get_endpoint_no_use_ssl(self):
-        c = Configuration()
-        c.use_ssl = False
-        c.endpoint = "https://localhost:1234"
-        self.assertEqual(c.get_endpoint(), "http://localhost:1234")
-
     def test_reads_api_key_from_environ(self):
         os.environ['BUGSNAG_API_KEY'] = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
         c = Configuration()

@@ -10,9 +10,8 @@ from tests.utils import IntegrationTest
 class TestBottle(IntegrationTest):
     def setUp(self):
         super(TestBottle, self).setUp()
-        bugsnag.configure(use_ssl=False,
-                          endpoint=self.server.address,
-                          session_endpoint=self.server.address,
+        bugsnag.configure(endpoint=self.server.url,
+                          session_endpoint=self.server.url,
                           auto_capture_sessions=False,
                           api_key='3874876376238728937',
                           asynchronous=False)

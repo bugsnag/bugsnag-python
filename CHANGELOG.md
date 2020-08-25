@@ -14,6 +14,9 @@ now at
 [end-of-life](https://docs.python.org/devguide/#status-of-python-branches).
 Please upgrade.
 
+* Removed `Configuration.use_ssl` and `Configuration.get_endpoint()` in favor of
+  including the protocol in `Configuration.endpoint`
+
 
 
 ## 3.9.0 (2020-08-27)

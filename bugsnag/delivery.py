@@ -90,7 +90,7 @@ class UrllibDelivery(Delivery):
         def request():
             uri = options.pop('endpoint', config.endpoint)
             if '://' not in uri:
-                uri = config.get_endpoint()
+                uri = ('https://{}' % uri)
             api_key = json.loads(payload).pop('apiKey', config.get('api_key'))
             req = Request(uri,
                           payload.encode('utf-8', 'replace'),
@@ -127,7 +127,7 @@ class RequestsDelivery(Delivery):
         def request():
             uri = options.pop('endpoint', config.endpoint)
             if '://' not in uri:
-                uri = config.get_endpoint()
+                uri = ('https://{}' % uri)
 
             api_key = json.loads(payload).pop('apiKey', config.get('api_key'))
             req_options = {'data': payload,

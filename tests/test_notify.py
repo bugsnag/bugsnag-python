@@ -14,8 +14,7 @@ class TestBugsnag(IntegrationTest):
 
     def setUp(self):
         super(TestBugsnag, self).setUp()
-        bugsnag.configure(use_ssl=False,
-                          endpoint=self.server.address,
+        bugsnag.configure(endpoint=self.server.url,
                           api_key='tomatoes',
                           notify_release_stages=['dev'],
                           release_stage='dev',
@@ -177,7 +176,7 @@ class TestBugsnag(IntegrationTest):
 
         self.assertEqual(4, event['metaData']['custom']['foo'])
         self.assertEqual('[FILTERED]', event['metaData']['custom']['bar'])
-        self.assertEqual(172, exception['stacktrace'][0]['lineNumber'])
+        self.assertEqual(171, exception['stacktrace'][0]['lineNumber'])
 
     def test_notify_ignore_class(self):
         bugsnag.configure(ignore_classes=['tests.utils.ScaryException'])
@@ -615,8 +614,7 @@ class TestBugsnag(IntegrationTest):
         self.assertEqual(event['metaData']['test']['array'], [1, 2])
 
     def test_middleware_stack_order(self):
-        client = bugsnag.Client(use_ssl=False,
-                                endpoint=self.server.address,
+        client = bugsnag.Client(endpoint=self.server.url,
                                 api_key='tomatoes',
                                 notify_release_stages=['dev'],
                                 release_stage='dev',
@@ -639,8 +637,7 @@ class TestBugsnag(IntegrationTest):
         self.assertEqual(event['metaData']['test']['array'], [1, 2])
 
     def test_internal_middleware_changes_severity(self):
-        client = bugsnag.Client(use_ssl=False,
-                                endpoint=self.server.address,
+        client = bugsnag.Client(endpoint=self.server.url,
                                 api_key='tomatoes',
                                 notify_release_stages=['dev'],
                                 release_stage='dev',
@@ -660,8 +657,7 @@ class TestBugsnag(IntegrationTest):
         self.assertEqual(event['severityReason']['type'], 'handledException')
 
     def test_internal_middleware_can_change_severity_reason(self):
-        client = bugsnag.Client(use_ssl=False,
-                                endpoint=self.server.address,
+        client = bugsnag.Client(endpoint=self.server.url,
                                 api_key='tomatoes',
                                 notify_release_stages=['dev'],
                                 release_stage='dev',

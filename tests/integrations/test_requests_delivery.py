@@ -15,7 +15,7 @@ class RequestsDeliveryTest(IntegrationTest):
         )
 
     def test_requests_delivery(self):
-        self.config.configure(endpoint=self.server.address, use_ssl=False)
+        self.config.configure(endpoint=self.server.url)
         RequestsDelivery().deliver(self.config, '{"legit": 4}')
 
         self.assertSentReportCount(1)

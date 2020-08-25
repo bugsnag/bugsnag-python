@@ -10,7 +10,7 @@ class ClientTest(IntegrationTest):
         super(ClientTest, self).setUp()
 
         self.client = Client(api_key='testing client key',
-                             use_ssl=False, endpoint=self.server.address,
+                             endpoint=self.server.url,
                              project_root=os.path.join(os.getcwd(), 'tests'),
                              asynchronous=False,
                              install_sys_hook=False)
@@ -328,10 +328,10 @@ class ClientTest(IntegrationTest):
     # Multiple Clients
 
     def test_multiple_clients_different_keys(self):
-        client1 = Client(api_key='abc', asynchronous=False, use_ssl=False,
-                         endpoint=self.server.address)
-        client2 = Client(api_key='456', asynchronous=False, use_ssl=False,
-                         endpoint=self.server.address)
+        client1 = Client(api_key='abc', asynchronous=False,
+                         endpoint=self.server.url)
+        client2 = Client(api_key='456', asynchronous=False,
+                         endpoint=self.server.url)
 
         client1.notify(ScaryException('foo'))
         self.assertSentReportCount(1)
@@ -349,10 +349,10 @@ class ClientTest(IntegrationTest):
             pass
         sys.excepthook = excepthook
 
-        client1 = Client(api_key='abc', asynchronous=False, use_ssl=False,
-                         endpoint=self.server.address)
-        Client(api_key='456', asynchronous=False, use_ssl=False,
-               endpoint=self.server.address, install_sys_hook=False)
+        client1 = Client(api_key='abc', asynchronous=False,
+                         endpoint=self.server.url)
+        Client(api_key='456', asynchronous=False, endpoint=self.server.url,
+               install_sys_hook=False)
 
         self.assertEqual(client1, sys.excepthook.bugsnag_client)
         self.assertEqual(client1.sys_excepthook, excepthook)
