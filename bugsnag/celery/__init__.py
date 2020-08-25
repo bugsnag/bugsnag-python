@@ -1,5 +1,3 @@
-from __future__ import division, print_function, absolute_import
-
 import celery
 from celery.signals import task_failure
 import bugsnag

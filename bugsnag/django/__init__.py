@@ -1,5 +1,3 @@
-from __future__ import division, print_function, absolute_import
-
 import six
 import django
 from django.conf import settings
