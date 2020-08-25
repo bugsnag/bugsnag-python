@@ -1,4 +1,3 @@
-import six
 import django
 from django.conf import settings
 from django.core.signals import request_started, got_request_exception
@@ -42,7 +41,7 @@ def add_django_request_to_notification(notification):
             try:
                 name = request.user.get_full_name()
                 email = getattr(request.user, 'email', None)
-                username = six.text_type(request.user.get_username())
+                username = str(request.user.get_username())
                 notification.set_user(id=username, email=email, name=name)
             except Exception:
                 bugsnag.logger.exception('Could not get user data')

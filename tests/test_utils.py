@@ -5,7 +5,6 @@ import sys
 import datetime
 import re
 
-from six import u, PY3 as is_py3
 from bugsnag.utils import (SanitizingJSONEncoder, FilterDict, ThreadLocals,
                            is_json_content_type, parse_content_type,
                            ThreadContextVar, merge_dicts)
@@ -36,7 +35,7 @@ class TestUtils(unittest.TestCase):
                                      "passwords": "[FILTERED]"})
 
     def test_sanitize_valid_unicode_object(self):
-        data = {"item": u('\U0001f62c')}
+        data = {"item": '\U0001f62c'}
         encoder = SanitizingJSONEncoder(keyword_filters=[])
         sane_data = json.loads(encoder.encode(data))
         self.assertEqual(sane_data, data)
@@ -49,7 +48,7 @@ class TestUtils(unittest.TestCase):
                          {"metadata": {"another_password": "[FILTERED]"}})
 
     def test_sanitize_bad_utf8_object(self):
-        data = {"bad_utf8": u("test \xe9")}
+        data = {"bad_utf8": "test \xe9"}
         encoder = SanitizingJSONEncoder(keyword_filters=[])
         sane_data = json.loads(encoder.encode(data))
         self.assertEqual(sane_data, data)
@@ -61,8 +60,8 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(sane_data, {"exc": ""})
 
     def test_json_encode(self):
-        payload = {"a": u("a") * 512 * 1024}
-        expected = {"a": u("a") * 1024}
+        payload = {"a": "a" * 512 * 1024}
+        expected = {"a": "a" * 1024}
         encoder = SanitizingJSONEncoder(keyword_filters=[])
         self.assertEqual(json.loads(encoder.encode(payload)), expected)
 
@@ -74,9 +73,6 @@ class TestUtils(unittest.TestCase):
                          {"metadata": {"another_password": "[FILTERED]"}})
 
     def test_decode_bytes(self):
-        if not is_py3:
-            return
-
         data = FilterDict({b"metadata": "value"})
         encoder = SanitizingJSONEncoder(keyword_filters=["password"])
         sane_data = json.loads(encoder.encode(data))

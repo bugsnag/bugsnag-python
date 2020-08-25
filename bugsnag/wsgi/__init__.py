@@ -1,5 +1,5 @@
-from six.moves import urllib
+from urllib.parse import quote
 
 
 def request_path(env):
-    return urllib.parse.quote('/' + env.get('PATH_INFO', '').lstrip('/'))
+    return quote('/' + env.get('PATH_INFO', '').lstrip('/'))

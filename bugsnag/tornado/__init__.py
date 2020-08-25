@@ -1,7 +1,7 @@
 import tornado
 from tornado.web import RequestHandler
 from tornado.web import HTTPError
-from six.moves import urllib
+from urllib.parse import parse_qs
 from bugsnag.utils import is_json_content_type
 import bugsnag
 import json
@@ -15,7 +15,7 @@ class BugsnagRequestHandler(RequestHandler):
         request_tab = {
             'method': self.request.method,
             'path': self.request.path,
-            'GET': urllib.parse.parse_qs(self.request.query),
+            'GET': parse_qs(self.request.query),
             'POST': {},
             'url': self.request.full_url(),
         }

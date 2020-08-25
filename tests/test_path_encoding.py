@@ -1,7 +1,7 @@
 # coding=utf-8
 
 import unittest
-from six.moves import urllib
+from urllib.parse import quote
 
 from bugsnag.notification import Notification
 from bugsnag.configuration import (Configuration, RequestConfiguration)
@@ -62,7 +62,7 @@ class PathEncodingTest(unittest.TestCase):
         # differs on different Python versions because of how they handle
         # invalid encoding sequences
         self.assertEqual(
-            'http://localhost/%s' % urllib.parse.quote('%83'),
+            'http://localhost/%s' % quote('%83'),
             notification.meta_data['request']['url']
         )
 

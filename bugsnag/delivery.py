@@ -5,7 +5,7 @@ import warnings
 
 from time import strftime, gmtime
 
-from six.moves.urllib.request import (
+from urllib.request import (
     Request,
     ProxyHandler,
     build_opener
