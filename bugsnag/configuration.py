@@ -1,13 +1,7 @@
 import os
 import platform
 import socket
-try:
-    import sysconfig
-
-    def get_python_lib(): sysconfig.get_path('purelib')
-except ImportError:
-    # Compatibility with Python 2.6
-    from distutils.sysconfig import get_python_lib
+import sysconfig
 import warnings
 
 from bugsnag.sessiontracker import SessionMiddleware
@@ -65,7 +59,7 @@ class Configuration(_BaseConfiguration):
         self.send_environment = True
         self.asynchronous = True
         self.delivery = create_default_delivery()
-        self.lib_root = get_python_lib()
+        self.lib_root = sysconfig.get_path('purelib')
         self.project_root = os.getcwd()
         self.app_type = None
         self.app_version = None
