@@ -62,15 +62,15 @@ class TestConfiguration(IntegrationTest):
         app = json_body['app']
         self.assertTrue('releaseStage' in app)
         self.assertEqual(app['releaseStage'],
-                         client.configuration.get('release_stage'))
+                         client.configuration.release_stage)
         self.assertTrue('version' in app)
         self.assertEqual(app['version'],
-                         client.configuration.get('app_version'))
+                         client.configuration.app_version)
         # Device properties
         device = json_body['device']
         self.assertTrue('hostname' in device)
         self.assertEqual(device['hostname'],
-                         client.configuration.get('hostname'))
+                         client.configuration.hostname)
         self.assertTrue('runtimeVersions' in device)
         self.assertEqual(device['runtimeVersions']['python'],
                          platform.python_version())

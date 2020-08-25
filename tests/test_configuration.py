@@ -376,8 +376,5 @@ class TestConfiguration(unittest.TestCase):
 
     def test_validate_unknown_config_option(self):
         c = Configuration()
-        with pytest.warns(RuntimeWarning) as record:
+        with pytest.raises(TypeError):
             c.configure(emperor=True)
-            assert len(record) == 1
-            assert (str(record[0].message) ==
-                    'received unknown configuration option "emperor"')

@@ -24,28 +24,7 @@ except ImportError:
 __all__ = ('Configuration', 'RequestConfiguration')
 
 
-class _BaseConfiguration(object):
-    def get(self, name, overrides=None):
-        """
-        Get a single configuration option, using values from overrides
-        first if they exist.
-        """
-        if overrides:
-            return overrides.get(name, getattr(self, name))
-        else:
-            return getattr(self, name)
-
-    def configure(self, **options):
-        """
-        Set one or more configuration settings.
-        """
-        for name, value in options.items():
-            setattr(self, name, value)
-
-        return self
-
-
-class Configuration(_BaseConfiguration):
+class Configuration:
     """
     Global app-level Bugsnag configuration settings.
     """
@@ -90,31 +69,68 @@ class Configuration(_BaseConfiguration):
 
         self.runtime_versions = {"python": platform.python_version()}
 
-    def configure(self, **options):
+    def configure(self, api_key=None, app_type=None, app_version=None,
+                  asynchronous=None, auto_notify=None,
+                  auto_capture_sessions=None, delivery=None, endpoint=None,
+                  hostname=None, ignore_classes=None, lib_root=None,
+                  notify_release_stages=None, params_filters=None,
+                  project_root=None, proxy_host=None, release_stage=None,
+                  send_code=None, send_environment=None, session_endpoint=None,
+                  traceback_exclude_modules=None):
         """
         Validate and set configuration options. Will warn if an option is of an
         incorrect type.
         """
-        # Overrides the default implementation to provide warnings for unknown
-        # options. In the __future__ this will not be necessary by instead
-        # making configure() enumerate all of the options as kwargs rather than
-        # allowing arbitrary input.
-        configurable_options = [
-            'api_key', 'app_version', 'asynchronous', 'auto_notify',
-            'auto_capture_sessions', 'delivery', 'endpoint', 'hostname',
-            'ignore_classes', 'lib_root', 'notify_release_stages',
-            'params_filters', 'project_root', 'proxy_host', 'release_stage',
-            'send_code', 'session_endpoint', 'traceback_exclude_modules',
-            'app_type', 'send_environment',
-        ]
-
-        for option_name in options.keys():
-            if option_name not in configurable_options:
-                message = 'received unknown configuration option "{0}"'
-                warnings.warn(message.format(option_name), RuntimeWarning)
-            setattr(self, option_name, options.get(option_name))
-
+        if api_key is not None:
+            self.api_key = api_key
+        if app_type is not None:
+            self.app_type = app_type
+        if app_version is not None:
+            self.app_version = app_version
+        if asynchronous is not None:
+            self.asynchronous = asynchronous
+        if auto_notify is not None:
+            self.auto_notify = auto_notify
+        if auto_capture_sessions is not None:
+            self.auto_capture_sessions = auto_capture_sessions
+        if delivery is not None:
+            self.delivery = delivery
+        if endpoint is not None:
+            self.endpoint = endpoint
+        if hostname is not None:
+            self.hostname = hostname
+        if ignore_classes is not None:
+            self.ignore_classes = ignore_classes
+        if lib_root is not None:
+            self.lib_root = lib_root
+        if notify_release_stages is not None:
+            self.notify_release_stages = notify_release_stages
+        if params_filters is not None:
+            self.params_filters = params_filters
+        if project_root is not None:
+            self.project_root = project_root
+        if proxy_host is not None:
+            self.proxy_host = proxy_host
+        if release_stage is not None:
+            self.release_stage = release_stage
+        if send_code is not None:
+            self.send_code = send_code
+        if send_environment is not None:
+            self.send_environment = send_environment
+        if session_endpoint is not None:
+            self.session_endpoint = session_endpoint
+        if traceback_exclude_modules is not None:
+            self.traceback_exclude_modules = traceback_exclude_modules
         return self
+
+    def get(self, name):
+        """
+        Get a single configuration option
+        """
+        warnings.warn('Using get() to retrieve a Configuration property is ' +
+                      'deprecated in favor of referencing properties directly',
+                      DeprecationWarning)
+        return getattr(self, name)
 
     @property
     def api_key(self):
@@ -400,7 +416,7 @@ class Configuration(_BaseConfiguration):
             fully_qualified_class_name(exception) in self.ignore_classes
 
 
-class RequestConfiguration(_BaseConfiguration):
+class RequestConfiguration:
     """
     Per-request Bugsnag configuration settings.
     """
@@ -441,3 +457,18 @@ class RequestConfiguration(_BaseConfiguration):
         self.request_data = {}
         self.environment_data = {}
         self.session_data = {}
+
+    def get(self, name):
+        """
+        Get a single configuration option
+        """
+        return getattr(self, name)
+
+    def configure(self, **options):
+        """
+        Set one or more configuration settings.
+        """
+        for name, value in options.items():
+            setattr(self, name, value)
+
+        return self
