@@ -7,6 +7,5 @@ kombu==4.1.0
 Markdown==2.6.8
 pytz==2017.2
 redis==2.10.6
-six==1.10.0
 vine==1.1.4
 WebOb==1.7.3

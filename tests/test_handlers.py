@@ -1,8 +1,6 @@
 from functools import wraps
 import logging
 
-from six import u
-
 from bugsnag.handlers import BugsnagHandler
 from bugsnag import Client
 import bugsnag
@@ -73,7 +71,7 @@ class HandlersTest(IntegrationTest):
         self.assertEqual('error', event['severity'])
         self.assertEqual(logging.CRITICAL,
                          event['metaData']['extra data']['levelno'])
-        self.assertEqual(u('CRITICAL'),
+        self.assertEqual('CRITICAL',
                          event['metaData']['extra data']['levelname'])
 
     def test_severity_error(self):
@@ -93,7 +91,7 @@ class HandlersTest(IntegrationTest):
         self.assertEqual('error', event['severity'])
         self.assertEqual(logging.ERROR,
                          event['metaData']['extra data']['levelno'])
-        self.assertEqual(u('ERROR'),
+        self.assertEqual('ERROR',
                          event['metaData']['extra data']['levelname'])
 
     def test_severity_warning(self):
@@ -112,7 +110,7 @@ class HandlersTest(IntegrationTest):
         self.assertEqual('warning', event['severity'])
         self.assertEqual(logging.WARNING,
                          event['metaData']['extra data']['levelno'])
-        self.assertEqual(u('WARNING'),
+        self.assertEqual('WARNING',
                          event['metaData']['extra data']['levelname'])
 
     def test_severity_info(self):
@@ -132,7 +130,7 @@ class HandlersTest(IntegrationTest):
         self.assertEqual('info', event['severity'])
         self.assertEqual(logging.INFO,
                          event['metaData']['extra data']['levelno'])
-        self.assertEqual(u('INFO'),
+        self.assertEqual('INFO',
                          event['metaData']['extra data']['levelname'])
 
     def test_levelname_message(self):
@@ -266,7 +264,7 @@ class HandlersTest(IntegrationTest):
         self.assertEqual('error', event['severity'])
         self.assertEqual(logging.CRITICAL,
                          event['metaData']['extra data']['levelno'])
-        self.assertEqual(u('CRITICAL'),
+        self.assertEqual('CRITICAL',
                          event['metaData']['extra data']['levelname'])
 
     @use_client_logger
@@ -283,7 +281,7 @@ class HandlersTest(IntegrationTest):
         self.assertEqual('error', event['severity'])
         self.assertEqual(logging.ERROR,
                          event['metaData']['extra data']['levelno'])
-        self.assertEqual(u('ERROR'),
+        self.assertEqual('ERROR',
                          event['metaData']['extra data']['levelname'])
 
     @use_client_logger
@@ -299,7 +297,7 @@ class HandlersTest(IntegrationTest):
         self.assertEqual('warning', event['severity'])
         self.assertEqual(logging.WARNING,
                          event['metaData']['extra data']['levelno'])
-        self.assertEqual(u('WARNING'),
+        self.assertEqual('WARNING',
                          event['metaData']['extra data']['levelname'])
 
     @use_client_logger
@@ -315,7 +313,7 @@ class HandlersTest(IntegrationTest):
         self.assertEqual('info', event['severity'])
         self.assertEqual(logging.INFO,
                          event['metaData']['extra data']['levelno'])
-        self.assertEqual(u('INFO'),
+        self.assertEqual('INFO',
                          event['metaData']['extra data']['levelname'])
 
     @use_client_logger

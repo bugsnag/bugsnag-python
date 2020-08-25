@@ -1,6 +1,5 @@
 from functools import wraps, partial
 import inspect
-import six
 from json import JSONEncoder
 from threading import local as threadlocal
 import warnings
@@ -65,8 +64,8 @@ class SanitizingJSONEncoder(JSONEncoder):
             seen.append(obj)
 
             clean_dict = {}
-            for key, value in six.iteritems(obj):
-                is_string = isinstance(key, six.string_types)
+            for key, value in obj.items():
+                is_string = isinstance(key, str)
                 if is_string and any(f in key.lower() for f in self.filters):
                     clean_dict[key] = self.filtered_value
                 else:
@@ -83,10 +82,10 @@ class SanitizingJSONEncoder(JSONEncoder):
         '[BADENCODING]'
         """
         try:
-            if six.PY3 and isinstance(obj, bytes):
-                return six.text_type(obj, encoding='utf-8', errors='replace')
+            if isinstance(obj, bytes):
+                return str(obj, encoding='utf-8', errors='replace')
             else:
-                return six.text_type(obj)
+                return str(obj)
 
         except Exception:
             bugsnag.logger.exception('Could not add object to payload')
@@ -122,7 +121,7 @@ class SanitizingJSONEncoder(JSONEncoder):
                 items.append(
                         self._sanitize(value, trim_strings, ignored, seen))
             return items
-        elif trim_strings and isinstance(obj, six.string_types):
+        elif trim_strings and isinstance(obj, str):
             return obj[:MAX_STRING_LENGTH]
         else:
             return obj
@@ -132,15 +131,15 @@ class SanitizingJSONEncoder(JSONEncoder):
         Safely sets the provided key on the dictionary by coercing the key
         to a string
         """
-        if six.PY3 and isinstance(key, bytes):
+        if isinstance(key, bytes):
             try:
-                key = six.text_type(key, encoding='utf-8', errors='replace')
+                key = str(key, encoding='utf-8', errors='replace')
                 clean_dict[key] = clean_value
             except Exception:
                 bugsnag.logger.exception(
                     'Could not add sanitize key for dictionary, '
                     'dropping value.')
-        if isinstance(key, six.string_types):
+        if isinstance(key, str):
             clean_dict[key] = clean_value
         else:
             try:
@@ -159,7 +158,7 @@ class SanitizingJSONEncoder(JSONEncoder):
             obj = self.filter_string_values(obj)
 
         clean_dict = {}
-        for key, value in six.iteritems(obj):
+        for key, value in obj.items():
 
             clean_value = self._sanitize(value, trim_strings, ignored, seen)
 
@@ -253,17 +252,14 @@ def _validate_setter(types, func, future_error=False):
             if future_error:
                 error_format += '. This will be an error in a future release.'
             actual = type(value).__name__
-            if types == six.string_types:
-                requirement = 'str'
-            else:
-                requirement = ' or '.join([t.__name__ for t in types])
+            requirement = ' or '.join([t.__name__ for t in types])
             message = error_format.format(option_name, requirement, actual)
             warnings.warn(message, RuntimeWarning)
     return wrapper
 
 
-validate_str_setter = partial(_validate_setter, six.string_types)
-validate_required_str_setter = partial(_validate_setter, six.string_types,
+validate_str_setter = partial(_validate_setter, (str,))
+validate_required_str_setter = partial(_validate_setter, (str,),
                                        future_error=True)
 validate_bool_setter = partial(_validate_setter, (bool,))
 validate_iterable_setter = partial(_validate_setter, (list, tuple))

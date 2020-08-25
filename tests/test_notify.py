@@ -3,8 +3,6 @@
 import sys
 import time
 
-from six import u
-
 import bugsnag
 from tests.utils import ScaryException, IntegrationTest
 from tests.fixtures import samples
@@ -176,7 +174,7 @@ class TestBugsnag(IntegrationTest):
 
         self.assertEqual(4, event['metaData']['custom']['foo'])
         self.assertEqual('[FILTERED]', event['metaData']['custom']['bar'])
-        self.assertEqual(171, exception['stacktrace'][0]['lineNumber'])
+        self.assertEqual(169, exception['stacktrace'][0]['lineNumber'])
 
     def test_notify_ignore_class(self):
         bugsnag.configure(ignore_classes=['tests.utils.ScaryException'])
@@ -444,7 +442,7 @@ class TestBugsnag(IntegrationTest):
         event = json_body['events'][0]
         exception = event['exceptions'][0]
         self.assertEqual(1, len(self.server.received))
-        self.assertEqual(u("RuntimeError"), exception['errorClass'])
+        self.assertEqual("RuntimeError", exception['errorClass'])
 
     def test_notify_metadata_set_value(self):
         bugsnag.notify(ScaryException('unexpected failover'),
@@ -474,25 +472,25 @@ class TestBugsnag(IntegrationTest):
         self.assertEqual(-13, event['metaData']['custom']['value2'])
 
     def test_notify_error_message(self):
-        bugsnag.notify(ScaryException(u('unexpécted failover')))
+        bugsnag.notify(ScaryException('unexpécted failover'))
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
-        self.assertEqual(u('unexpécted failover'), exception['message'])
+        self.assertEqual('unexpécted failover', exception['message'])
 
     def test_notify_unicode_metadata(self):
-        bins = (u('\x98\x00\x00\x00\t\x81\x19\x1b\x00\x00\x00\x00\xd4\x07\x00'
-                  '\x00\x00\x00\x00\x00R\x00\x00\x00\x00\x00\xff\xff\xff\xffe'
-                  '\x00\x00\x00\x02project\x00%\x00\x00\x00f65f051b-d762-5983'
-                  '-838b-a05aadc06a5\x00\x02uid\x00%\x00\x00\x001bab969f-7b30'
-                  '-459a-adee-917b9e028eed\x00\x00'))
+        bins = ('\x98\x00\x00\x00\t\x81\x19\x1b\x00\x00\x00\x00\xd4\x07\x00'
+                '\x00\x00\x00\x00\x00R\x00\x00\x00\x00\x00\xff\xff\xff\xffe'
+                '\x00\x00\x00\x02project\x00%\x00\x00\x00f65f051b-d762-5983'
+                '-838b-a05aadc06a5\x00\x02uid\x00%\x00\x00\x001bab969f-7b30'
+                '-459a-adee-917b9e028eed\x00\x00')
         self_class = 'tests.test_notify.TestBugsnag'
         bugsnag.notify(Exception('free food'), meta_data={'payload': {
-            'project': u('∆πåß∂ƒ'),
-            'filename': u('DISPOSITIFS DE SÉCURITÉ.pdf'),
-            u('♥♥i'): u('♥♥♥♥♥♥'),
-            'src_name': u('☻☻☻☻☻ RDC DISPOSITIFS DE SÉCURTÉ.pdf'),
-            u('accénted'): u('☘☘☘éééé@me.com'),
+            'project': '∆πåß∂ƒ',
+            'filename': 'DISPOSITIFS DE SÉCURITÉ.pdf',
+            '♥♥i': '♥♥♥♥♥♥',
+            'src_name': '☻☻☻☻☻ RDC DISPOSITIFS DE SÉCURTÉ.pdf',
+            'accénted': '☘☘☘éééé@me.com',
             'class': self.__class__,
             'another_class': dict,
             'self': self,
@@ -500,15 +498,15 @@ class TestBugsnag(IntegrationTest):
         }})
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
-        self.assertEqual(u('∆πåß∂ƒ'), event['metaData']['payload']['project'])
-        self.assertEqual(u('♥♥♥♥♥♥'),
-                         event['metaData']['payload'][u('♥♥i')])
-        self.assertEqual(u('DISPOSITIFS DE SÉCURITÉ.pdf'),
+        self.assertEqual('∆πåß∂ƒ', event['metaData']['payload']['project'])
+        self.assertEqual('♥♥♥♥♥♥',
+                         event['metaData']['payload']['♥♥i'])
+        self.assertEqual('DISPOSITIFS DE SÉCURITÉ.pdf',
                          event['metaData']['payload']['filename'])
-        self.assertEqual(u('☻☻☻☻☻ RDC DISPOSITIFS DE SÉCURTÉ.pdf'),
+        self.assertEqual('☻☻☻☻☻ RDC DISPOSITIFS DE SÉCURTÉ.pdf',
                          event['metaData']['payload']['src_name'])
-        self.assertEqual(u('☘☘☘éééé@me.com'),
-                         event['metaData']['payload'][u('accénted')])
+        self.assertEqual('☘☘☘éééé@me.com',
+                         event['metaData']['payload']['accénted'])
         self.assertEqual('test_notify_unicode_metadata (%s)' % self_class,
                          event['metaData']['payload']['self'])
         self.assertEqual(bins, event['metaData']['payload']['var'])
