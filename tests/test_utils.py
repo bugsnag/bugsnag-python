@@ -7,7 +7,7 @@ import re
 
 from bugsnag.utils import (SanitizingJSONEncoder, FilterDict,
                            is_json_content_type, parse_content_type,
-                           ThreadContextVar, merge_dicts)
+                           ThreadContextVar)
 
 
 class TestUtils(unittest.TestCase):
@@ -356,38 +356,3 @@ encoder.encode(data)
         self.assertFalse(is_json_content_type('text/plain'))
         self.assertFalse(is_json_content_type('json'))
         self.assertFalse(is_json_content_type('application/jsonfoo'))
-
-    def test_merge_dicts(self):
-        a = {'pine': 'apple', 'cherry': 'pie'}
-        b = {'egg': 'mcmuffin', 'cherry': 'strudel'}
-        merge_dicts(a, b)
-        self.assertEqual(a, {
-            'pine': 'apple',
-            'egg': 'mcmuffin',
-            'cherry': 'strudel'
-        })
-        self.assertEqual(b, {'egg': 'mcmuffin', 'cherry': 'strudel'})
-
-    def test_merge_dicts_with_lists(self):
-        a = {'pine': ['apple']}
-        b = {'egg': 'mcmuffin', 'pine': ['cone']}
-        merge_dicts(a, b)
-        self.assertEqual(a, {
-            'pine': ['apple', 'cone'],
-            'egg': 'mcmuffin',
-        })
-        self.assertEqual(b, {'egg': 'mcmuffin', 'pine': ['cone']})
-
-    def test_merge_dicts_with_subdicts(self):
-        a = {'pine': ['apple'], 'grocery': {'aisle1': ['carrots']}}
-        b = {'egg': 'mcmuffin', 'pine': ['cone'],
-             'grocery': {'aisle1': ['peas'], 'aisle2': ['beans']}}
-        merge_dicts(a, b)
-        self.assertEqual(a, {
-            'pine': ['apple', 'cone'],
-            'egg': 'mcmuffin',
-            'grocery': {'aisle1': ['carrots', 'peas'], 'aisle2': ['beans']},
-        })
-        self.assertEqual(b, {'egg': 'mcmuffin', 'pine': ['cone'],
-                             'grocery': {'aisle1': ['peas'],
-                                         'aisle2': ['beans']}})

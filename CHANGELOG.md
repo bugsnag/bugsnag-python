@@ -19,6 +19,7 @@ Please upgrade.
 
 * Removed `bugsnag.utils.ThreadLocals` as it has been superseded by the
   `contextvars` API
+* Removed `bugsnag.utils.merge_dicts`, an unused helper function
 
 
 ## 3.9.0 (2020-08-27)

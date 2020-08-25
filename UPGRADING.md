@@ -18,6 +18,7 @@ guide for migrating from 2.x to 3.x to remove use of `get_endpoint()` and
 
 * Removed `bugsnag.utils.ThreadLocals` as it has been superseded by the
   `contextvars` API
+* Removed `bugsnag.utils.merge_dicts`
 
 ## Migrating from 2.x to 3.x
 
