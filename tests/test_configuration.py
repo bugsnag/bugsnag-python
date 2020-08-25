@@ -329,18 +329,18 @@ class TestConfiguration(unittest.TestCase):
 
     def test_validate_send_environment(self):
         c = Configuration()
-        assert c.send_environment is True
+        assert c.send_environment is False
         with pytest.warns(RuntimeWarning) as record:
-            c.configure(send_environment='False')
+            c.configure(send_environment='True')
 
             assert len(record) == 1
             assert (str(record[0].message) ==
                     'send_environment should be bool, got str')
-            assert c.send_environment is True
-
-            c.configure(send_environment=False)
-            assert len(record) == 1
             assert c.send_environment is False
+
+            c.configure(send_environment=True)
+            assert len(record) == 1
+            assert c.send_environment is True
 
     def test_validate_session_endpoint(self):
         c = Configuration()

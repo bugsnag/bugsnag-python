@@ -44,12 +44,11 @@ class TestASGIMiddleware(IntegrationTest):
 
         payload = self.server.received[0]['json_body']
         request = payload['events'][0]['metaData']['request']
-        environment = payload['events'][0]['metaData']['environment']
         self.assertEqual('/', request['path'])
         self.assertEqual('GET', request['httpMethod'])
         self.assertEqual('http', request['type'])
         self.assertEqual('http://testserver/', request['url'])
-        self.assertEqual('/', environment['path'])
+        assert 'environment' not in payload['events'][0]['metaData']
 
         exception = payload['events'][0]['exceptions'][0]
         self.assertEqual('tests.utils.ScaryException', exception['errorClass'])
@@ -57,8 +56,8 @@ class TestASGIMiddleware(IntegrationTest):
         self.assertEqual('other_func', exception['stacktrace'][0]['method'])
         self.assertEqual('index', exception['stacktrace'][1]['method'])
 
-    def test_disable_environment(self):
-        bugsnag.configure(send_environment=False)
+    def test_enable_environment(self):
+        bugsnag.configure(send_environment=True)
         app = Starlette()
 
         async def other_func():
@@ -75,8 +74,9 @@ class TestASGIMiddleware(IntegrationTest):
         self.assertSentReportCount(1)
 
         payload = self.server.received[0]['json_body']
-        metadata = payload['events'][0]['metaData']
-        assert 'environment' not in metadata
+        environment = payload['events'][0]['metaData']['environment']
+
+        self.assertEqual('/', environment['path'])
 
     def test_boot_crash(self):
         async def app(scope, recv, send):

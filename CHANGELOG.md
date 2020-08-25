@@ -16,6 +16,9 @@ Please upgrade.
 
 * Removed `Configuration.use_ssl` and `Configuration.get_endpoint()` in favor of
   including the protocol in `Configuration.endpoint`
+* `Configuration.send_environment` is now `False` by default. Enable it as a
+  part of your configuration to send the full request context (if any) as a part
+  of each event.
 
 * Removed `bugsnag.utils.ThreadLocals` as it has been superseded by the
   `contextvars` API

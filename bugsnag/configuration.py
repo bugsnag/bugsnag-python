@@ -56,7 +56,7 @@ class Configuration(_BaseConfiguration):
         self.notify_release_stages = None
         self.auto_notify = True
         self.send_code = True
-        self.send_environment = True
+        self.send_environment = False
         self.asynchronous = True
         self.delivery = create_default_delivery()
         self.lib_root = sysconfig.get_path('purelib')
