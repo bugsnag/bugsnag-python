@@ -2,7 +2,7 @@ import platform
 import time
 
 from bugsnag import Client
-from bugsnag.notification import Notification
+from bugsnag.event import Event
 from bugsnag.configuration import Configuration
 from bugsnag.sessiontracker import SessionTracker
 from bugsnag.utils import package_version
@@ -52,9 +52,9 @@ class TestConfiguration(IntegrationTest):
         # Notifier properties
         notifier = json_body['notifier']
         self.assertTrue('name' in notifier)
-        self.assertEqual(notifier['name'], Notification.NOTIFIER_NAME)
+        self.assertEqual(notifier['name'], Event.NOTIFIER_NAME)
         self.assertTrue('url' in notifier)
-        self.assertEqual(notifier['url'], Notification.NOTIFIER_URL)
+        self.assertEqual(notifier['url'], Event.NOTIFIER_URL)
         self.assertTrue('version' in notifier)
         notifier_version = package_version('bugsnag') or 'unknown'
         self.assertEqual(notifier['version'], notifier_version)

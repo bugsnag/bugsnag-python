@@ -31,7 +31,7 @@ class ClientTest(IntegrationTest):
         client = Client(api_key='testing client key', install_sys_hook=False)
         self.assertEqual(client.configuration.api_key, 'testing client key')
 
-    # Sending Notification
+    # Sending Event
 
     def test_notify_exception(self):
         self.client.notify(Exception('Testing Notify'))

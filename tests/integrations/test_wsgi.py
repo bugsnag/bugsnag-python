@@ -1,7 +1,7 @@
 from webtest import TestApp
 
 from bugsnag.wsgi.middleware import BugsnagMiddleware
-import bugsnag.notification
+import bugsnag.event
 import bugsnag
 from tests.utils import IntegrationTest
 

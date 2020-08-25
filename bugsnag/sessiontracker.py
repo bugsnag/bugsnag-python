@@ -14,7 +14,7 @@ except ImportError:
 
 import bugsnag
 from bugsnag.utils import package_version, FilterDict, SanitizingJSONEncoder
-from bugsnag.notification import Notification
+from bugsnag.event import Event
 
 
 class SessionTracker(object):
@@ -107,8 +107,8 @@ class SessionTracker(object):
 
         payload = {
             'notifier': {
-                'name': Notification.NOTIFIER_NAME,
-                'url': Notification.NOTIFIER_URL,
+                'name': Event.NOTIFIER_NAME,
+                'url': Event.NOTIFIER_URL,
                 'version': notifier_version
             },
             'device': FilterDict({

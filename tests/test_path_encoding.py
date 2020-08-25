@@ -3,7 +3,7 @@
 import unittest
 from urllib.parse import quote
 
-from bugsnag.notification import Notification
+from bugsnag.event import Event
 from bugsnag.configuration import (Configuration, RequestConfiguration)
 
 
@@ -24,7 +24,7 @@ class PathEncodingTest(unittest.TestCase):
         bugsnag.configure_request(wsgi_environ=environ)
 
         config = Configuration()
-        notification = Notification(
+        notification = Event(
             Exception("oops"),
             config,
             RequestConfiguration.get_instance()
@@ -48,7 +48,7 @@ class PathEncodingTest(unittest.TestCase):
         bugsnag.configure_request(wsgi_environ=environ)
 
         config = Configuration()
-        notification = Notification(
+        notification = Event(
             Exception("oops"),
             config,
             RequestConfiguration.get_instance()
@@ -73,7 +73,7 @@ class PathEncodingTest(unittest.TestCase):
         environ['PATH_INFO'] = '/😇'
 
         config = Configuration()
-        notification = Notification(
+        notification = Event(
             Exception("oops"),
             config,
             RequestConfiguration.get_instance()
@@ -98,7 +98,7 @@ class PathEncodingTest(unittest.TestCase):
         environ['PATH_INFO'] = '/ôßłガ'
 
         config = Configuration()
-        notification = Notification(
+        notification = Event(
             Exception("oops"),
             config,
             RequestConfiguration.get_instance()

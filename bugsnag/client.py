@@ -5,7 +5,7 @@ from functools import wraps
 from types import FunctionType
 
 from bugsnag.configuration import Configuration, RequestConfiguration
-from bugsnag.notification import Notification
+from bugsnag.event import Event
 from bugsnag.handlers import BugsnagHandler
 from bugsnag.sessiontracker import SessionTracker
 
@@ -69,9 +69,9 @@ class Client(object):
         >>> client.notify(Exception('Example'))  # doctest: +SKIP
         """
 
-        notification = Notification(exception, self.configuration,
-                                    RequestConfiguration.get_instance(),
-                                    **options)
+        notification = Event(exception, self.configuration,
+                             RequestConfiguration.get_instance(),
+                             **options)
         self.deliver(notification, asynchronous=asynchronous)
 
     def notify_exc_info(self, exc_type, exc_value, traceback,
@@ -84,9 +84,9 @@ class Client(object):
 
         exception = exc_value
         options['traceback'] = traceback
-        notification = Notification(exception, self.configuration,
-                                    RequestConfiguration.get_instance(),
-                                    **options)
+        notification = Event(exception, self.configuration,
+                             RequestConfiguration.get_instance(),
+                             **options)
         self.deliver(notification, asynchronous=asynchronous)
 
     def excepthook(self, exc_type, exc_value, traceback):
@@ -179,7 +179,7 @@ class Client(object):
         self.configuration.internal_middleware.run(notification,
                                                    run_middleware)
 
-    def should_deliver(self, notification):  # type: (Notification) -> bool
+    def should_deliver(self, notification):  # type: (Event) -> bool
         # Return early if we shouldn't notify for current release stage
         if not self.configuration.should_notify():
             return False

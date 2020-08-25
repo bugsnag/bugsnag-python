@@ -2,7 +2,7 @@ import json
 import re
 from flask import Flask
 from bugsnag.flask import handle_exceptions
-import bugsnag.notification
+import bugsnag.event
 from tests.utils import IntegrationTest
 
 
