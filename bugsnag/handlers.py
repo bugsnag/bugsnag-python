@@ -1,13 +1,12 @@
 from __future__ import division, print_function, absolute_import
 
 import logging
-import warnings
 
 import bugsnag
 
 
 class BugsnagHandler(logging.Handler, object):
-    def __init__(self, api_key=None, client=None, extra_fields=None):
+    def __init__(self, client=None, extra_fields=None):
         """
         Creates a new handler which sends records to Bugsnag
         """
@@ -17,17 +16,6 @@ class BugsnagHandler(logging.Handler, object):
         self.callbacks = [self.extract_default_metadata,
                           self.extract_custom_metadata,
                           self.extract_severity]
-
-        if api_key is not None:
-            warnings.warn('api_key is deprecated in favor of using a client '
-                          'to set the correct API key '
-                          'and will be removed in a future release.',
-                          DeprecationWarning)
-
-            def add_api_key(record, options):
-                options['api_key'] = api_key
-
-            self.add_callback(add_api_key)
 
     def emit(self, record):
         """

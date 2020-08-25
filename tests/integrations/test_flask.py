@@ -14,8 +14,7 @@ class TestFlask(IntegrationTest):
 
     def setUp(self):
         super(TestFlask, self).setUp()
-        bugsnag.configure(use_ssl=False,
-                          endpoint=self.server.address,
+        bugsnag.configure(endpoint=self.server.url,
                           api_key='3874876376238728937',
                           notify_release_stages=['dev'],
                           release_stage='dev',

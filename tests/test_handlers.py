@@ -13,9 +13,7 @@ from tests.utils import IntegrationTest, ScaryException
 def use_client_logger(func):
     @wraps(func)
     def wrapped(obj):
-        client = Client(use_ssl=False,
-                        endpoint=obj.server.address,
-                        api_key='tomatoes',
+        client = Client(endpoint=obj.server.url,
                         asynchronous=False)
         handler = client.log_handler()
         logger = logging.getLogger(__name__)
@@ -33,9 +31,7 @@ class HandlersTest(IntegrationTest):
 
     def setUp(self):
         super(HandlersTest, self).setUp()
-        bugsnag.configure(use_ssl=False,
-                          endpoint=self.server.address,
-                          api_key='tomatoes',
+        bugsnag.configure(endpoint=self.server.url,
                           notify_release_stages=['dev'],
                           release_stage='dev',
                           asynchronous=False)
@@ -191,8 +187,8 @@ class HandlersTest(IntegrationTest):
         self.assertEqual('LogOMG', exception['errorClass'])
         self.assertEqual('error', event['severity'])
 
-    def test_exc_info_api_key(self):
-        handler = BugsnagHandler(api_key='new news')
+    def test_exc_info(self):
+        handler = BugsnagHandler()
         logger = logging.getLogger(__name__)
         logger.addHandler(handler)
 
@@ -205,15 +201,12 @@ class HandlersTest(IntegrationTest):
 
         self.assertSentReportCount(1)
         json_body = self.server.received[0]['json_body']
-        headers = self.server.received[0]['headers']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
-        self.assertEqual('new news', headers['Bugsnag-Api-Key'])
         self.assertEqual(exception['errorClass'], 'tests.utils.ScaryException')
 
     def test_extra_fields(self):
-        handler = BugsnagHandler(api_key='new news',
-                                 extra_fields={'fruit': ['grapes', 'pears']})
+        handler = BugsnagHandler(extra_fields={'fruit': ['grapes', 'pears']})
         logger = logging.getLogger(__name__)
         logger.addHandler(handler)
 
@@ -229,9 +222,7 @@ class HandlersTest(IntegrationTest):
         })
 
     def test_client_metadata_fields(self):
-        client = Client(use_ssl=False,
-                        endpoint=self.server.address,
-                        api_key='new news',
+        client = Client(endpoint=self.server.url,
                         asynchronous=False)
         handler = client.log_handler(extra_fields={
             'fruit': ['grapes', 'pears']
