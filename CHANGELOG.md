@@ -1,6 +1,21 @@
 Changelog
 =========
 
+## 4.0.0 (TBD)
+
+This is a major release which adds new features while removing previously
+deprecated portions of the library. For a guide to upgrading your existing
+codebase, see [the upgrade guide](UPGRADING.md).
+
+### Breaking Changes
+
+The minimum supported Python version is now 3.5. Older versions of Python are
+now at
+[end-of-life](https://docs.python.org/devguide/#status-of-python-branches).
+Please upgrade.
+
+
+
 ## 3.9.0 (2020-08-27)
 
 ### Enhancements

@@ -1,5 +1,13 @@
 # Upgrade guide
 
+## Migrating from 3.x to 4.x
+
+### Updated minimum Python version
+The minimum supported Python version is now 3.5. Older versions of Python are
+now at
+[end-of-life](https://docs.python.org/devguide/#status-of-python-branches).
+Please upgrade.
+
 ## Migrating from 2.x to 3.x
 
 A few configuration properties were deprecated in the transition from 2.x to

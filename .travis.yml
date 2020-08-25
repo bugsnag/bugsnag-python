@@ -2,27 +2,6 @@ language: python
 
 matrix:
   include:
-  - python: 2.6
-    env: TOXENV=py26-test,py26-wsgi,py26-flask
-    install: travis_retry pip install coveralls 'tox<3' 'idna<2.8' 'pycparser<2.19'
-    dist: trusty
-
-  - python: "2.7_with_system_site_packages"
-    env: TOXENV=py27-test
-  - python: 2.7
-    env: TOXFACTOR=py27
-
-  - python: 3.3
-    install:
-    - travis_retry pip install coveralls 'virtualenv<16'
-    - pip install 'tox<3' 'pluggy<0.6.0' webtest
-    script:
-      - TOXENV=py33-test,py33-requests,py33-wsgi,py33-flask,py33-tornado tox
-    dist: trusty
-
-  - python: 3.4
-    env: TOXFACTOR=py34
-
   - python: 3.5
     env: TOXFACTOR=py35
 
@@ -46,20 +25,3 @@ script:
 
 after_success:
   - coveralls
-
-before_deploy:
-  - sudo apt-get update
-  - sudo make deb-bootstrap
-  - make deb-build
-  - mv deb_dist/python-bugsnag_*.deb deb_dist/python-bugsnag.deb
-
-deploy:
-  provider: releases
-  api_key:
-    secure: "JM/zSJAowC1jFKdjk88Um+S/t/OKhqx9Yw7xCfk9INy683z9e8U1z8dIwen+XIFbS+o2JKamU1zL3rZbgOiDQPWetl5cyZCuErzZBmOsegjZTc2ZazQdO90jxYxcnP0faQO9W00uagSDe4NmYoi2dJKSdtKExOzdHDF3qjkLSUc="
-  file: deb_dist/python-bugsnag.deb
-  skip_cleanup: true
-  on:
-    tags: true
-    python: "2.7_with_system_site_packages"
-    condition: "$TOXENV = py27-test"
