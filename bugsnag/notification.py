@@ -44,7 +44,7 @@ class Notification(object):
         self.request_config = request_config
 
         def get_config(key):
-            return options.pop(key, self.config.get(key))
+            return options.pop(key, getattr(self.config, key))
 
         self.release_stage = get_config("release_stage")
         self.app_version = get_config("app_version")
@@ -128,7 +128,7 @@ class Notification(object):
         bugsnag_module_path = os.path.dirname(bugsnag.__file__)
         logging_module_path = os.path.dirname(logging.__file__)
         exclude_module_paths = [bugsnag_module_path, logging_module_path]
-        user_exclude_modules = self.config.get("traceback_exclude_modules")
+        user_exclude_modules = self.config.traceback_exclude_modules
         for exclude_module in user_exclude_modules:
             try:
                 module_file = exclude_module.__file__
@@ -139,11 +139,11 @@ class Notification(object):
                 bugsnag.logger.exception(
                     'Could not exclude module: %s' % repr(exclude_module))
 
-        lib_root = self.config.get("lib_root")
+        lib_root = self.config.lib_root
         if lib_root and lib_root[-1] != os.sep:
             lib_root += os.sep
 
-        project_root = self.config.get("project_root")
+        project_root = self.config.project_root
         if project_root and project_root[-1] != os.sep:
             project_root += os.sep
 
@@ -248,8 +248,8 @@ class Notification(object):
                     "hostname": self.hostname,
                     "runtimeVersions": self.runtime_versions
                 }),
-                "projectRoot": self.config.get("project_root"),
-                "libRoot": self.config.get("lib_root"),
+                "projectRoot": self.config.project_root,
+                "libRoot": self.config.lib_root,
                 "session": self.session
             }]
         })

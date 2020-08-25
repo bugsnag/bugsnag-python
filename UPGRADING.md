@@ -20,6 +20,18 @@ guide for migrating from 2.x to 3.x to remove use of `get_endpoint()` and
   `contextvars` API
 * Removed `bugsnag.utils.merge_dicts`
 
+### Configuration validation
+
+* Setting unknown properties on `Configuration` via `configure(**kwargs)` is no
+longer supported and will cause an error.
+* `Configuration.get('{propname}')` is deprecated in favor of accessing
+  configuration properties directly
+
+  ```diff+py
+  - config.get('release_stage')
+  + config.release_stage
+  ```
+
 ## Migrating from 2.x to 3.x
 
 A few configuration properties were deprecated in the transition from 2.x to

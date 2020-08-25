@@ -182,7 +182,8 @@ class TestBugsnag(IntegrationTest):
         self.assertEqual(0, len(self.server.received))
 
     def test_notify_configured_invalid_api_key(self):
-        bugsnag.configure(api_key=None)
+        config = bugsnag.configure()
+        config.api_key = None
         bugsnag.notify(ScaryException('unexpected failover'))
         self.assertEqual(0, len(self.server.received))
 
