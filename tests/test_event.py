@@ -1,3 +1,4 @@
+from importlib import reload
 import inspect
 import json
 import os
@@ -7,14 +8,6 @@ import unittest
 from bugsnag.configuration import Configuration
 from bugsnag.event import Event
 from tests import fixtures
-
-try:
-    reload  # Python 2.x
-except NameError:
-    try:
-        from importlib import reload  # Python 3.4+
-    except ImportError:
-        from imp import reload  # Python 3.0 - 3.3
 
 
 class TestEvent(unittest.TestCase):
