@@ -14,6 +14,10 @@ The properties deprecated in the 3.0.0 release have been removed. See the below
 guide for migrating from 2.x to 3.x to remove use of `get_endpoint()` and
 `use_ssl`.
 
+### Remove unused utilities
+
+* Removed `bugsnag.utils.ThreadLocals` as it has been superseded by the
+  `contextvars` API
 
 ## Migrating from 2.x to 3.x
 

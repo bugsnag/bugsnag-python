@@ -17,6 +17,8 @@ Please upgrade.
 * Removed `Configuration.use_ssl` and `Configuration.get_endpoint()` in favor of
   including the protocol in `Configuration.endpoint`
 
+* Removed `bugsnag.utils.ThreadLocals` as it has been superseded by the
+  `contextvars` API
 
 
 ## 3.9.0 (2020-08-27)
