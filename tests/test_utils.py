@@ -5,7 +5,7 @@ import sys
 import datetime
 import re
 
-from bugsnag.utils import (SanitizingJSONEncoder, FilterDict, ThreadLocals,
+from bugsnag.utils import (SanitizingJSONEncoder, FilterDict,
                            is_json_content_type, parse_content_type,
                            ThreadContextVar, merge_dicts)
 
@@ -13,7 +13,6 @@ from bugsnag.utils import (SanitizingJSONEncoder, FilterDict, ThreadLocals,
 class TestUtils(unittest.TestCase):
     def tearDown(self):
         super(TestUtils, self).tearDown()
-        ThreadLocals.LOCALS = None
 
     def test_encode_filters(self):
         data = FilterDict({"credit_card": "123213213123", "password": "456",
@@ -83,20 +82,6 @@ class TestUtils(unittest.TestCase):
         encoder = SanitizingJSONEncoder(keyword_filters=["password"])
         sane_data = json.loads(encoder.encode(data))
         self.assertEqual(sane_data, data)
-
-    def test_thread_locals(self):
-        key = "TEST_THREAD_LOCALS"
-        val = {"Test": "Thread", "Locals": "Here"}
-        locs = ThreadLocals.get_instance()
-        self.assertFalse(locs.has_item(key))
-        locs.set_item(key, val)
-        self.assertTrue(locs.has_item(key))
-        item = locs.get_item(key)
-        self.assertEqual(item, val)
-        locs.del_item(key)
-        self.assertFalse(locs.has_item(key))
-        item = locs.get_item(key, "default")
-        self.assertEqual(item, "default")
 
     def test_thread_context_vars_default(self):
         token = ThreadContextVar("TEST_contextvars")
