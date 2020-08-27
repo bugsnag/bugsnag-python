@@ -1,2 +1,2 @@
-Django>=1.10
+Django==2.1.15
 bugsnag>=3.4.2

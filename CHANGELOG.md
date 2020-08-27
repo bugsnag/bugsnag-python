@@ -1,6 +1,17 @@
 Changelog
 =========
 
+## 3.9.0 (2020-08-27)
+
+### Enhancements
+
+* Support reporting exceptions thrown from threads using
+  [`threading.excepthook`](https://docs.python.org/3.8/library/threading.html#threading.excepthook)
+  [#218](https://github.com/bugsnag/bugsnag-python/pull/218)
+* [Django] Capture errors which occur outside of the request/response middleware
+  chain, like uncaught exceptions within 404 or 500 handlers.
+  [#221](https://github.com/bugsnag/bugsnag-python/pull/221)
+
 ## 3.8.0 (2020-08-18)
 
 ### Enhancements

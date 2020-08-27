@@ -742,6 +742,64 @@ class TestBugsnag(IntegrationTest):
             }
         })
 
+    def test_auto_notify_ignored_exc_info(self):
+        bugsnag.configure(auto_notify=False)
+        try:
+            raise ScaryException('Testing Notify EXC Info')
+        except Exception:
+            bugsnag.auto_notify_exc_info()
+
+        self.assertEqual(len(self.server.received), 0)
+
+    def test_auto_notify_exc_info(self):
+        try:
+            raise ScaryException('Testing Notify EXC Info')
+        except Exception:
+            bugsnag.auto_notify_exc_info()
+
+        self.assertEqual(len(self.server.received), 1)
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertTrue(event['unhandled'])
+        self.assertEqual(event['severity'], 'error')
+        self.assertEqual(event['severityReason'], {
+            "type": "unhandledException"
+        })
+        self.assertEqual(event['exceptions'][0]['message'],
+                         'Testing Notify EXC Info')
+
+    def test_auto_notify_exc_info_overrides(self):
+        try:
+            raise ScaryException('Testing Notify EXC Info')
+        except Exception:
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            replacement = Exception(str(exc_value))
+            bugsnag.auto_notify_exc_info(
+                ('Exception', replacement, exc_tb),
+                severity='info',
+                unhandled=False,
+                severity_reason={
+                    "type": "middleware_handler",
+                    "attributes": {
+                        "name": "test middleware"
+                    }
+                }
+            )
+
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        self.assertFalse(event['unhandled'])
+        self.assertEqual(event['severity'], 'info')
+        self.assertEqual(event['severityReason'], {
+            "type": "middleware_handler",
+            "attributes": {
+                "name": "test middleware"
+            }
+        })
+        self.assertEqual(event['exceptions'][0]['errorClass'], 'Exception')
+        self.assertEqual(event['exceptions'][0]['message'],
+                         'Testing Notify EXC Info')
+
     def test_synchronous_individual_notify(self):
         bugsnag.configure(asynchronous=True)
         bugsnag.notify(ScaryException('unexpected failover'),

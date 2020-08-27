@@ -10,6 +10,7 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 
@@ -46,7 +47,7 @@ MIDDLEWARE = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware'
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
 ROOT_URLCONF = 'bugsnag_demo.urls'
@@ -83,36 +84,34 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-# Initialize Bugsnag to begin tracking errors. Only an api key is required, but here are some other helpful configuration details:
+# Initialize Bugsnag to begin tracking errors. Only an api key is required, but
+# here are some other helpful configuration details:
 BUGSNAG = {
-
     # get your own api key at bugsnag.com
     "api_key": "YOUR_API_KEY_HERE",
-
-    # By default, requests are sent asynchronously. If you would like to block until the request is done, you can set to false.
+    # By default, requests are sent asynchronously. If you would like to block
+    # until the request is done, you can set to false.
     "asynchronous": False,
-
-    # If you track deploys or session rates, make sure to set the correct version.
+    # If you track deploys or session rates, make sure to set the correct
+    # version.
     "app_version": '1.2.3',
-
-    # Defaults to false, this allows you to log each session which will be used to calculate crash rates in your dashboard for each release.
+    # Defaults to false, this allows you to log each session which will be used
+    # to calculate crash rates in your dashboard for each release.
     "auto_capture_sessions": True,
-
     # Sets which exception classes should never be sent to Bugsnag.
     "ignore_classes": ['django.http.response.Http404', 'DontCare'],
-
     # Defines the release stage for all events that occur in this app.
     "release_stage": 'development',
-
-    # Defines which release stages bugsnag should report. e.g. ignore staging errors.
-    "notify_release_stages": [ 'development', 'production'],
-
-    # Any param key that contains one of these strings will be filtered out of all error reports.
+    # Defines which release stages bugsnag should report. e.g. ignore staging
+    # errors.
+    "notify_release_stages": ['development', 'production'],
+    # Any param key that contains one of these strings will be filtered out of
+    # all error reports.
     "params_filters": ["credit_card_number", "password", "ssn"],
-
-    # We mark stacktrace lines as inProject if they come from files inside root:
+    # We mark stacktrace lines as inProject if they come from files inside
+    # root:
     # "project_root": "/path/to/your/project",
-
-    # Useful if you are wrapping bugsnag.notify() in with your own library, to ensure errors group properly.
+    # Useful if you are wrapping bugsnag.notify() in with your own library, to
+    # ensure errors group properly.
     # "traceback_exclude_module": [myapp.custom_logging],
 }

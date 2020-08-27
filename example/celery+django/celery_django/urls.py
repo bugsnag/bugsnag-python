@@ -14,9 +14,16 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url
-from django.contrib import admin
 
-from demo.views import readme, crash, notify, crashcallback, notifymeta, notifycontext, notifyseverity
+from demo.views import (
+    readme,
+    crash,
+    notify,
+    crashcallback,
+    notifymeta,
+    notifycontext,
+    notifyseverity,
+)
 
 urlpatterns = [
     url(r'^$', readme),
@@ -25,5 +32,5 @@ urlpatterns = [
     url(r'^celerynotify$', notify),
     url(r'^celerynotifymetadata$', notifymeta),
     url(r'^celerynotifycontext$', notifycontext),
-    url(r'^celerynotifyseverity$', notifyseverity)
+    url(r'^celerynotifyseverity$', notifyseverity),
 ]
