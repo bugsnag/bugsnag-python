@@ -19,7 +19,7 @@ class Client(object):
     """
     A Bugsnag monitoring and reporting client.
 
-    >>> client = Client(api_key='...')
+    >>> client = Client(api_key='...')  # doctest: +SKIP
     """
 
     def __init__(self, configuration=None, install_sys_hook=True, **kwargs):
@@ -35,26 +35,26 @@ class Client(object):
         Run a block of code within the clients context.
         Any exception raised will be reported to bugsnag.
 
-        >>> with client.capture():
-        >>>     raise Exception('an exception passed to bugsnag then reraised')
+        >>> with client.capture():  # doctest: +SKIP
+        ...     raise Exception('an exception passed to bugsnag then reraised')
 
         The context can optionally include specific types to capture.
 
-        >>> with client.capture((TypeError,)):
-        >>>     raise Exception('an exception which does get captured')
+        >>> with client.capture((TypeError,)):  # doctest: +SKIP
+        ...     raise Exception('an exception which does get captured')
 
         Alternately, functions can be decorated to capture any
         exceptions thrown during execution and reraised.
 
-        >>> @client.capture
-        >>> def foo():
-        >>>     raise Exception('an exception passed to bugsnag then reraised')
+        >>> @client.capture  # doctest: +SKIP
+        ... def foo():
+        ...     raise Exception('an exception passed to bugsnag then reraised')
 
         The decoration can optionally include specific types to capture.
 
-        >>> @client.capture((TypeError,))
-        >>> def foo():
-        >>>     raise Exception('an exception which does not get captured')
+        >>> @client.capture((TypeError,))  # doctest: +SKIP
+        ... def foo():
+        ...     raise Exception('an exception which does not get captured')
         """
 
         if isinstance(exceptions, FunctionType):
@@ -66,7 +66,7 @@ class Client(object):
         """
         Notify bugsnag of an exception.
 
-        >>> client.notify(Exception('Example'))
+        >>> client.notify(Exception('Example'))  # doctest: +SKIP
         """
 
         notification = Notification(exception, self.configuration,
@@ -79,7 +79,7 @@ class Client(object):
         """
         Notify bugsnag of an exception via exc_info.
 
-        >>> client.notify_exc_info(*sys.exc_info())
+        >>> client.notify_exc_info(*sys.exc_info())  # doctest: +SKIP
         """
 
         exception = exc_value
