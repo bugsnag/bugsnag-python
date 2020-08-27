@@ -71,8 +71,9 @@ class MiddlewareStack(object):
 
         >>> def add_request_data(notification):
         ...    notification.add_tab("request", request_data)
-        ...
-        ... bugsnag.middleware.before_notify(add_request_data)
+        >>>
+        >>> stack = MiddlewareStack()
+        >>> stack.before_notify(add_request_data)
         """
         self.append(SimpleMiddleware(before=func))
 
@@ -95,13 +96,13 @@ class MiddlewareStack(object):
         >>> class ExampleMiddleware():
         ...     def __init__(self, bugsnag):
         ...         self.bugsnag = bugsnag
-        ...
         ...     def __call__(self, notification):
         ...         config = notification.request_config
-        ...         notification.add_tab("request", config.get("request")))
+        ...         notification.add_tab("request", config.get("request"))
         ...         self.bugsnag(notification)
         ...
-        >>> bugsnag.middleware.append(ExampleMiddleware)
+        >>> stack = MiddlewareStack()
+        >>> stack.append(ExampleMiddleware)
         """
         self.stack.append(middleware)
 

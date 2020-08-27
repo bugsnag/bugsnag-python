@@ -18,9 +18,13 @@ class SanitizingJSONEncoder(JSONEncoder):
     A JSON encoder which handles filtering and conversion from JSON-
     incompatible types to strings.
 
-    >>> encoder = SanitizingJSONEncoder(filters=['bananas'])
-    >>> encoder.encode({'carrots': 4, 'bananas': 5})
-    "{'carrots': 4, 'bananas': '[FILTERED]'}"
+    >>> from json import loads
+    >>> encoder = SanitizingJSONEncoder(keyword_filters=['bananas'])
+    >>> items = loads(encoder.encode(FilterDict({'carrots': 4, 'bananas': 5})))
+    >>> items['bananas']
+    '[FILTERED]'
+    >>> items['carrots']
+    4
     """
 
     filtered_value = '[FILTERED]'
@@ -179,11 +183,11 @@ def parse_content_type(value):
     on RFC 6838
 
     >>> parse_content_type("text/plain")
-    >>> ("text", "plain", None, None)
+    ('text', 'plain', None, None)
     >>> parse_content_type("application/hal+json")
-    >>> ("application", "hal", "json", None)
-    >>> parse_content_type("application/json;schema=\"https://example.com/a\"")
-    >>> ("application", "json", None, "schema=https://example.com/a")
+    ('application', 'hal', 'json', None)
+    >>> parse_content_type("application/json;schema=\\"ftp://example.com/a\\"")
+    ('application', 'json', None, 'schema="ftp://example.com/a"')
     """
     if ';' in value:
         types, parameters = value.split(';', 1)
@@ -205,11 +209,11 @@ def is_json_content_type(value):  # type: (str) -> bool
     Check if a content type is JSON-parseable
 
     >>> is_json_content_type('text/plain')
-    >>> False
+    False
     >>> is_json_content_type('application/schema+json')
-    >>> True
+    True
     >>> is_json_content_type('application/json')
-    >>> True
+    True
     """
     type, subtype, suffix, _ = parse_content_type(value.lower())
     return type == 'application' and (subtype == 'json' or suffix == 'json')
