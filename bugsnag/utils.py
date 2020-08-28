@@ -2,6 +2,7 @@ from functools import wraps, partial
 import inspect
 from json import JSONEncoder
 from threading import local as threadlocal
+from typing import Tuple, Optional
 import warnings
 
 import bugsnag
@@ -177,7 +178,10 @@ class FilterDict(dict):
     pass
 
 
-def parse_content_type(value):
+ContentType = Tuple[str, Optional[str], Optional[str], Optional[str]]
+
+
+def parse_content_type(value: str) -> ContentType:
     """
     Generate a tuple of (type, subtype, suffix, parameters) from a type based
     on RFC 6838
@@ -189,10 +193,11 @@ def parse_content_type(value):
     >>> parse_content_type("application/json;schema=\\"ftp://example.com/a\\"")
     ('application', 'json', None, 'schema="ftp://example.com/a"')
     """
+    parameters = None  # type: Optional[str]
     if ';' in value:
         types, parameters = value.split(';', 1)
     else:
-        types, parameters = value, None
+        types = value
     if '/' in types:
         maintype, subtype = types.split('/', 1)
         if '+' in subtype:
@@ -204,7 +209,7 @@ def parse_content_type(value):
         return (types, None, None, parameters)
 
 
-def is_json_content_type(value):  # type: (str) -> bool
+def is_json_content_type(value: str) -> bool:
     """
     Check if a content type is JSON-parseable
 

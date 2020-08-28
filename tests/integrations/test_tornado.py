@@ -180,4 +180,5 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
 
         payload = self.server.received[0]['json_body']
         event = payload['events'][0]
-        self.assertEqual(event['metaData']['environment'], {})
+        self.assertEqual(event['metaData']['environment']['REQUEST_METHOD'],
+                         'POST')

@@ -1,4 +1,5 @@
 from threading import Thread
+from typing import Dict, Callable, Any
 import sys
 import json
 import warnings
@@ -39,7 +40,7 @@ def create_default_delivery():
     return UrllibDelivery()
 
 
-def default_headers(api_key):
+def default_headers(api_key: str):
     return {
         'Bugsnag-Api-Key': api_key,
         'Bugsnag-Payload-Version': Event.PAYLOAD_VERSION,
@@ -48,20 +49,20 @@ def default_headers(api_key):
     }
 
 
-class Delivery(object):
+class Delivery:
     """
     Mechanism for sending a request to Bugsnag
     """
     def __init__(self):
         self.sent_session_warning = False
 
-    def deliver(self, config, payload, options={}):
+    def deliver(self, config, payload: Any, options={}):
         """
         Sends error reports to Bugsnag
         """
         pass
 
-    def deliver_sessions(self, config, payload):
+    def deliver_sessions(self, config, payload: Any):
         """
         Sends sessions to Bugsnag
         """
@@ -78,7 +79,7 @@ class Delivery(object):
             }
             self.deliver(config, payload, options)
 
-    def queue_request(self, request, config, options):
+    def queue_request(self, request: Callable, config, options: Dict):
         if config.asynchronous and options.pop('asynchronous', True):
             Thread(target=request).start()
         else:
@@ -87,7 +88,7 @@ class Delivery(object):
 
 class UrllibDelivery(Delivery):
 
-    def deliver(self, config, payload, options={}):
+    def deliver(self, config, payload: Any, options={}):
 
         def request():
             uri = options.pop('endpoint', config.endpoint)
@@ -124,7 +125,7 @@ class UrllibDelivery(Delivery):
 
 class RequestsDelivery(Delivery):
 
-    def deliver(self, config, payload, options={}):
+    def deliver(self, config, payload: Any, options={}):
 
         def request():
             uri = options.pop('endpoint', config.endpoint)
