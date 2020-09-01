@@ -21,7 +21,8 @@ install:
   - travis_retry pip install coveralls tox tox-factor
 
 script:
-  - tox
+  - tox --parallel
 
 after_success:
+  - coverage combine
   - coveralls
