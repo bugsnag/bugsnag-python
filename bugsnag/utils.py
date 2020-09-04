@@ -236,11 +236,11 @@ def package_version(package_name):
             return None
 
 
-def _validate_setter(types, func, future_error=False):
+def _validate_setter(types, func, should_error=False):
     """
     Check that the first argument of a function is of a provided set of types
     before calling the body of the wrapped function, printing a runtime warning
-    if the validation fails.
+    (or raising a TypeError) if the validation fails.
     """
     @wraps(func)
     def wrapper(obj, value):
@@ -249,18 +249,19 @@ def _validate_setter(types, func, future_error=False):
             func(obj, value)
         else:
             error_format = '{0} should be {1}, got {2}'
-            if future_error:
-                error_format += '. This will be an error in a future release.'
             actual = type(value).__name__
             requirement = ' or '.join([t.__name__ for t in types])
             message = error_format.format(option_name, requirement, actual)
-            warnings.warn(message, RuntimeWarning)
+            if should_error:
+                raise TypeError(message)
+            else:
+                warnings.warn(message, RuntimeWarning)
     return wrapper
 
 
 validate_str_setter = partial(_validate_setter, (str,))
 validate_required_str_setter = partial(_validate_setter, (str,),
-                                       future_error=True)
+                                       should_error=True)
 validate_bool_setter = partial(_validate_setter, (bool,))
 validate_iterable_setter = partial(_validate_setter, (list, tuple))
 
