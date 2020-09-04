@@ -20,6 +20,12 @@ guide for migrating from 2.x to 3.x to remove use of `get_endpoint()` and
   `contextvars` API
 * Removed `bugsnag.utils.merge_dicts`
 
+### Request environment configuration
+
+`Configuration.send_environment` is now disabled by default. Set
+`send_environment=True` in your configuration to enable it and send the full
+request context as a part of each event.
+
 ### Configuration validation
 
 * Setting unknown properties on `Configuration` via `configure(**kwargs)` is no

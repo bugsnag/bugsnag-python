@@ -121,7 +121,6 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
         payload = self.server.received[0]['json_body']
         event = payload['events'][0]
         expectedUrl = 'http://127.0.0.1:{}/crash'.format(self.get_http_port())
-        self.assertEqual(event['metaData']['environment'], {})
         self.assertEqual(event['metaData']['request'], {
             'method': 'GET',
             'url': expectedUrl,
@@ -130,6 +129,7 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
             'POST': {},
             'GET': {}
         })
+        assert 'environment' not in payload['events'][0]['metaData']
 
     def test_unhandled_post(self):
         response = self.fetch('/crash', method="POST", body="test=post")
@@ -172,11 +172,12 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
         self.assertEqual(response.code, 404)
         self.assertEqual(len(self.server.received), 0)
 
-    def test_disable_environment(self):
-        bugsnag.configure(send_environment=False)
+    def test_enable_environment(self):
+        bugsnag.configure(send_environment=True)
         response = self.fetch('/notify', method="POST", body="test=post")
         self.assertEqual(response.code, 200)
         self.assertEqual(len(self.server.received), 1)
 
         payload = self.server.received[0]['json_body']
-        assert 'environment' not in payload['events'][0]['metaData']
+        event = payload['events'][0]
+        self.assertEqual(event['metaData']['environment'], {})
