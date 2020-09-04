@@ -91,7 +91,7 @@ class UrllibDelivery(Delivery):
             uri = options.pop('endpoint', config.endpoint)
             if '://' not in uri:
                 uri = ('https://{}' % uri)
-            api_key = json.loads(payload).pop('apiKey', config.get('api_key'))
+            api_key = json.loads(payload).pop('apiKey', config.api_key)
             req = Request(uri,
                           payload.encode('utf-8', 'replace'),
                           default_headers(api_key))
@@ -129,7 +129,7 @@ class RequestsDelivery(Delivery):
             if '://' not in uri:
                 uri = ('https://{}' % uri)
 
-            api_key = json.loads(payload).pop('apiKey', config.get('api_key'))
+            api_key = json.loads(payload).pop('apiKey', config.api_key)
             req_options = {'data': payload,
                            'headers': default_headers(api_key)}
 

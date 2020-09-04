@@ -112,12 +112,12 @@ class SessionTracker(object):
                 'version': notifier_version
             },
             'device': FilterDict({
-                'hostname': self.config.get('hostname'),
-                'runtimeVersions': self.config.get('runtime_versions')
+                'hostname': self.config.hostname,
+                'runtimeVersions': self.config.runtime_versions
             }),
             'app': {
-                'releaseStage': self.config.get('release_stage'),
-                'version': self.config.get('app_version')
+                'releaseStage': self.config.release_stage,
+                'version': self.config.app_version
             },
             'sessionCounts': sessions
         }

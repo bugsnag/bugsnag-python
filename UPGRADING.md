@@ -26,6 +26,17 @@ guide for migrating from 2.x to 3.x to remove use of `get_endpoint()` and
 `send_environment=True` in your configuration to enable it and send the full
 request context as a part of each event.
 
+### Configuration validation
+
+* Setting unknown properties on `Configuration` via `configure(**kwargs)` is no
+longer supported and will cause an error.
+* `Configuration.get('{propname}')` is deprecated in favor of accessing
+  configuration properties directly
+
+  ```diff+py
+  - config.get('release_stage')
+  + config.release_stage
+  ```
 
 ## Migrating from 2.x to 3.x
 
