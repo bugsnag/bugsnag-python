@@ -66,33 +66,22 @@ class TestConfiguration(unittest.TestCase):
 
     def test_validate_api_key(self):
         c = Configuration()
-        with pytest.warns(RuntimeWarning) as record:
+        with pytest.raises(TypeError) as e:
             c.configure(api_key=[])
-
-            assert len(record) == 1
-            assert (str(record[0].message) ==
-                    'api_key should be str, got list. ' +
-                    'This will be an error in a future release.')
-            c.configure(api_key='ffff')
-
-            assert len(record) == 1
-            assert c.api_key == 'ffff'
+            assert str(e) == 'api_key should be str, got list.'
+        c.configure(api_key='ffff')
+        assert c.api_key == 'ffff'
 
     def test_validate_endpoint(self):
         c = Configuration()
-        with pytest.warns(RuntimeWarning) as record:
+        with pytest.raises(TypeError) as e:
             c.configure(endpoint=56)
 
-            assert len(record) == 1
-            assert (str(record[0].message) ==
-                    'endpoint should be str, got int. ' +
-                    'This will be an error in a future release.')
+            assert str(e) == 'endpoint should be str, got int. '
             assert c.endpoint == 'https://notify.bugsnag.com'
 
-            c.configure(endpoint='https://notify.example.com')
-
-            assert len(record) == 1
-            assert c.endpoint == 'https://notify.example.com'
+        c.configure(endpoint='https://notify.example.com')
+        assert c.endpoint == 'https://notify.example.com'
 
     def test_validate_app_type(self):
         c = Configuration()
@@ -344,19 +333,14 @@ class TestConfiguration(unittest.TestCase):
 
     def test_validate_session_endpoint(self):
         c = Configuration()
-        with pytest.warns(RuntimeWarning) as record:
+        with pytest.raises(TypeError) as e:
             c.configure(session_endpoint=False)
 
-            assert len(record) == 1
-            assert (str(record[0].message) ==
-                    'session_endpoint should be str, got bool. This will be' +
-                    ' an error in a future release.')
+            assert str(e) == 'session_endpoint should be str, got bool.'
             assert c.session_endpoint == 'https://sessions.bugsnag.com'
 
-            c.configure(session_endpoint='https://sessions.example.com')
-
-            assert len(record) == 1
-            assert c.session_endpoint == 'https://sessions.example.com'
+        c.configure(session_endpoint='https://sessions.example.com')
+        assert c.session_endpoint == 'https://sessions.example.com'
 
     def test_validate_traceback_exclude_modules(self):
         c = Configuration()
