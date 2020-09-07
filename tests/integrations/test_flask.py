@@ -210,7 +210,7 @@ class TestFlask(IntegrationTest):
         @app.route("/hello")
         def hello():
             bugsnag.notify(SentinelError("oops"),
-                           context="custom_context_notification_testing")
+                           context="custom_context_event_testing")
             return "OK"
 
         handle_exceptions(app)
@@ -219,7 +219,7 @@ class TestFlask(IntegrationTest):
         self.assertEqual(1, len(self.server.received))
         payload = self.server.received[0]['json_body']
         self.assertEqual(payload['events'][0]['context'],
-                         'custom_context_notification_testing')
+                         'custom_context_event_testing')
 
     def test_flask_intergration_includes_middleware_severity(self):
         app = Flask("bugsnag")

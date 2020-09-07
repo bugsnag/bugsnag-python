@@ -75,7 +75,7 @@ class TestConfiguration(IntegrationTest):
         self.assertEqual(device['runtimeVersions']['python'],
                          platform.python_version())
 
-    def test_session_middleware_attaches_session_to_notification(self):
+    def test_session_middleware_attaches_session_to_event(self):
         client = Client(
             auto_capture_sessions=True,
             session_endpoint=self.server.url + '/ignore',

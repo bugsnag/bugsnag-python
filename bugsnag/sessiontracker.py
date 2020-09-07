@@ -134,17 +134,17 @@ class SessionTracker(object):
 
 class SessionMiddleware(object):
     """
-    Session middleware ensures that a session is appended to the notification.
+    Session middleware ensures that a session is appended to the event.
     """
     def __init__(self, bugsnag):
         self.bugsnag = bugsnag
 
-    def __call__(self, notification):
+    def __call__(self, event):
         session = _session_info.get()
         if session:
-            if notification.unhandled:
+            if event.unhandled:
                 session['events']['unhandled'] += 1
             else:
                 session['events']['handled'] += 1
-            notification.session = deepcopy(session)
-        self.bugsnag(notification)
+            event.session = deepcopy(session)
+        self.bugsnag(event)

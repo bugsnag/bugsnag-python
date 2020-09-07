@@ -8,16 +8,16 @@ class SimpleMiddleware(object):
 
     def __call__(self, bugsnag):
 
-        def middleware(notification):
+        def middleware(event):
             if self.before:
-                ret = self.before(notification)
+                ret = self.before(event)
                 if ret is False:
                     return
 
-            bugsnag(notification)
+            bugsnag(event)
 
             if self.after:
-                self.after(notification)
+                self.after(event)
 
         return middleware
 
@@ -30,29 +30,29 @@ class DefaultMiddleware(object):
     def __init__(self, bugsnag):
         self.bugsnag = bugsnag
 
-    def __call__(self, notification):
-        config = notification.request_config
-        notification.set_user(id=config.user_id)
-        notification.set_user(**config.user)
+    def __call__(self, event):
+        config = event.request_config
+        event.set_user(id=config.user_id)
+        event.set_user(**config.user)
 
-        if not notification.context:
-            notification.context = config.get("context")
+        if not event.context:
+            event.context = config.get("context")
 
         for name, dictionary in config.meta_data.items():
-            if name in notification.meta_data:
+            if name in event.meta_data:
                 for key, value in dictionary.items():
-                    if key not in notification.meta_data[name]:
-                        notification.meta_data[name][key] = value
+                    if key not in event.meta_data[name]:
+                        event.meta_data[name][key] = value
             else:
-                notification.add_tab(name, dictionary)
+                event.add_tab(name, dictionary)
 
-        notification.add_tab("request", config.get("request_data"))
+        event.add_tab("request", config.get("request_data"))
         if bugsnag.configure().send_environment:
-            notification.add_tab("environment", config.get("environment_data"))
-        notification.add_tab("session", config.get("session_data"))
-        notification.add_tab("extraData", config.get("extra_data"))
+            event.add_tab("environment", config.get("environment_data"))
+        event.add_tab("session", config.get("session_data"))
+        event.add_tab("extraData", config.get("extra_data"))
 
-        self.bugsnag(notification)
+        self.bugsnag(event)
 
 
 class MiddlewareStack(object):
@@ -69,8 +69,8 @@ class MiddlewareStack(object):
         This lets you modify the payload that will be sent.
         If your function returns False, nothing will be sent.
 
-        >>> def add_request_data(notification):
-        ...    notification.add_tab("request", request_data)
+        >>> def add_request_data(event):
+        ...    event.add_tab("request", request_data)
         >>>
         >>> stack = MiddlewareStack()
         >>> stack.before_notify(add_request_data)
@@ -90,16 +90,16 @@ class MiddlewareStack(object):
         Add a middleware to the end of the stack.
 
         It will be run after all middleware currently defined.
-        If you want to stop the notification progress, return from
+        If you want to stop the event progress, return from
         your __call__ method without calling the next level.
 
         >>> class ExampleMiddleware():
         ...     def __init__(self, bugsnag):
         ...         self.bugsnag = bugsnag
-        ...     def __call__(self, notification):
-        ...         config = notification.request_config
-        ...         notification.add_tab("request", config.get("request"))
-        ...         self.bugsnag(notification)
+        ...     def __call__(self, event):
+        ...         config = event.request_config
+        ...         event.add_tab("request", config.get("request"))
+        ...         self.bugsnag(event)
         ...
         >>> stack = MiddlewareStack()
         >>> stack.append(ExampleMiddleware)
@@ -128,15 +128,15 @@ class MiddlewareStack(object):
         except ValueError:
             self.append(middleware)
 
-    def run(self, notification, callback):
+    def run(self, event, callback):
         """
         Run all the middleware in order, then call the callback.
         """
 
-        # the last step in the notification stack is to call the callback.
+        # the last step in the event stack is to call the callback.
         # we also do this inside the exception handler, so need to ensure that
         # the callback is only called once.
-        def finish(notification):
+        def finish(event):
             if not hasattr(finish, 'called'):
                 finish.called = True
                 callback()
@@ -146,8 +146,8 @@ class MiddlewareStack(object):
             to_call = middleware(to_call)
 
         try:
-            to_call(notification)
+            to_call(event)
         except Exception:
             bugsnag.logger.exception('Error in exception middleware')
-            # still notify if middleware crashes before notification
-            finish(notification)
+            # still notify if middleware crashes before event
+            finish(event)

@@ -13,7 +13,7 @@ from bugsnag.utils import FilterDict, package_version, SanitizingJSONEncoder
 
 class Event:
     """
-    A single exception notification to Bugsnag.
+    An occurrence of an exception for delivery to Bugsnag
     """
     NOTIFIER_NAME = "Python Bugsnag Notifier"
     NOTIFIER_URL = "https://github.com/bugsnag/bugsnag-python"
@@ -22,7 +22,7 @@ class Event:
 
     def __init__(self, exception, config, request_config, **options):
         """
-        Create a new notification
+        Create a new event
 
         exception is the exception being reported.
         config is the global instance of bugsnag.Configuration
@@ -31,7 +31,7 @@ class Event:
 
         options can be used to override any of the configuration parameters:
             "api_key", "release_stage", "app_version", "hostname"
-        and to provide the following top-level notification payload keys:
+        and to provide the following top-level event payload keys:
             "user", "context", "severity", "grouping_hash", "meta_data",
             ("user_id")
         or to provide the exception parameter:
@@ -85,7 +85,7 @@ class Event:
 
     def set_user(self, id=None, name=None, email=None):
         """
-        Set user parameters on notification.
+        Set user parameters on event.
         """
         if id:
             self.user["id"] = id
@@ -102,7 +102,7 @@ class Event:
 
     def add_tab(self, name, dictionary):
         """
-        Add a meta-data tab to the notification
+        Add a metadata tab to the event
 
         If the tab already exists, the new content will be merged into the
         existing content.

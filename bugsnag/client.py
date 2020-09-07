@@ -69,10 +69,9 @@ class Client(object):
         >>> client.notify(Exception('Example'))  # doctest: +SKIP
         """
 
-        notification = Event(exception, self.configuration,
-                             RequestConfiguration.get_instance(),
-                             **options)
-        self.deliver(notification, asynchronous=asynchronous)
+        event = Event(exception, self.configuration,
+                      RequestConfiguration.get_instance(), **options)
+        self.deliver(event, asynchronous=asynchronous)
 
     def notify_exc_info(self, exc_type, exc_value, traceback,
                         asynchronous=None, **options):
@@ -84,10 +83,9 @@ class Client(object):
 
         exception = exc_value
         options['traceback'] = traceback
-        notification = Event(exception, self.configuration,
-                             RequestConfiguration.get_instance(),
-                             **options)
-        self.deliver(notification, asynchronous=asynchronous)
+        event = Event(exception, self.configuration,
+                      RequestConfiguration.get_instance(), **options)
+        self.deliver(event, asynchronous=asynchronous)
 
     def excepthook(self, exc_type, exc_value, traceback):
         if self.configuration.auto_notify:
@@ -136,18 +134,17 @@ class Client(object):
                 threading.excepthook = self.threading_excepthook
                 self.threading_excepthook = None
 
-    def deliver(self, notification,
-                asynchronous=None):  # type: ignore
+    def deliver(self, event, asynchronous=None):  # type: ignore
         """
-        Deliver the exception notification to Bugsnag.
+        Deliver the exception event to Bugsnag.
         """
 
-        if not self.should_deliver(notification):
+        if not self.should_deliver(event):
             return
 
         def run_middleware():
-            initial_severity = notification.severity
-            initial_reason = notification.severity_reason.copy()
+            initial_severity = event.severity
+            initial_reason = event.severity_reason.copy()
 
             def send_payload():
                 if asynchronous is None:
@@ -155,17 +152,17 @@ class Client(object):
                 else:
                     options = {'asynchronous': asynchronous}
 
-                if notification.api_key is None:
+                if event.api_key is None:
                     bugsnag.logger.warning(
                         "No API key configured, couldn't notify")
                     return
-                if initial_severity != notification.severity:
-                    notification.severity_reason = {
+                if initial_severity != event.severity:
+                    event.severity_reason = {
                         'type': 'userCallbackSetSeverity'
                     }
                 else:
-                    notification.severity_reason = initial_reason
-                payload = notification._payload()
+                    event.severity_reason = initial_reason
+                payload = event._payload()
                 try:
                     self.configuration.delivery.deliver(self.configuration,
                                                         payload, options)
@@ -174,18 +171,17 @@ class Client(object):
                 # Trigger session delivery
                 self.session_tracker.send_sessions()
 
-            self.configuration.middleware.run(notification, send_payload)
+            self.configuration.middleware.run(event, send_payload)
 
-        self.configuration.internal_middleware.run(notification,
-                                                   run_middleware)
+        self.configuration.internal_middleware.run(event, run_middleware)
 
-    def should_deliver(self, notification):  # type: (Event) -> bool
+    def should_deliver(self, event):  # type: (Event) -> bool
         # Return early if we shouldn't notify for current release stage
         if not self.configuration.should_notify():
             return False
 
         # Return early if we should ignore exceptions of this type
-        if self.configuration.should_ignore(notification.exception):
+        if self.configuration.should_ignore(event.exception):
             return False
 
         return True

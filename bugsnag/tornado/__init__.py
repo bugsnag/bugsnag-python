@@ -8,7 +8,7 @@ import json
 
 
 class BugsnagRequestHandler(RequestHandler):
-    def add_tornado_request_to_notification(self, notification):
+    def add_tornado_request_to_notification(self, event):
         if not hasattr(self, "request"):
             return
 
@@ -31,11 +31,11 @@ class BugsnagRequestHandler(RequestHandler):
         except Exception:
             pass
 
-        notification.add_tab("request", request_tab)
+        event.add_tab("request", request_tab)
 
         if bugsnag.configure().send_environment:
             env = tornado.wsgi.WSGIContainer.environ(self.request)
-            notification.add_tab("environment", env)
+            event.add_tab("environment", env)
 
     def _handle_request_exception(self, exc):
         options = {

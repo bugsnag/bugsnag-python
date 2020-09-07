@@ -17,12 +17,12 @@ class TestEvent(unittest.TestCase):
             It should sanitize request data
         """
         config = Configuration()
-        notification = Event(Exception("oops"), config, {},
-                             request={"params": {"password": "secret"}})
+        event = Event(Exception("oops"), config, {},
+                      request={"params": {"password": "secret"}})
 
-        notification.add_tab("request", {"arguments": {"password": "secret"}})
+        event.add_tab("request", {"arguments": {"password": "secret"}})
 
-        payload = json.loads(notification._payload())
+        payload = json.loads(event._payload())
         request = payload['events'][0]['metaData']['request']
         self.assertEqual(request['arguments']['password'], '[FILTERED]')
         self.assertEqual(request['params']['password'], '[FILTERED]')
@@ -33,9 +33,9 @@ class TestEvent(unittest.TestCase):
         """
         config = Configuration()
         line = inspect.currentframe().f_lineno + 1
-        notification = Event(Exception("oops"), config, {})
+        event = Event(Exception("oops"), config, {})
 
-        payload = json.loads(notification._payload())
+        payload = json.loads(event._payload())
 
         code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
         lvl = "        "
@@ -46,20 +46,20 @@ class TestEvent(unittest.TestCase):
         self.assertEqual(
             code[str(line)],
             lvl +
-            "notification = Event(Exception(\"oops\"), config, {})"
+            "event = Event(Exception(\"oops\"), config, {})"
             )
         self.assertEqual(code[str(line + 1)], "")
         self.assertEqual(code[str(line + 2)],
-                         lvl + "payload = json.loads(notification._payload())")
+                         lvl + "payload = json.loads(event._payload())")
         self.assertEqual(code[str(line + 3)], "")
 
     def test_code_at_start_of_file(self):
 
         config = Configuration()
-        notification = Event(fixtures.start_of_file[1], config, {},
-                             traceback=fixtures.start_of_file[2])
+        event = Event(fixtures.start_of_file[1], config, {},
+                      traceback=fixtures.start_of_file[2])
 
-        payload = json.loads(notification._payload())
+        payload = json.loads(event._payload())
 
         code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
         self.assertEqual(
@@ -74,10 +74,10 @@ class TestEvent(unittest.TestCase):
     def test_code_at_end_of_file(self):
 
         config = Configuration()
-        notification = Event(fixtures.end_of_file[1], config, {},
+        event = Event(fixtures.end_of_file[1], config, {},
                              traceback=fixtures.end_of_file[2])
 
-        payload = json.loads(notification._payload())
+        payload = json.loads(event._payload())
 
         code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
         self.assertEqual(
@@ -92,10 +92,10 @@ class TestEvent(unittest.TestCase):
     def test_code_turned_off(self):
         config = Configuration()
         config.send_code = False
-        notification = Event(Exception("oops"), config, {},
-                             traceback=fixtures.end_of_file[2])
+        event = Event(Exception("oops"), config, {},
+                      traceback=fixtures.end_of_file[2])
 
-        payload = json.loads(notification._payload())
+        payload = json.loads(event._payload())
 
         code = payload['events'][0]['exceptions'][0]['stacktrace'][0]['code']
         self.assertEqual(code, None)
@@ -105,9 +105,9 @@ class TestEvent(unittest.TestCase):
         config = Configuration()
         config.configure(project_root=os.path.join(os.getcwd(), 'tests'))
 
-        notification = helpers.invoke_exception_on_other_file(config)
+        event = helpers.invoke_exception_on_other_file(config)
 
-        payload = json.loads(notification._payload())
+        payload = json.loads(event._payload())
         exception = payload['events'][0]['exceptions'][0]
         first_traceback = exception['stacktrace'][0]
 
@@ -131,9 +131,9 @@ class TestEvent(unittest.TestCase):
         config.configure(project_root=os.path.join(os.getcwd(), 'tests'))
         config.traceback_exclude_modules = [helpers]
 
-        notification = helpers.invoke_exception_on_other_file(config)
+        event = helpers.invoke_exception_on_other_file(config)
 
-        payload = json.loads(notification._payload())
+        payload = json.loads(event._payload())
         exception = payload['events'][0]['exceptions'][0]
         first_traceback = exception['stacktrace'][0]
         self.assertEqual(first_traceback['file'], 'test_event.py')
@@ -145,9 +145,9 @@ class TestEvent(unittest.TestCase):
         config = Configuration()
         config.hostname = 'test_host_name'
         config.runtime_versions = {'python': '9.9.9'}
-        notification = Event(Exception("oops"), config, {})
+        event = Event(Exception("oops"), config, {})
 
-        payload = json.loads(notification._payload())
+        payload = json.loads(event._payload())
 
         device = payload['events'][0]['device']
         self.assertEqual('test_host_name', device['hostname'])
@@ -158,8 +158,8 @@ class TestEvent(unittest.TestCase):
         app_type is None by default
         """
         config = Configuration()
-        notification = Event(Exception("oops"), config, {})
-        payload = json.loads(notification._payload())
+        event = Event(Exception("oops"), config, {})
+        payload = json.loads(event._payload())
         app = payload['events'][0]['app']
 
         assert app['type'] is None
@@ -170,8 +170,8 @@ class TestEvent(unittest.TestCase):
         """
         config = Configuration()
         config.configure(app_type='rq')
-        notification = Event(Exception("oops"), config, {})
-        payload = json.loads(notification._payload())
+        event = Event(Exception("oops"), config, {})
+        payload = json.loads(event._payload())
         app = payload['events'][0]['app']
 
         assert app['type'] == 'rq'
