@@ -96,7 +96,7 @@ class Event:
 
     def add_custom_data(self, key, value):
         """
-        Add data to the "custom" tag of Bugsnag
+        Add data to the "custom" metadata tab
         """
         self.add_tab("custom", {key: value})
 
