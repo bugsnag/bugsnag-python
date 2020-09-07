@@ -1,4 +1,4 @@
 def invoke_exception_on_other_file(config):
-    from bugsnag.notification import Notification
+    from bugsnag.event import Event
 
-    return Notification(Exception("another file!"), config, {})
+    return Event(Exception("another file!"), config, {})

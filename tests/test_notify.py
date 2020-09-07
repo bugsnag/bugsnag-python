@@ -592,11 +592,11 @@ class TestBugsnag(IntegrationTest):
         })
 
     def test_middleware_stack_order_legacy(self):
-        def first_callback(notification):
-            notification.meta_data['test']['array'].append(1)
+        def first_callback(event):
+            event.meta_data['test']['array'].append(1)
 
-        def second_callback(notification):
-            notification.meta_data['test']['array'].append(2)
+        def second_callback(event):
+            event.meta_data['test']['array'].append(2)
 
         # Add a regular callback function
         bugsnag.before_notify(second_callback)
@@ -619,11 +619,11 @@ class TestBugsnag(IntegrationTest):
                                 release_stage='dev',
                                 asynchronous=False)
 
-        def first_callback(notification):
-            notification.meta_data['test']['array'].append(1)
+        def first_callback(event):
+            event.meta_data['test']['array'].append(1)
 
-        def second_callback(notification):
-            notification.meta_data['test']['array'].append(2)
+        def second_callback(event):
+            event.meta_data['test']['array'].append(2)
 
         client.configuration.middleware.before_notify(second_callback)
         client.configuration.internal_middleware.before_notify(first_callback)
@@ -642,8 +642,8 @@ class TestBugsnag(IntegrationTest):
                                 release_stage='dev',
                                 asynchronous=False)
 
-        def severity_callback(notification):
-            notification.severity = 'info'
+        def severity_callback(event):
+            event.severity = 'info'
 
         internal_middleware = client.configuration.internal_middleware
         internal_middleware.before_notify(severity_callback)
@@ -662,8 +662,8 @@ class TestBugsnag(IntegrationTest):
                                 release_stage='dev',
                                 asynchronous=False)
 
-        def severity_reason_callback(notification):
-            notification.severity_reason['type'] = 'testReason'
+        def severity_reason_callback(event):
+            event.severity_reason['type'] = 'testReason'
 
         internal_middleware = client.configuration.internal_middleware
         internal_middleware.before_notify(severity_reason_callback)
@@ -676,8 +676,8 @@ class TestBugsnag(IntegrationTest):
 
     def test_external_middleware_can_change_severity(self):
 
-        def severity_callback(notification):
-            notification.severity = 'info'
+        def severity_callback(event):
+            event.severity = 'info'
 
         bugsnag.before_notify(severity_callback)
 
@@ -691,8 +691,8 @@ class TestBugsnag(IntegrationTest):
 
     def test_external_middleware_cannot_change_severity_reason(self):
 
-        def severity_reason_callback(notification):
-            notification.severity_reason['type'] = 'testReason'
+        def severity_reason_callback(event):
+            event.severity_reason['type'] = 'testReason'
 
         bugsnag.before_notify(severity_reason_callback)
 

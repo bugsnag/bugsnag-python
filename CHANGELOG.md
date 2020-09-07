@@ -24,6 +24,12 @@ Please upgrade.
   `contextvars` API
 * Removed `bugsnag.utils.merge_dicts`, an unused helper function
 
+### Deprecations
+
+* Deprecated `bugsnag.notification.Notification` in favor of
+  `bugsnag.event.Event` to better align with Bugsnag libraries on other
+  platforms. The `Notification` class is functionally equivalent and will be
+  removed in a future release.
 
 ## 3.9.0 (2020-08-27)
 

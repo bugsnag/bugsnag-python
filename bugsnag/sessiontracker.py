@@ -14,7 +14,7 @@ except ImportError:
 
 import bugsnag
 from bugsnag.utils import package_version, FilterDict, SanitizingJSONEncoder
-from bugsnag.notification import Notification
+from bugsnag.event import Event
 
 
 class SessionTracker(object):
@@ -107,8 +107,8 @@ class SessionTracker(object):
 
         payload = {
             'notifier': {
-                'name': Notification.NOTIFIER_NAME,
-                'url': Notification.NOTIFIER_URL,
+                'name': Event.NOTIFIER_NAME,
+                'url': Event.NOTIFIER_URL,
                 'version': notifier_version
             },
             'device': FilterDict({
@@ -134,17 +134,17 @@ class SessionTracker(object):
 
 class SessionMiddleware(object):
     """
-    Session middleware ensures that a session is appended to the notification.
+    Session middleware ensures that a session is appended to the event.
     """
     def __init__(self, bugsnag):
         self.bugsnag = bugsnag
 
-    def __call__(self, notification):
+    def __call__(self, event):
         session = _session_info.get()
         if session:
-            if notification.unhandled:
+            if event.unhandled:
                 session['events']['unhandled'] += 1
             else:
                 session['events']['handled'] += 1
-            notification.session = deepcopy(session)
-        self.bugsnag(notification)
+            event.session = deepcopy(session)
+        self.bugsnag(event)

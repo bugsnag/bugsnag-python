@@ -123,6 +123,6 @@ def before_notify(callback):
     """
     Add a callback to be called before bugsnag is notified
 
-    This can be used to alter the notification before sending it to Bugsnag.
+    This can be used to alter the event before sending it to Bugsnag.
     """
     configuration.middleware.before_notify(callback)

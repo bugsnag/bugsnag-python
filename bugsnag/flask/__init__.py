@@ -4,20 +4,20 @@ import bugsnag
 from bugsnag.wsgi import request_path
 
 
-def add_flask_request_to_notification(notification):
+def add_flask_request_to_notification(event):
     if not flask.request:
         return
 
-    if notification.context is None:
-        notification.context = "%s %s" % (flask.request.method,
-                                          request_path(flask.request.environ))
+    if event.context is None:
+        event.context = "%s %s" % (flask.request.method,
+                                   request_path(flask.request.environ))
 
-    if "id" not in notification.user:
-        notification.set_user(id=flask.request.remote_addr)
-    notification.add_tab("session", dict(flask.session))
+    if "id" not in event.user:
+        event.set_user(id=flask.request.remote_addr)
+    event.add_tab("session", dict(flask.session))
     if bugsnag.configure().send_environment:
-        notification.add_tab("environment", dict(flask.request.environ))
-    notification.add_tab("request", {
+        event.add_tab("environment", dict(flask.request.environ))
+    event.add_tab("request", {
         "url": flask.request.base_url,
         "headers": dict(flask.request.headers),
         "params": dict(flask.request.form),

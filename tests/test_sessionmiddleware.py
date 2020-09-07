@@ -2,7 +2,7 @@ import unittest
 
 from bugsnag.sessiontracker import SessionTracker, SessionMiddleware
 from bugsnag.configuration import Configuration
-from bugsnag.notification import Notification
+from bugsnag.event import Event
 
 
 class TestSessionMiddleware(unittest.TestCase):
@@ -27,13 +27,13 @@ class TestSessionMiddleware(unittest.TestCase):
         middleware = SessionMiddleware(next_callable)
         self.sessiontracker.start_session()
 
-        event = Notification(Exception('shucks'), self.config, None)
+        event = Event(Exception('shucks'), self.config, None)
         middleware(event)
 
         assert event.session['events']['unhandled'] == 0
         assert event.session['events']['handled'] == 1
 
-        event2 = Notification(Exception('oh no'), self.config, None)
+        event2 = Event(Exception('oh no'), self.config, None)
         middleware(event2)
 
         assert event2.session['events']['unhandled'] == 0

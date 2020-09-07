@@ -12,7 +12,7 @@ from urllib.request import (
 )
 
 import bugsnag
-from bugsnag.notification import Notification
+from bugsnag.event import Event
 
 try:
     if sys.version_info < (2, 7):
@@ -40,7 +40,7 @@ def create_default_delivery():
 def default_headers(api_key):
     return {
         'Bugsnag-Api-Key': api_key,
-        'Bugsnag-Payload-Version': Notification.PAYLOAD_VERSION,
+        'Bugsnag-Payload-Version': Event.PAYLOAD_VERSION,
         'Bugsnag-Sent-At': strftime('%Y-%m-%dT%H:%M:%S', gmtime()),
         'Content-Type': 'application/json',
     }
