@@ -1,6 +1,7 @@
 import pytest
 
 from bugsnag import Configuration, Notification, RequestConfiguration
+from tests.test_event import TestEvent
 
 
 def test_create_notification_warns():
@@ -13,3 +14,8 @@ def test_create_notification_warns():
         assert message == ('The Notification class has been deprecated in ' +
                            'favor of bugsnag.event.Event and will be ' +
                            'removed in a future release.')
+
+
+@pytest.mark.filterwarnings("ignore:The Notification class")
+class TestNotification(TestEvent):
+    event_class = Notification

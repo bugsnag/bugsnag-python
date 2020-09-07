@@ -11,14 +11,15 @@ from tests import fixtures
 
 
 class TestEvent(unittest.TestCase):
+    event_class = Event
 
     def test_sanitize(self):
         """
             It should sanitize request data
         """
         config = Configuration()
-        event = Event(Exception("oops"), config, {},
-                      request={"params": {"password": "secret"}})
+        event = self.event_class(Exception("oops"), config, {},
+                                 request={"params": {"password": "secret"}})
 
         event.add_tab("request", {"arguments": {"password": "secret"}})
 
@@ -33,7 +34,7 @@ class TestEvent(unittest.TestCase):
         """
         config = Configuration()
         line = inspect.currentframe().f_lineno + 1
-        event = Event(Exception("oops"), config, {})
+        event = self.event_class(Exception("oops"), config, {})
 
         payload = json.loads(event._payload())
 
@@ -46,7 +47,7 @@ class TestEvent(unittest.TestCase):
         self.assertEqual(
             code[str(line)],
             lvl +
-            "event = Event(Exception(\"oops\"), config, {})"
+            "event = self.event_class(Exception(\"oops\"), config, {})"
             )
         self.assertEqual(code[str(line + 1)], "")
         self.assertEqual(code[str(line + 2)],
@@ -56,8 +57,8 @@ class TestEvent(unittest.TestCase):
     def test_code_at_start_of_file(self):
 
         config = Configuration()
-        event = Event(fixtures.start_of_file[1], config, {},
-                      traceback=fixtures.start_of_file[2])
+        event = self.event_class(fixtures.start_of_file[1], config, {},
+                                 traceback=fixtures.start_of_file[2])
 
         payload = json.loads(event._payload())
 
@@ -74,8 +75,8 @@ class TestEvent(unittest.TestCase):
     def test_code_at_end_of_file(self):
 
         config = Configuration()
-        event = Event(fixtures.end_of_file[1], config, {},
-                             traceback=fixtures.end_of_file[2])
+        event = self.event_class(fixtures.end_of_file[1], config, {},
+                                 traceback=fixtures.end_of_file[2])
 
         payload = json.loads(event._payload())
 
@@ -92,8 +93,8 @@ class TestEvent(unittest.TestCase):
     def test_code_turned_off(self):
         config = Configuration()
         config.send_code = False
-        event = Event(Exception("oops"), config, {},
-                      traceback=fixtures.end_of_file[2])
+        event = self.event_class(Exception("oops"), config, {},
+                                 traceback=fixtures.end_of_file[2])
 
         payload = json.loads(event._payload())
 
@@ -145,7 +146,7 @@ class TestEvent(unittest.TestCase):
         config = Configuration()
         config.hostname = 'test_host_name'
         config.runtime_versions = {'python': '9.9.9'}
-        event = Event(Exception("oops"), config, {})
+        event = self.event_class(Exception("oops"), config, {})
 
         payload = json.loads(event._payload())
 
@@ -158,7 +159,7 @@ class TestEvent(unittest.TestCase):
         app_type is None by default
         """
         config = Configuration()
-        event = Event(Exception("oops"), config, {})
+        event = self.event_class(Exception("oops"), config, {})
         payload = json.loads(event._payload())
         app = payload['events'][0]['app']
 
@@ -170,7 +171,7 @@ class TestEvent(unittest.TestCase):
         """
         config = Configuration()
         config.configure(app_type='rq')
-        event = Event(Exception("oops"), config, {})
+        event = self.event_class(Exception("oops"), config, {})
         payload = json.loads(event._payload())
         app = payload['events'][0]['app']
 
