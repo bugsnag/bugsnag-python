@@ -17,6 +17,9 @@ from bugsnag.utils import package_version, FilterDict, SanitizingJSONEncoder
 from bugsnag.event import Event
 
 
+__all__ = []  # type: ignore
+
+
 class SessionTracker(object):
 
     MAXIMUM_SESSION_COUNT = 100

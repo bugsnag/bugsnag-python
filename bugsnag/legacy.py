@@ -10,6 +10,11 @@ default_client = Client()
 configuration = default_client.configuration
 
 
+__all__ = ('configure', 'configure_request', 'add_metadata_tab',
+           'clear_request_config', 'notify', 'start_session', 'auto_notify',
+           'auto_notify_exc_info', 'before_notify')
+
+
 def configure(**options):
     """
     Configure the Bugsnag notifier application-wide settings.

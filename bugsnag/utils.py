@@ -10,6 +10,9 @@ MAX_PAYLOAD_LENGTH = 128 * 1024
 MAX_STRING_LENGTH = 1024
 
 
+__all__ = []  # type: ignore
+
+
 class SanitizingJSONEncoder(JSONEncoder):
     """
     A JSON encoder which handles filtering and conversion from JSON-
