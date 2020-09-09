@@ -14,6 +14,9 @@ now at
 [end-of-life](https://docs.python.org/devguide/#status-of-python-branches).
 Please upgrade.
 
+* Added `__all__` lists throughout to indicate the boundaries of the public
+  interface. This may affect your integration if using `import *`.
+
 * Removed `Configuration.use_ssl` and `Configuration.get_endpoint()` in favor of
   including the protocol in `Configuration.endpoint`
 * `Configuration.send_environment` is now `False` by default. Enable it as a

@@ -15,6 +15,9 @@ if 'bottle' in sys.modules:
         bottle_present = False
 
 
+__all__ = ('BugsnagMiddleware',)
+
+
 def add_wsgi_request_data_to_notification(event):
     if not hasattr(event.request_config, "wsgi_environ"):
         return

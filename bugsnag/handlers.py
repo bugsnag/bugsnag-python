@@ -3,6 +3,9 @@ import logging
 import bugsnag
 
 
+__all__ = ('BugsnagHandler',)
+
+
 class BugsnagHandler(logging.Handler, object):
     def __init__(self, client=None, extra_fields=None):
         """

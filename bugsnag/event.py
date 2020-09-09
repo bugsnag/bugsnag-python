@@ -11,6 +11,9 @@ from bugsnag.utils import fully_qualified_class_name as class_name
 from bugsnag.utils import FilterDict, package_version, SanitizingJSONEncoder
 
 
+__all__ = ('Event',)
+
+
 class Event:
     """
     An occurrence of an exception for delivery to Bugsnag

@@ -1,6 +1,9 @@
 import bugsnag
 
 
+__all__ = []  # type: ignore
+
+
 class SimpleMiddleware(object):
     def __init__(self, before=None, after=None):
         self.before = before
