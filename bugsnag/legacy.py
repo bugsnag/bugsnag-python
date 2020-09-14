@@ -1,3 +1,4 @@
+from typing import Dict, Any, Tuple, Type
 import types
 import sys
 
@@ -8,6 +9,7 @@ import bugsnag
 
 default_client = Client()
 configuration = default_client.configuration
+ExcInfoType = Tuple[Type, Exception, types.TracebackType]
 
 
 __all__ = ('configure', 'configure_request', 'add_metadata_tab',
@@ -29,7 +31,7 @@ def configure_request(**options):
     RequestConfiguration.get_instance().configure(**options)
 
 
-def add_metadata_tab(tab_name, data):
+def add_metadata_tab(tab_name: str, data: Dict[str, Any]):
     """
     Add metaData to the tab
 
@@ -49,7 +51,7 @@ def clear_request_config():
     RequestConfiguration.clear()
 
 
-def notify(exception, **options):
+def notify(exception: BaseException, **options):
     """
     Notify bugsnag of an exception.
     """
@@ -89,7 +91,7 @@ def send_sessions():
     default_client.session_tracker.send_sessions()
 
 
-def auto_notify(exception, **options):
+def auto_notify(exception: BaseException, **options):
     """
     Notify bugsnag of an exception if auto_notify is enabled.
     """
@@ -105,7 +107,7 @@ def auto_notify(exception, **options):
         )
 
 
-def auto_notify_exc_info(exc_info=None, **options):
+def auto_notify_exc_info(exc_info: ExcInfoType = None, **options):
     """
     Notify bugsnag of a exc_info tuple if auto_notify is enabled
     """

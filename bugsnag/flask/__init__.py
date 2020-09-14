@@ -7,7 +7,7 @@ from bugsnag.wsgi import request_path
 __all__ = ('handle_exceptions',)
 
 
-def add_flask_request_to_notification(event):
+def add_flask_request_to_notification(event: bugsnag.Event):
     if not flask.request:
         return
 

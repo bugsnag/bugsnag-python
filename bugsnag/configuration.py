@@ -2,6 +2,7 @@ import os
 import platform
 import socket
 import sysconfig
+from typing import List, Any, Tuple, Union
 import warnings
 
 from bugsnag.sessiontracker import SessionMiddleware
@@ -141,7 +142,7 @@ class Configuration:
 
     @api_key.setter  # type: ignore
     @validate_required_str_setter
-    def api_key(self, value):
+    def api_key(self, value: str):
         self._api_key = value
 
     @property
@@ -153,7 +154,7 @@ class Configuration:
 
     @app_type.setter  # type: ignore
     @validate_str_setter
-    def app_type(self, value):
+    def app_type(self, value: str):
         self._app_type = value
 
     @property
@@ -165,7 +166,7 @@ class Configuration:
 
     @app_version.setter  # type: ignore
     @validate_str_setter
-    def app_version(self, value):
+    def app_version(self, value: str):
         self._app_version = value
 
     @property
@@ -177,7 +178,7 @@ class Configuration:
 
     @asynchronous.setter  # type: ignore
     @validate_bool_setter
-    def asynchronous(self, value):
+    def asynchronous(self, value: bool):
         self._asynchronous = value
         if value:
             warn_if_running_uwsgi_without_threads()
@@ -192,7 +193,7 @@ class Configuration:
 
     @auto_capture_sessions.setter  # type: ignore
     @validate_bool_setter
-    def auto_capture_sessions(self, value):
+    def auto_capture_sessions(self, value: bool):
         self._auto_capture_sessions = value
 
     @property
@@ -204,7 +205,7 @@ class Configuration:
 
     @auto_notify.setter  # type: ignore
     @validate_bool_setter
-    def auto_notify(self, value):
+    def auto_notify(self, value: bool):
         self._auto_notify = value
 
     @property
@@ -236,7 +237,7 @@ class Configuration:
 
     @endpoint.setter  # type: ignore
     @validate_required_str_setter
-    def endpoint(self, value):
+    def endpoint(self, value: str):
         self._endpoint = value
 
     @property
@@ -249,7 +250,7 @@ class Configuration:
 
     @hostname.setter  # type: ignore
     @validate_str_setter
-    def hostname(self, value):
+    def hostname(self, value: str):
         self._hostname = value
 
     @property
@@ -263,7 +264,7 @@ class Configuration:
 
     @ignore_classes.setter  # type: ignore
     @validate_iterable_setter
-    def ignore_classes(self, value):
+    def ignore_classes(self, value: Union[List[str], Tuple[str]]):
         self._ignore_classes = value
 
     @property
@@ -277,7 +278,7 @@ class Configuration:
 
     @lib_root.setter  # type: ignore
     @validate_str_setter
-    def lib_root(self, value):
+    def lib_root(self, value: str):
         self._lib_root = value
 
     @property
@@ -291,7 +292,7 @@ class Configuration:
 
     @notify_release_stages.setter  # type: ignore
     @validate_iterable_setter
-    def notify_release_stages(self, value):
+    def notify_release_stages(self, value: List[str]):
         self._notify_release_stages = value
 
     @property
@@ -309,7 +310,7 @@ class Configuration:
 
     @params_filters.setter  # type: ignore
     @validate_iterable_setter
-    def params_filters(self, value):
+    def params_filters(self, value: List[str]):
         self._params_filters = value
 
     @property
@@ -324,7 +325,7 @@ class Configuration:
 
     @project_root.setter  # type: ignore
     @validate_str_setter
-    def project_root(self, value):
+    def project_root(self, value: str):
         self._project_root = value
 
     @property
@@ -336,7 +337,7 @@ class Configuration:
 
     @proxy_host.setter  # type: ignore
     @validate_str_setter
-    def proxy_host(self, value):
+    def proxy_host(self, value: str):
         self._proxy_host = value
 
     @property
@@ -350,7 +351,7 @@ class Configuration:
 
     @release_stage.setter  # type: ignore
     @validate_str_setter
-    def release_stage(self, value):
+    def release_stage(self, value: str):
         self._release_stage = value
 
     @property
@@ -363,7 +364,7 @@ class Configuration:
 
     @send_code.setter  # type: ignore
     @validate_bool_setter
-    def send_code(self, value):
+    def send_code(self, value: bool):
         self._send_code = value
 
     @property
@@ -376,7 +377,7 @@ class Configuration:
 
     @send_environment.setter  # type: ignore
     @validate_bool_setter
-    def send_environment(self, value):
+    def send_environment(self, value: bool):
         self._send_environment = value
 
     @property
@@ -391,7 +392,7 @@ class Configuration:
 
     @session_endpoint.setter  # type: ignore
     @validate_required_str_setter
-    def session_endpoint(self, value):
+    def session_endpoint(self, value: str):
         self._session_endpoint = value
 
     @property
@@ -403,15 +404,15 @@ class Configuration:
 
     @traceback_exclude_modules.setter  # type: ignore
     @validate_iterable_setter
-    def traceback_exclude_modules(self, value):
+    def traceback_exclude_modules(self, value: List[str]):
         self._traceback_exclude_modules = value
 
-    def should_notify(self):  # type: () -> bool
+    def should_notify(self) -> bool:
         return self.notify_release_stages is None or \
             (isinstance(self.notify_release_stages, (tuple, list)) and
              self.release_stage in self.notify_release_stages)
 
-    def should_ignore(self, exception):  # type: (Exception) -> bool
+    def should_ignore(self, exception: BaseException) -> bool:
         return self.ignore_classes is not None and \
             fully_qualified_class_name(exception) in self.ignore_classes
 
@@ -422,7 +423,7 @@ class RequestConfiguration:
     """
 
     @classmethod
-    def get_instance(cls):  # type: () -> RequestConfiguration
+    def get_instance(cls):
         """
         Get this thread's instance of the RequestConfiguration.
         """
@@ -458,7 +459,7 @@ class RequestConfiguration:
         self.environment_data = {}
         self.session_data = {}
 
-    def get(self, name):
+    def get(self, name) -> Any:
         """
         Get a single configuration option
         """

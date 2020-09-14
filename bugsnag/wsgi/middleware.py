@@ -38,7 +38,7 @@ def add_wsgi_request_data_to_notification(event):
         event.add_tab("environment", dict(request.environ))
 
 
-class WrappedWSGIApp(object):
+class WrappedWSGIApp:
     """
     Wraps a running WSGI app and sends all exceptions to bugsnag.
     """
@@ -91,7 +91,7 @@ class WrappedWSGIApp(object):
             bugsnag.clear_request_config()
 
 
-class BugsnagMiddleware(object):
+class BugsnagMiddleware:
     """
     Notifies Bugsnag on any unhandled exception that happens while processing
     a request in your application.
