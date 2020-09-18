@@ -602,7 +602,7 @@ class TestBugsnag(IntegrationTest):
         bugsnag.before_notify(second_callback)
 
         # Simulate an internal middleware
-        bugsnag.legacy.configuration.internal_middleware.before_notify(
+        bugsnag.default_client.configuration.internal_middleware.before_notify(
                 first_callback)
 
         bugsnag.notify(ScaryException('unexpected failover'),

@@ -1,7 +1,6 @@
 import pytest
 from tests.utils import FakeBugsnagServer
 
-import bugsnag.legacy as global_setup
 import bugsnag
 
 
@@ -13,8 +12,8 @@ def bugsnag_server():
     yield server
 
     # Reset shared client config
-    global_setup.configuration = bugsnag.Configuration()
-    global_setup.default_client.configuration = global_setup.configuration
-    global_setup.default_client.uninstall_sys_hook()
+    bugsnag.default_client.uninstall_sys_hook()
+    bugsnag.default_client.configuration = bugsnag.Configuration()
+    bugsnag.configuration = bugsnag.default_client.configuration
 
     server.shutdown()

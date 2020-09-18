@@ -47,7 +47,7 @@ class BugsnagHandler(logging.Handler, object):
             except Exception as e:
                 bugsnag.logger.error('Failed to run handler callback %s', e)
 
-        client = self.client or bugsnag.legacy.default_client
+        client = self.client or bugsnag.default_client
 
         if 'exception' in options:
             exception = options.pop('exception')

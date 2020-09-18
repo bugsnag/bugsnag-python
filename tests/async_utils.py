@@ -17,7 +17,7 @@ class AsyncIntegrationTest(IsolatedAsyncioTestCase):
                           api_key='ffffffffffffffffff')
 
     async def asyncTearDown(self):
-        bugsnag.legacy.default_client.uninstall_sys_hook()
+        bugsnag.default_client.uninstall_sys_hook()
         self.server.shutdown()
 
     async def last_event_request(self):
