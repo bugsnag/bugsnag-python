@@ -1,0 +1,32 @@
+name: Test bugsnag-python against Python versions
+
+on: [ push, pull_request ]
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.5, 3.6, 3.7, 3.8]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install coveralls tox tox-factor
+    - name: Run tests
+      run: |
+        tox -f py${TOXFACTOR//./} --parallel --quiet
+      env:
+        TOXFACTOR: ${{ matrix.python-version }}
+    - name: Upload code coverage data
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        coverage combine
+        coveralls
