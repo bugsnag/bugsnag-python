@@ -1,6 +1,7 @@
 import sys
 import logging
 from contextlib import contextmanager
+from functools import wraps
 from types import TracebackType
 from typing import Optional, Union, Tuple, Type
 
@@ -27,6 +28,17 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 default_client = None  # type: Optional[Client]
+def _requires_default_client(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if default_client is None:
+            message_format = 'bugsnag.{} was called before bugsnag.start()'
+            logger.error((message_format % func.__name__))
+        else:
+            func(*args, **kwargs)
+    return wrapper
+
+
 @contextmanager
 def _running_configuration():
     """
@@ -42,6 +54,7 @@ def _running_configuration():
 ExcInfoType = Tuple[Type, BaseException, TracebackType]
 
 
+@_requires_default_client
 def notify(exception: Union[BaseException, ExcInfoType], **options):
     """
     Notify bugsnag of an exception. Must be called after bugsnag.start().
@@ -68,6 +81,7 @@ def notify(exception: Union[BaseException, ExcInfoType], **options):
         default_client.notify(exception, **options)
 
 
+@_requires_default_client
 def start_session():
     """
     Delivers all currently undelivered sessions to Bugsnag
@@ -76,6 +90,7 @@ def start_session():
     default_client.session_tracker.start_session()
 
 
+@_requires_default_client
 def auto_notify(exception: BaseException, **options):
     """
     Notify bugsnag of an exception if auto_notify is enabled.
@@ -93,6 +108,7 @@ def auto_notify(exception: BaseException, **options):
         )
 
 
+@_requires_default_client
 def auto_notify_exc_info(exc_info: Optional[ExcInfoType] = None, **options):
     """
     Notify bugsnag of a exc_info tuple if auto_notify is enabled
