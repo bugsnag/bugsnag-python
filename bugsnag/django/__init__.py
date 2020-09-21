@@ -89,8 +89,9 @@ def configure():
 
 
 def __track_session(sender, **extra):
-    if bugsnag.configuration.auto_capture_sessions:
-        bugsnag.start_session()
+    with bugsnag._running_configuration() as config:
+        if config is not None and config.auto_capture_sessions:
+            bugsnag.start_session()
 
 
 def __handle_request_exception(sender, **kwargs):

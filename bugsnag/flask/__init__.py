@@ -2,6 +2,7 @@ import flask
 
 import bugsnag
 from bugsnag.wsgi import request_path
+from bugsnag import _running_configuration
 
 
 __all__ = ('handle_exceptions',)
@@ -49,5 +50,6 @@ def __log_exception(sender, exception, **extra):
 
 
 def __track_session(sender, **extra):
-    if bugsnag.configuration.auto_capture_sessions:
-        bugsnag.start_session()
+    with _running_configuration() as config:
+        if config is not None and config.auto_capture_sessions:
+            bugsnag.start_session()

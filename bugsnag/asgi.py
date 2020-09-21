@@ -2,6 +2,7 @@ from enum import Enum
 from typing import Any, List, Dict, Union
 
 import bugsnag
+from bugsnag import _running_configuration
 
 __all__ = ('BugsnagMiddleware',)
 
@@ -75,41 +76,45 @@ class BugsnagMiddleware:
     """
     def __init__(self, app):
         self.app = app
-        stack = bugsnag.configure().internal_middleware
-
-        def add_request_info(event):
-            if not hasattr(event.request_config, 'asgi_scope'):
+        with _running_configuration() as config:
+            if config is None:
                 return
+            stack = config.internal_middleware
 
-            scope = event.request_config.asgi_scope
-            request = dict()
-            server = []
-            if 'client' in scope and len(scope['client']) > 0:
-                request['clientIp'] = scope['client'][0]
-            if 'server' in scope and type(scope['server']) in [list, tuple]:
-                server = scope['server']
-            if 'headers' in scope:
-                request['headers'] = dict(
-                        [i for i in scope['headers'] if len(i) == 2])
-            for prop in RequestMetadata:
-                for item in prop.scope_keys:
-                    if item in scope:
-                        request[prop.metadata_key] = scope[item]
-                        break
+            def add_request_info(event):
+                if not hasattr(event.request_config, 'asgi_scope'):
+                    return
 
-            request['url'] = parse_url(request, server)
+                scope = event.request_config.asgi_scope
+                request = dict()
+                server = []
+                if 'client' in scope and len(scope['client']) > 0:
+                    request['clientIp'] = scope['client'][0]
+                if 'server' in scope and type(scope['server']) in [list, tuple]:
+                    server = scope['server']
+                if 'headers' in scope:
+                    request['headers'] = dict(
+                            [i for i in scope['headers'] if len(i) == 2])
+                for prop in RequestMetadata:
+                    for item in prop.scope_keys:
+                        if item in scope:
+                            request[prop.metadata_key] = scope[item]
+                            break
 
-            event.add_tab("request", request)
-            if bugsnag.configure().send_environment:
-                event.add_tab("environment", scope)
+                request['url'] = parse_url(request, server)
 
-        stack.before_notify(add_request_info)
+                event.add_tab("request", request)
+                if bugsnag.configure().send_environment:
+                    event.add_tab("environment", scope)
+
+            stack.before_notify(add_request_info)
 
     async def __call__(self, scope, receive, send):
         bugsnag.configure_request(asgi_scope=scope)
         try:
-            if bugsnag.configuration.auto_capture_sessions:
-                bugsnag.start_session()
+            with _running_configuration() as config:
+                if config is not None and config.auto_capture_sessions:
+                    bugsnag.start_session()
             await self.app(scope, receive, send)
         except Exception as e:
             bugsnag.auto_notify(e, severity_reason=SEVERITY_REASON)

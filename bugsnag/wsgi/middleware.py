@@ -3,6 +3,7 @@ import sys
 
 import bugsnag
 from bugsnag.wsgi import request_path
+from bugsnag import _running_configuration
 
 # Attempt to import bottle for runtime version report, but only if already
 # in use in app
@@ -55,8 +56,9 @@ class WrappedWSGIApp:
 
         bugsnag.configure_request(wsgi_environ=self.environ)
         try:
-            if bugsnag.configuration.auto_capture_sessions:
-                bugsnag.start_session()
+            with _running_configuration() as config:
+                if config is not None and config.auto_capture_sessions:
+                    bugsnag.start_session()
             self.app = application(environ, start_response)
         except Exception as e:
             bugsnag.auto_notify(

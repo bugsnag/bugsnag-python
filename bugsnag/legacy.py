@@ -11,7 +11,13 @@ def configure(**options):
     """
     Configure the Bugsnag notifier application-wide settings.
     """
-    return bugsnag.default_client.configuration.configure(**options)
+    with bugsnag._running_configuration() as config:
+        if config is None:
+            config = bugsnag.Configuration()
+            config.configure(**options)
+            bugsnag.start(config)
+            return config
+        return config.configure(**options)
 
 
 def configure_request(**options):

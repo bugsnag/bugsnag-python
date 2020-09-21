@@ -1,5 +1,6 @@
 import sys
 import logging
+from contextlib import contextmanager
 from types import TracebackType
 from typing import Optional, Union, Tuple, Type
 
@@ -26,6 +27,18 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 default_client = None  # type: Optional[Client]
+@contextmanager
+def _running_configuration():
+    """
+    The configuration of the default client instance. If start() has not been
+    called, this context manager does not yield a value.
+    """
+    if default_client is not None:
+        yield default_client.configuration
+    else:
+        yield None
+
+
 ExcInfoType = Tuple[Type, BaseException, TracebackType]
 
 

@@ -5,6 +5,7 @@ from typing import Dict, Any
 from urllib.parse import parse_qs
 from bugsnag.utils import is_json_content_type
 import bugsnag
+from bugsnag import _running_configuration
 import json
 
 
@@ -74,8 +75,9 @@ class BugsnagRequestHandler(RequestHandler):
         bugsnag.configure().runtime_versions['tornado'] = tornado.version
         middleware.before_notify(self.add_tornado_request_to_notification)
 
-        if bugsnag.configuration.auto_capture_sessions:
-            bugsnag.start_session()
+        with _running_configuration() as config:
+            if config is not None and config.auto_capture_sessions:
+                bugsnag.start_session()
 
     def _get_context(self):
         return "%s %s" % (self.request.method, self.request.uri.split("?")[0])
