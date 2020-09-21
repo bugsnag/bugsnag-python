@@ -26,6 +26,7 @@ Please upgrade.
 * Removed `bugsnag.utils.ThreadLocals` as it has been superseded by the
   `contextvars` API
 * Removed `bugsnag.utils.merge_dicts`, an unused helper function
+* Removed `bugsnag.send_sessions`
 
 ### Deprecations
 
