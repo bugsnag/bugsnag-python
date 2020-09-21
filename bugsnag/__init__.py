@@ -8,13 +8,13 @@ from bugsnag.client import Client
 from bugsnag.legacy import (configuration, configure, configure_request,
                             add_metadata_tab, clear_request_config, notify,
                             auto_notify, before_notify, start_session,
-                            send_sessions, auto_notify_exc_info)
+                            auto_notify_exc_info)
 
 __all__ = ('Client', 'Event', 'Configuration', 'RequestConfiguration',
            'configuration', 'configure', 'configure_request',
            'add_metadata_tab', 'clear_request_config', 'notify',
            'auto_notify', 'before_notify', 'start_session',
-           'send_sessions', 'auto_notify_exc_info',
+           'auto_notify_exc_info',
            'Notification')
 
 logger = logging.getLogger(__name__)

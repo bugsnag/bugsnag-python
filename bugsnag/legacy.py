@@ -84,13 +84,6 @@ def start_session():
     default_client.session_tracker.start_session()
 
 
-def send_sessions():
-    """
-    Delivers all currently undelivered sessions to Bugsnag
-    """
-    default_client.session_tracker.send_sessions()
-
-
 def auto_notify(exception: BaseException, **options):
     """
     Notify bugsnag of an exception if auto_notify is enabled.
