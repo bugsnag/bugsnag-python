@@ -12,6 +12,7 @@ def configure(**options):
     Configure the Bugsnag notifier application-wide settings.
     """
     with bugsnag._running_configuration() as config:
+        # TODO: mark as deprecated
         if config is None:
             config = bugsnag.Configuration()
             config.configure(**options)

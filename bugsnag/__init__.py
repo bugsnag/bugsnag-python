@@ -17,7 +17,7 @@ __all__ = ('Client', 'Event', 'Configuration', 'RequestConfiguration',
            'add_metadata_tab', 'clear_request_config', 'notify',
            'auto_notify', 'before_notify', 'start_session',
            'send_sessions', 'auto_notify_exc_info',
-           'Notification')
+           'Notification', 'start')
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -28,6 +28,46 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 default_client = None  # type: Optional[Client]
+
+
+def start(api_key_or_config: Union[str, Configuration, None] = None) -> Client:
+    """
+    Begin monitoring and reporting error events and sessions to Bugsnag.
+    Initializes a default client with an API key:
+
+    >>> bugsnag.start("your-api-key-here")  # doctest: +SKIP
+
+    or a Configuration:
+
+    >>> config = Configuration().configure("api-key-here", app_version="3.5.0")
+    >>> bugsnag.start(config)  # doctest: +SKIP
+
+    or with BUGSNAG_API_KEY set as an environment variable:
+
+    >>> bugsnag.start()  # doctest: +SKIP
+
+    Subsequent calls to bugsnag.notify() will use the client configured by this
+    function.
+
+    >>> bugsnag.notify(Exception("oh no!"))  # doctest: +SKIP
+
+    Calling start() more than once has no effect.
+    """
+    global default_client
+    if default_client is not None:
+        return default_client
+
+    if isinstance(api_key_or_config, Configuration):
+        default_client = Client(api_key_or_config)
+    elif isinstance(api_key_or_config, str):
+        config = Configuration()
+        default_client = Client(config.configure(api_key=api_key_or_config))
+    else:
+        default_client = Client()
+
+    return default_client
+
+
 def _requires_default_client(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
