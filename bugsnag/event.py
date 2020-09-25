@@ -47,6 +47,7 @@ class Event:
         self.options = options
         self.config = config
         self.request_config = request_config
+        self.request = None  # type: Any
 
         def get_config(key):
             return options.pop(key, getattr(self.config, key))

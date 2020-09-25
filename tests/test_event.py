@@ -176,3 +176,9 @@ class TestEvent(unittest.TestCase):
         app = payload['events'][0]['app']
 
         assert app['type'] == 'rq'
+
+    def test_default_request(self):
+        config = Configuration()
+        config.configure(app_type='rq')
+        event = self.event_class(Exception("oops"), config, {})
+        assert event.request is None
