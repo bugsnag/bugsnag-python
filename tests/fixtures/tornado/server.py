@@ -32,6 +32,9 @@ def callback(notification):
             "code": 200
         }
         notification.add_tab("Diagnostics", tab)
+    args = notification.request.query_arguments
+    if 'user_id' in args:
+        notification.set_user(id=args['user_id'][0])
 
 
 class NotifyHandler(BugsnagRequestHandler):

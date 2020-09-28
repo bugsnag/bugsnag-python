@@ -182,3 +182,11 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
         event = payload['events'][0]
         self.assertEqual(event['metaData']['environment']['REQUEST_METHOD'],
                          'POST')
+
+    def test_read_request_in_callback(self):
+        self.fetch('/crash_with_callback?user_id=foo')
+        assert len(self.server.received) == 1
+
+        payload = self.server.received[0]['json_body']
+        event = payload['events'][0]
+        assert event['user']['id'] == 'foo'
