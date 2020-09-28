@@ -5,6 +5,7 @@ import os
 import sys
 import traceback
 import inspect
+import warnings
 
 import bugsnag
 
@@ -37,11 +38,11 @@ class Event:
         options can be used to override any of the configuration parameters:
             "api_key", "release_stage", "app_version", "hostname"
         and to provide the following top-level event payload keys:
-            "user", "context", "severity", "grouping_hash", "meta_data",
+            "user", "context", "severity", "grouping_hash", "metadata",
             ("user_id")
         or to provide the exception parameter:
             "traceback"
-        All other keys will be sent as meta-data to Bugsnag.
+        All other keys will be sent as metadata to Bugsnag.
         """
         self.exception = exception
         self.options = options
@@ -82,12 +83,24 @@ class Event:
 
         self.session = None  # type: Optional[Dict]
 
-        self.meta_data = {}  # type: Dict[str, Dict[str, Any]]
-        for name, tab in options.pop("meta_data", {}).items():
+        self.metadata = {}  # type: Dict[str, Dict[str, Any]]
+        if 'meta_data' in options:
+            warnings.warn('The Event "metadata" argument has been replaced ' +
+                          'with "metadata"', DeprecationWarning)
+            for name, tab in options.pop("meta_data").items():
+                self.add_tab(name, tab)
+
+        for name, tab in options.pop('metadata', {}).items():
             self.add_tab(name, tab)
 
         for name, tab in options.items():
             self.add_tab(name, tab)
+
+    @property
+    def meta_data(self) -> Dict[str, Dict[str, Any]]:
+        warnings.warn('The Event "metadata" property has been replaced ' +
+                      'with "meta_data".', DeprecationWarning)
+        return self.metadata
 
     def set_user(self, id=None, name=None, email=None):
         """

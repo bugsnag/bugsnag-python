@@ -3,6 +3,7 @@
 import sys
 import time
 
+import pytest
 import bugsnag
 from tests.utils import ScaryException, IntegrationTest
 from tests.fixtures import samples
@@ -800,3 +801,17 @@ class TestBugsnag(IntegrationTest):
         bugsnag.notify(ScaryException('unexpected failover'),
                        asynchronous=False)
         assert len(self.server.received) == 1
+
+    def test_meta_data_warning(self):
+        with pytest.warns(DeprecationWarning) as records:
+            bugsnag.notify(ScaryException('false equivalence'),
+                           meta_data={'fruit': {'apples': 2}})
+
+            assert len(records) == 1
+            assert str(records[0].message) == ('The Event "metadata" ' +
+                                               'argument has been replaced ' +
+                                               'with "metadata"')
+
+        json_body = self.server.received[0]['json_body']
+        metadata = json_body['events'][0]['metaData']
+        assert metadata['fruit']['apples'] == 2

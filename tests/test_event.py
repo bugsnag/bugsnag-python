@@ -5,6 +5,7 @@ import os
 import sys
 import unittest
 
+import pytest
 from bugsnag.configuration import Configuration
 from bugsnag.event import Event
 from tests import fixtures
@@ -182,3 +183,16 @@ class TestEvent(unittest.TestCase):
         config.configure(app_type='rq')
         event = self.event_class(Exception("oops"), config, {})
         assert event.request is None
+
+    def test_meta_data_warning(self):
+        config = Configuration()
+        with pytest.warns(DeprecationWarning) as records:
+            event = self.event_class(Exception('oh no'), config, {},
+                                     meta_data={'nuts': {'almonds': True}})
+
+            assert len(records) > 0
+            i = len(records) - 1
+            assert str(records[i].message) == ('The Event "metadata" ' +
+                                               'argument has been replaced ' +
+                                               'with "metadata"')
+            assert event.metadata['nuts']['almonds']
