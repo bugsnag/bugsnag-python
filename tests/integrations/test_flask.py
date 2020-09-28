@@ -262,3 +262,22 @@ class TestFlask(IntegrationTest):
                                  device_data['runtimeVersions']['python']))
         self.assertTrue(re.match(r'\d+\.\d+\.\d+',
                                  device_data['runtimeVersions']['flask']))
+
+    def test_read_request_in_callback(self):
+        def callback(event):
+            event.set_user(id=event.request.args['id'])
+            return True
+
+        app = Flask("bugsnag")
+
+        @app.route("/hello")
+        def hello():
+            raise SentinelError("oops")
+
+        bugsnag.before_notify(callback)
+        handle_exceptions(app)
+        app.test_client().get('/hello?id=foo')
+
+        assert len(self.server.received) == 1
+        payload = self.server.received[0]['json_body']
+        assert payload['events'][0]['user']['id'] == 'foo'

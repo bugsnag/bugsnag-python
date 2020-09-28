@@ -11,6 +11,7 @@ def add_flask_request_to_notification(event: bugsnag.Event):
     if not flask.request:
         return
 
+    event.request = flask.request
     if event.context is None:
         event.context = "%s %s" % (flask.request.method,
                                    request_path(flask.request.environ))
