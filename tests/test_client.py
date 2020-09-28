@@ -1,6 +1,7 @@
 import os
 import sys
 
+import pytest
 from bugsnag import Client, Configuration
 from tests.utils import IntegrationTest, ScaryException
 
@@ -64,7 +65,10 @@ class ClientTest(IntegrationTest):
 
     def test_invalid_delivery(self):
         c = Configuration()
-        c.configure(delivery=44, api_key='abc')
+
+        with pytest.warns(RuntimeWarning) as records:
+            c.configure(delivery=44, api_key='abc')
+            assert len(records) == 1
         client = Client(c)
         client.notify(Exception('Oh no'))
 
