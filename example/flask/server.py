@@ -143,7 +143,7 @@ def notifywithmetadata():
         Exception('Flask demo: Manual notification with metadata'),
         # this app adds some metadata globally, but you can also attach
         # specific details to a particular exception
-        meta_data={
+        metadata={
             'Request info': {
                 'route': 'notifywithmetadata',
                 'headers': request.headers,

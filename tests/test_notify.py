@@ -115,8 +115,7 @@ class TestBugsnag(IntegrationTest):
     def test_notify_override_metadata_sections(self):
         bugsnag.add_metadata_tab('food', {'beans': 3, 'corn': 'purple'})
         bugsnag.notify(ScaryException('unexpected failover'),
-                       meta_data={'food': {'beans': 5},
-                                  'skills': {'spear': 6}})
+                       metadata={'food': {'beans': 5}, 'skills': {'spear': 6}})
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual(6, event['metaData']['skills']['spear'])
@@ -248,7 +247,7 @@ class TestBugsnag(IntegrationTest):
     def test_notify_before_notify_modifying_metadata(self):
 
         def callback(report):
-            report.meta_data['foo'] = {'sandwich': 'bar'}
+            report.metadata['foo'] = {'sandwich': 'bar'}
 
         bugsnag.before_notify(callback)
         bugsnag.notify(ScaryException('unexpected failover'))
@@ -487,7 +486,7 @@ class TestBugsnag(IntegrationTest):
                 '-838b-a05aadc06a5\x00\x02uid\x00%\x00\x00\x001bab969f-7b30'
                 '-459a-adee-917b9e028eed\x00\x00')
         self_class = 'tests.test_notify.TestBugsnag'
-        bugsnag.notify(Exception('free food'), meta_data={'payload': {
+        bugsnag.notify(Exception('free food'), metadata={'payload': {
             'project': '∆πåß∂ƒ',
             'filename': 'DISPOSITIFS DE SÉCURITÉ.pdf',
             '♥♥i': '♥♥♥♥♥♥',
@@ -594,10 +593,10 @@ class TestBugsnag(IntegrationTest):
 
     def test_middleware_stack_order_legacy(self):
         def first_callback(event):
-            event.meta_data['test']['array'].append(1)
+            event.metadata['test']['array'].append(1)
 
         def second_callback(event):
-            event.meta_data['test']['array'].append(2)
+            event.metadata['test']['array'].append(2)
 
         # Add a regular callback function
         bugsnag.before_notify(second_callback)
@@ -621,10 +620,10 @@ class TestBugsnag(IntegrationTest):
                                 asynchronous=False)
 
         def first_callback(event):
-            event.meta_data['test']['array'].append(1)
+            event.metadata['test']['array'].append(1)
 
         def second_callback(event):
-            event.meta_data['test']['array'].append(2)
+            event.metadata['test']['array'].append(2)
 
         client.configuration.middleware.before_notify(second_callback)
         client.configuration.internal_middleware.before_notify(first_callback)

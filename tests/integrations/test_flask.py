@@ -88,14 +88,14 @@ class TestFlask(IntegrationTest):
                          'http://localhost/hello')
 
     def test_bugsnag_custom_data(self):
-        meta_data = [{"hello": {"world": "once"}},
-                     {"again": {"hello": "world"}}]
+        metadata = [{"hello": {"world": "once"}},
+                    {"again": {"hello": "world"}}]
 
         app = Flask("bugsnag")
 
         @app.route("/hello")
         def hello():
-            bugsnag.configure_request(meta_data=meta_data.pop())
+            bugsnag.configure_request(metadata=metadata.pop())
             raise SentinelError("oops")
 
         handle_exceptions(app)

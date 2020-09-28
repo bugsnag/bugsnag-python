@@ -130,10 +130,10 @@ class Event:
             self.add_tab("custom", {name: dictionary})
             return
 
-        if name not in self.meta_data:
-            self.meta_data[name] = {}
+        if name not in self.metadata:
+            self.metadata[name] = {}
 
-        self.meta_data[name].update(dictionary)
+        self.metadata[name].update(dictionary)
 
     def _generate_stacktrace(self, tb, source_func=None):
         """
@@ -261,7 +261,7 @@ class Event:
                     "message": self.exception,
                     "stacktrace": self.stacktrace,
                 }],
-                "metaData": FilterDict(self.meta_data),
+                "metaData": FilterDict(self.metadata),
                 "user": FilterDict(self.user),
                 "device": FilterDict({
                     "hostname": self.hostname,

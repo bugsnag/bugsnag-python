@@ -84,7 +84,7 @@ def notify_meta(request):
         Exception('Django demo: Manual notification with metadata'),
         # this app adds some metadata globally, but you can also attach specfic
         # details to a particular exception.
-        meta_data={
+        metadata={
             'Request info': {'route': 'notifywithmetadata'},
             'Resolve info': {
                 'status': 200,

@@ -37,11 +37,11 @@ def add_metadata_tab(tab_name: str, data: Dict[str, Any]):
 
     bugsnag.add_metadata_tab("user", {"id": "1", "name": "Conrad"})
     """
-    meta_data = RequestConfiguration.get_instance().meta_data
-    if tab_name not in meta_data:
-        meta_data[tab_name] = {}
+    metadata = RequestConfiguration.get_instance().metadata
+    if tab_name not in metadata:
+        metadata[tab_name] = {}
 
-    meta_data[tab_name].update(data)
+    metadata[tab_name].update(data)
 
 
 def clear_request_config():

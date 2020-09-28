@@ -32,7 +32,7 @@ def metadivide(x, y):
     try:
         return x / y
     except ZeroDivisionError as e:
-        bugsnag.notify(e, meta_data={'Diagnostics': {'x': x, 'y': y}})
+        bugsnag.notify(e, metadata={'Diagnostics': {'x': x, 'y': y}})
 
 
 @shared_task
