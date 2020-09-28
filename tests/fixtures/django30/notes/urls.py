@@ -9,5 +9,6 @@ urlpatterns = [
     path('unhandled-crash/', views.unhandled_crash, name='crash'),
     path('unhandled-template-crash/', views.unhandled_crash_in_template),
     path('handled-exception/', views.handle_notify),
+    path('crash-with-callback/', views.handle_crash_callback),
     path('handled-exception-custom/', views.handle_notify_custom_info),
 ]

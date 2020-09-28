@@ -24,6 +24,7 @@ def add_wsgi_request_data_to_notification(event):
 
     environ = event.request_config.wsgi_environ
     request = Request(environ)
+    event.request = request
     path = request_path(environ)
 
     event.context = "%s %s" % (request.method, path)

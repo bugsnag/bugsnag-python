@@ -13,6 +13,7 @@ class BugsnagRequestHandler(RequestHandler):
         if not hasattr(self, "request"):
             return
 
+        event.request = self.request
         request_tab = {
             'method': self.request.method,
             'path': self.request.path,

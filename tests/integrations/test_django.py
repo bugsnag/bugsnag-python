@@ -364,3 +364,13 @@ def test_crash_appends_user_data(bugsnag_server, django_client):
         },
     }
     assert exception['stacktrace'][1]['inProject'] is False
+
+
+def test_read_request_in_callback(bugsnag_server, django_client):
+    with pytest.raises(RuntimeError):
+        django_client.get('/notes/crash-with-callback/?user_id=foo')
+
+    bugsnag_server.wait_for_request()
+    payload = bugsnag_server.received[0]['json_body']
+    event = payload['events'][0]
+    assert event['context'] == 'foo'

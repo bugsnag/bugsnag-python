@@ -17,6 +17,7 @@ def add_django_request_to_notification(event):
         return
 
     request = event.request_config.django_request
+    event.request = request
 
     if event.context is None:
         try:

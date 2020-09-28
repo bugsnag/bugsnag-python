@@ -35,6 +35,14 @@ Please upgrade.
   platforms. The `Notification` class is functionally equivalent and will be
   removed in a future release.
 
+### Enhancements
+
+* Added a `request` property to `Event`. Events created by errors which occur in
+  the HTTP request cycle (when using the integrations for Django, Flask, WSGI,
+  or Tornado) will have the request object available. The request object can be
+  used to add custom information to the Event which will be sent to Bugsnag. The
+  request object itself is not serialized.
+
 ## 3.9.0 (2020-08-27)
 
 ### Enhancements
