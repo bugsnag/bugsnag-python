@@ -50,3 +50,16 @@ def handle_notify_custom_info(request):
     bugsnag.notify(Exception('something bad happened'), severity='info',
                    context='custom_info')
     return HttpResponse('nothing to see here', content_type='text/plain')
+
+
+def request_inspection(event):
+    event.context = event.request.GET['user_id']
+
+
+def handle_crash_callback(request):
+    bugsnag.before_notify(request_inspection)
+    terrible_event()
+
+
+def terrible_event():
+    raise RuntimeError('I did something wrong')

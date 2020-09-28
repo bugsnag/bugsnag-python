@@ -8,4 +8,5 @@ urlpatterns = [
         views.unhandled_crash_in_template),
     url(r'handled-exception/', views.handle_notify),
     url(r'handled-exception-custom/', views.handle_notify_custom_info),
+    url(r'crash-with-callback/', views.handle_crash_callback),
 ]
