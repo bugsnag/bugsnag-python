@@ -28,7 +28,7 @@ def add_wsgi_request_data_to_notification(event):
     path = request_path(environ)
 
     event.context = "%s %s" % (request.method, path)
-    event.set_user(id=request.remote_addr)
+    event.set_user(id=request.client_addr)
     event.add_tab("request", {
         "url": "%s%s" % (request.application_url, path),
         "headers": dict(request.headers),

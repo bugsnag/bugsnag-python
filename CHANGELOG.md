@@ -43,6 +43,12 @@ Please upgrade.
   used to add custom information to the Event which will be sent to Bugsnag. The
   request object itself is not serialized.
 
+* [WSGI] Use `X-Forwarded-For` header if present to determine the IP address
+  used as the default user ID. The remote address remains available in the
+  request metadata attached to the event.
+  [Wolfgang Schnerring](https://github.com/wosc)
+  [#133](https://github.com/bugsnag/bugsnag-python/pull/133)
+
 ## 3.9.0 (2020-08-27)
 
 ### Enhancements
