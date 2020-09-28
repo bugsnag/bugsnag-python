@@ -1,3 +1,4 @@
+import pytest
 from webtest import TestApp
 
 from bugsnag.wsgi.middleware import BugsnagMiddleware
@@ -191,3 +192,23 @@ class TestWSGI(IntegrationTest):
                 'framework': 'WSGI'
             }
         })
+
+    def test_read_request_in_callback(self):
+
+        class MyApp(object):
+
+            def __init__(self, environ, start_response):
+                raise SentinelError("oops")
+
+        def callback(event):
+            event.set_user(id=event.request.GET['user_id'])
+
+        bugsnag.before_notify(callback)
+        app = TestApp(BugsnagMiddleware(MyApp))
+
+        with pytest.raises(SentinelError):
+            app.get('/beans?user_id=my_id')
+
+        assert len(self.server.received) == 1
+        payload = self.server.received[0]['json_body']
+        assert payload['events'][0]['user']['id'] == 'my_id'
