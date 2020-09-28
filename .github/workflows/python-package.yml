@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.5, 3.6, 3.7, 3.8]
+        python-version: [3.5, 3.6, 3.7, 3.8, 3.9.0-rc.2]
 
     steps:
     - uses: actions/checkout@v2
@@ -21,9 +21,9 @@ jobs:
         python -m pip install coveralls tox tox-factor
     - name: Run tests
       run: |
+        pyversion=${{ matrix.python-version }}
+        TOXFACTOR=${pyversion//.0-*/}
         tox -f py${TOXFACTOR//./} --parallel --quiet
-      env:
-        TOXFACTOR: ${{ matrix.python-version }}
     - name: Upload code coverage data
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
