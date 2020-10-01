@@ -36,7 +36,7 @@ class PathEncodingTest(unittest.TestCase):
 
         self.assertEqual(
             'http://localhost/hello/world',
-            event.meta_data['request']['url']
+            event.metadata['request']['url']
         )
 
     def test_wrongly_encoded_url_should_not_raise(self):
@@ -63,7 +63,7 @@ class PathEncodingTest(unittest.TestCase):
         # invalid encoding sequences
         self.assertEqual(
             'http://localhost/%s' % quote('%83'),
-            event.meta_data['request']['url']
+            event.metadata['request']['url']
         )
 
     def test_path_supports_emoji(self):
@@ -88,7 +88,7 @@ class PathEncodingTest(unittest.TestCase):
         # You can validate this by using "encodeURIComponent" in a browser.
         self.assertEqual(
             'http://localhost/%F0%9F%98%87',
-            event.meta_data['request']['url']
+            event.metadata['request']['url']
         )
 
     def test_path_supports_non_ascii_characters(self):
@@ -113,7 +113,7 @@ class PathEncodingTest(unittest.TestCase):
         # You can validate this by using "encodeURIComponent" in a browser.
         self.assertEqual(
             'http://localhost/%C3%B4%C3%9F%C5%82%E3%82%AC',
-            event.meta_data['request']['url']
+            event.metadata['request']['url']
         )
 
 

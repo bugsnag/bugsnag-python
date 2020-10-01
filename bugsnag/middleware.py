@@ -35,7 +35,7 @@ class SimpleMiddleware:
 class DefaultMiddleware:
     """
     DefaultMiddleware provides the transformation from request_config into
-    meta-data that has always been supported by bugsnag-python.
+    metadata that has always been supported by bugsnag-python.
     """
     def __init__(self, bugsnag: Middleware):
         self.bugsnag = bugsnag
@@ -48,11 +48,11 @@ class DefaultMiddleware:
         if not event.context:
             event.context = config.get("context")
 
-        for name, dictionary in config.meta_data.items():
-            if name in event.meta_data:
+        for name, dictionary in config.metadata.items():
+            if name in event.metadata:
                 for key, value in dictionary.items():
-                    if key not in event.meta_data[name]:
-                        event.meta_data[name][key] = value
+                    if key not in event.metadata[name]:
+                        event.metadata[name][key] = value
             else:
                 event.add_tab(name, dictionary)
 

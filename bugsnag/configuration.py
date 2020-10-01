@@ -450,7 +450,7 @@ class RequestConfiguration:
         self.context = None
         self.grouping_hash = None
         self.user = {}
-        self.meta_data = {}
+        self.metadata = {}
 
         # legacy fields
         self.user_id = None
@@ -473,3 +473,9 @@ class RequestConfiguration:
             setattr(self, name, value)
 
         return self
+
+    @property
+    def meta_data(self) -> Any:
+        warnings.warn('RequestConfiguration.meta_data has been renamed to ' +
+                      '"metadata"', DeprecationWarning)
+        return self.metadata

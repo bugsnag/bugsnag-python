@@ -102,7 +102,7 @@ class TestASGIMiddleware(AsyncIntegrationTest):
 
     async def test_custom_metadata(self):
         async def next_func():
-            bugsnag.configure_request(meta_data={'wave': {'size': '35b'}})
+            bugsnag.configure_request(metadata={'wave': {'size': '35b'}})
             raise CustomException('fell winds!')
 
         async def app(scope, recv, send):

@@ -104,7 +104,7 @@ class TestASGIMiddleware(IntegrationTest):
         app = Starlette()
 
         async def next_func():
-            bugsnag.configure_request(meta_data={'wave': {'size': '35b'}})
+            bugsnag.configure_request(metadata={'wave': {'size': '35b'}})
             raise ScaryException('fell winds!')
 
         @app.route('/')

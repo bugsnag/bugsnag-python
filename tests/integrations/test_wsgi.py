@@ -128,12 +128,12 @@ class TestWSGI(IntegrationTest):
         payload = self.server.received[0]['json_body']
         self.assertEqual(payload['events'][0]['user']['id'], '5')
 
-    def test_bugsnag_middleware_respects_meta_data(self):
+    def test_bugsnag_middleware_respects_metadata(self):
 
         class CrashAfterSettingMetaData(object):
             def __init__(self, environ, start_response):
-                bugsnag.configure_request(meta_data={"account":
-                                                     {"paying": True}})
+                bugsnag.configure_request(metadata={"account":
+                                                    {"paying": True}})
 
             def __iter__(self):
                 raise SentinelError("oops")

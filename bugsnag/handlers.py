@@ -31,7 +31,7 @@ class BugsnagHandler(logging.Handler, object):
                     return
 
         options = {
-            'meta_data': {},
+            'metadata': {},
             'unhandled': False,
             'severity_reason': {
                 'type': 'log',
@@ -56,11 +56,11 @@ class BugsnagHandler(logging.Handler, object):
                 return
             else:
                 try:
-                    metadata = options['meta_data']
+                    metadata = options['metadata']
                     if isinstance(metadata, dict):
                         metadata['exception'] = exception
                 except TypeError:
-                    # Means options['meta_data'] is no longer a dictionary
+                    # Means options['metadata'] is no longer a dictionary
                     pass
 
         if record.exc_info:
@@ -118,17 +118,17 @@ class BugsnagHandler(logging.Handler, object):
         if self.custom_metadata_fields is None:
             return
 
-        if 'meta_data' not in options:
-            options['meta_data'] = {}
+        if 'metadata' not in options:
+            options['metadata'] = {}
 
         for section in self.custom_metadata_fields:
-            if section not in options['meta_data']:
-                options['meta_data'][section] = {}
+            if section not in options['metadata']:
+                options['metadata'][section] = {}
 
             for field in self.custom_metadata_fields[section]:
                 if hasattr(record, field):
                     attr = getattr(record, field)
-                    options['meta_data'][section][field] = attr
+                    options['metadata'][section][field] = attr
 
     def extract_default_metadata(self, record: LogRecord, options: Dict):
         """
@@ -143,7 +143,7 @@ class BugsnagHandler(logging.Handler, object):
             if hasattr(record, field):
                 extra_data[field] = getattr(record, field)
 
-        if 'meta_data' not in options:
-            options['meta_data'] = {}
+        if 'metadata' not in options:
+            options['metadata'] = {}
 
-        options['meta_data']['extra data'] = extra_data
+        options['metadata']['extra data'] = extra_data

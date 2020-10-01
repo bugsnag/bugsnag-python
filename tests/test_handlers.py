@@ -321,7 +321,7 @@ class HandlersTest(IntegrationTest):
 
         def some_callback(record, options):
             for key in record.meals:
-                options['meta_data'][key] = record.meals[key]
+                options['metadata'][key] = record.meals[key]
 
         handler.add_callback(some_callback)
         logger.info('Everything is fine', extra={'meals': {
@@ -343,10 +343,10 @@ class HandlersTest(IntegrationTest):
     def test_client_remove_callback(self, handler, logger):
 
         def some_callback(record, options):
-            options['meta_data']['tab'] = {'key': 'value'}
+            options['metadata']['tab'] = {'key': 'value'}
 
         def some_other_callback(record, options):
-            options['meta_data']['tab2'] = {'key': 'value'}
+            options['metadata']['tab2'] = {'key': 'value'}
 
         handler.add_callback(some_callback)
         handler.add_callback(some_other_callback)
@@ -365,10 +365,10 @@ class HandlersTest(IntegrationTest):
     def test_client_clear_callbacks(self, handler, logger):
 
         def some_callback(record, options):
-            options['meta_data']['tab'] = {'key': 'value'}
+            options['metadata']['tab'] = {'key': 'value'}
 
         def some_other_callback(record, options):
-            options['meta_data']['tab2'] = {'key': 'value'}
+            options['metadata']['tab2'] = {'key': 'value'}
 
         handler.add_callback(some_callback)
         handler.add_callback(some_other_callback)
@@ -385,11 +385,11 @@ class HandlersTest(IntegrationTest):
     def test_client_crashing_callback(self, handler, logger):
 
         def some_callback(record, options):
-            options['meta_data']['tab'] = {'key': 'value'}
+            options['metadata']['tab'] = {'key': 'value'}
             raise ScaryException('Oh dear')
 
         def some_other_callback(record, options):
-            options['meta_data']['tab']['key2'] = 'other value'
+            options['metadata']['tab']['key2'] = 'other value'
 
         handler.add_callback(some_callback)
         handler.add_callback(some_other_callback)

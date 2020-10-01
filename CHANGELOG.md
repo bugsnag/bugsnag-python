@@ -34,6 +34,9 @@ Please upgrade.
   `bugsnag.event.Event` to better align with Bugsnag libraries on other
   platforms. The `Notification` class is functionally equivalent and will be
   removed in a future release.
+* `Event.meta_data` has been renamed to `Event.metadata`
+* `RequestConfiguration.meta_data` has been renamed to
+  `RequestConfiguration.metadata`
 
 ### Enhancements
 
