@@ -1,7 +1,7 @@
 Changelog
 =========
 
-## 4.0.0 (TBD)
+## 4.0.0 (2020-10-01)
 
 This is a major release which adds new features while removing previously
 deprecated portions of the library. For a guide to upgrading your existing
@@ -45,6 +45,7 @@ Please upgrade.
   or Tornado) will have the request object available. The request object can be
   used to add custom information to the Event which will be sent to Bugsnag. The
   request object itself is not serialized.
+* Added type signatures throughout the library
 
 * [WSGI] Use `X-Forwarded-For` header if present to determine the IP address
   used as the default user ID. The remote address remains available in the

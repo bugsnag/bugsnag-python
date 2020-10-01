@@ -44,8 +44,8 @@ Examples:
 # Run the unit tests and linter on python 3.8
 tox -e py38-tests,py38-lint
 
-# Run the Flask integration tests on python 2.7 and 3.5
-tox -e py27-flask,py35-flask
+# Run the Flask integration tests on python 3.5
+tox -e py35-flask
 
 # Run async support tests
 tox -e py38-asynctests
@@ -95,13 +95,13 @@ If you're on the core team, you can release Bugsnag as follows:
 * Commit
 
     ```
-    git commit -am v3.x.x
+    git commit -am v4.x.x
     ```
 
 * Tag the release in git
 
     ```
-    git tag v3.x.x
+    git tag v4.x.x
     ```
 
 * Push to git
