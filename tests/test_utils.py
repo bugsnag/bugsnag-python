@@ -5,16 +5,14 @@ import sys
 import datetime
 import re
 
-from six import u, PY3 as is_py3
-from bugsnag.utils import (SanitizingJSONEncoder, FilterDict, ThreadLocals,
+from bugsnag.utils import (SanitizingJSONEncoder, FilterDict,
                            is_json_content_type, parse_content_type,
-                           ThreadContextVar, merge_dicts)
+                           ThreadContextVar)
 
 
 class TestUtils(unittest.TestCase):
     def tearDown(self):
         super(TestUtils, self).tearDown()
-        ThreadLocals.LOCALS = None
 
     def test_encode_filters(self):
         data = FilterDict({"credit_card": "123213213123", "password": "456",
@@ -36,7 +34,7 @@ class TestUtils(unittest.TestCase):
                                      "passwords": "[FILTERED]"})
 
     def test_sanitize_valid_unicode_object(self):
-        data = {"item": u('\U0001f62c')}
+        data = {"item": '\U0001f62c'}
         encoder = SanitizingJSONEncoder(keyword_filters=[])
         sane_data = json.loads(encoder.encode(data))
         self.assertEqual(sane_data, data)
@@ -49,7 +47,7 @@ class TestUtils(unittest.TestCase):
                          {"metadata": {"another_password": "[FILTERED]"}})
 
     def test_sanitize_bad_utf8_object(self):
-        data = {"bad_utf8": u("test \xe9")}
+        data = {"bad_utf8": "test \xe9"}
         encoder = SanitizingJSONEncoder(keyword_filters=[])
         sane_data = json.loads(encoder.encode(data))
         self.assertEqual(sane_data, data)
@@ -61,8 +59,8 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(sane_data, {"exc": ""})
 
     def test_json_encode(self):
-        payload = {"a": u("a") * 512 * 1024}
-        expected = {"a": u("a") * 1024}
+        payload = {"a": "a" * 512 * 1024}
+        expected = {"a": "a" * 1024}
         encoder = SanitizingJSONEncoder(keyword_filters=[])
         self.assertEqual(json.loads(encoder.encode(payload)), expected)
 
@@ -74,9 +72,6 @@ class TestUtils(unittest.TestCase):
                          {"metadata": {"another_password": "[FILTERED]"}})
 
     def test_decode_bytes(self):
-        if not is_py3:
-            return
-
         data = FilterDict({b"metadata": "value"})
         encoder = SanitizingJSONEncoder(keyword_filters=["password"])
         sane_data = json.loads(encoder.encode(data))
@@ -87,20 +82,6 @@ class TestUtils(unittest.TestCase):
         encoder = SanitizingJSONEncoder(keyword_filters=["password"])
         sane_data = json.loads(encoder.encode(data))
         self.assertEqual(sane_data, data)
-
-    def test_thread_locals(self):
-        key = "TEST_THREAD_LOCALS"
-        val = {"Test": "Thread", "Locals": "Here"}
-        locs = ThreadLocals.get_instance()
-        self.assertFalse(locs.has_item(key))
-        locs.set_item(key, val)
-        self.assertTrue(locs.has_item(key))
-        item = locs.get_item(key)
-        self.assertEqual(item, val)
-        locs.del_item(key)
-        self.assertFalse(locs.has_item(key))
-        item = locs.get_item(key, "default")
-        self.assertEqual(item, "default")
 
     def test_thread_context_vars_default(self):
         token = ThreadContextVar("TEST_contextvars")
@@ -375,38 +356,3 @@ encoder.encode(data)
         self.assertFalse(is_json_content_type('text/plain'))
         self.assertFalse(is_json_content_type('json'))
         self.assertFalse(is_json_content_type('application/jsonfoo'))
-
-    def test_merge_dicts(self):
-        a = {'pine': 'apple', 'cherry': 'pie'}
-        b = {'egg': 'mcmuffin', 'cherry': 'strudel'}
-        merge_dicts(a, b)
-        self.assertEqual(a, {
-            'pine': 'apple',
-            'egg': 'mcmuffin',
-            'cherry': 'strudel'
-        })
-        self.assertEqual(b, {'egg': 'mcmuffin', 'cherry': 'strudel'})
-
-    def test_merge_dicts_with_lists(self):
-        a = {'pine': ['apple']}
-        b = {'egg': 'mcmuffin', 'pine': ['cone']}
-        merge_dicts(a, b)
-        self.assertEqual(a, {
-            'pine': ['apple', 'cone'],
-            'egg': 'mcmuffin',
-        })
-        self.assertEqual(b, {'egg': 'mcmuffin', 'pine': ['cone']})
-
-    def test_merge_dicts_with_subdicts(self):
-        a = {'pine': ['apple'], 'grocery': {'aisle1': ['carrots']}}
-        b = {'egg': 'mcmuffin', 'pine': ['cone'],
-             'grocery': {'aisle1': ['peas'], 'aisle2': ['beans']}}
-        merge_dicts(a, b)
-        self.assertEqual(a, {
-            'pine': ['apple', 'cone'],
-            'egg': 'mcmuffin',
-            'grocery': {'aisle1': ['carrots', 'peas'], 'aisle2': ['beans']},
-        })
-        self.assertEqual(b, {'egg': 'mcmuffin', 'pine': ['cone'],
-                             'grocery': {'aisle1': ['peas'],
-                                         'aisle2': ['beans']}})

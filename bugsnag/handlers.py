@@ -1,13 +1,15 @@
-from __future__ import division, print_function, absolute_import
-
 import logging
-import warnings
+from logging import LogRecord
+from typing import Dict
 
 import bugsnag
 
 
+__all__ = ('BugsnagHandler',)
+
+
 class BugsnagHandler(logging.Handler, object):
-    def __init__(self, api_key=None, client=None, extra_fields=None):
+    def __init__(self, client=None, extra_fields=None):
         """
         Creates a new handler which sends records to Bugsnag
         """
@@ -18,27 +20,18 @@ class BugsnagHandler(logging.Handler, object):
                           self.extract_custom_metadata,
                           self.extract_severity]
 
-        if api_key is not None:
-            warnings.warn('api_key is deprecated in favor of using a client '
-                          'to set the correct API key '
-                          'and will be removed in a future release.',
-                          DeprecationWarning)
-
-            def add_api_key(record, options):
-                options['api_key'] = api_key
-
-            self.add_callback(add_api_key)
-
-    def emit(self, record):
+    def emit(self, record: LogRecord):
         """
         Outputs the record to Bugsnag
         """
-        for path in bugsnag.__path__:
-            if path in record.pathname:
-                return
+        if hasattr(bugsnag, '__path__'):
+            paths = getattr(bugsnag, '__path__')
+            for path in paths:
+                if path in record.pathname:
+                    return
 
         options = {
-            'meta_data': {},
+            'metadata': {},
             'unhandled': False,
             'severity_reason': {
                 'type': 'log',
@@ -57,15 +50,17 @@ class BugsnagHandler(logging.Handler, object):
         client = self.client or bugsnag.legacy.default_client
 
         if 'exception' in options:
-            if isinstance(options['exception'], Exception):
-                client.notify(**options)
+            exception = options.pop('exception')
+            if isinstance(exception, Exception):
+                client.notify(exception, **options)
                 return
             else:
-                custom_exception = options.pop('exception')
                 try:
-                    options['meta_data']['exception'] = custom_exception
+                    metadata = options['metadata']
+                    if isinstance(metadata, dict):
+                        metadata['exception'] = exception
                 except TypeError:
-                    # Means options['meta_data'] is no longer a dictionary
+                    # Means options['metadata'] is no longer a dictionary
                     pass
 
         if record.exc_info:
@@ -102,7 +97,7 @@ class BugsnagHandler(logging.Handler, object):
         """
         del self.callbacks[:]
 
-    def extract_severity(self, record, options):
+    def extract_severity(self, record: LogRecord, options: Dict):
         """
         Convert log record level into severity levels
         """
@@ -115,7 +110,7 @@ class BugsnagHandler(logging.Handler, object):
         else:
             options['severity'] = 'info'
 
-    def extract_custom_metadata(self, record, options):
+    def extract_custom_metadata(self, record: LogRecord, options: Dict):
         """
         Append the contents of selected fields of a record to the metadata
         of a report
@@ -123,19 +118,19 @@ class BugsnagHandler(logging.Handler, object):
         if self.custom_metadata_fields is None:
             return
 
-        if 'meta_data' not in options:
-            options['meta_data'] = {}
+        if 'metadata' not in options:
+            options['metadata'] = {}
 
         for section in self.custom_metadata_fields:
-            if section not in options['meta_data']:
-                options['meta_data'][section] = {}
+            if section not in options['metadata']:
+                options['metadata'][section] = {}
 
             for field in self.custom_metadata_fields[section]:
                 if hasattr(record, field):
                     attr = getattr(record, field)
-                    options['meta_data'][section][field] = attr
+                    options['metadata'][section][field] = attr
 
-    def extract_default_metadata(self, record, options):
+    def extract_default_metadata(self, record: LogRecord, options: Dict):
         """
         Extract log record fields into error report metadata
         """
@@ -148,7 +143,7 @@ class BugsnagHandler(logging.Handler, object):
             if hasattr(record, field):
                 extra_data[field] = getattr(record, field)
 
-        if 'meta_data' not in options:
-            options['meta_data'] = {}
+        if 'metadata' not in options:
+            options['metadata'] = {}
 
-        options['meta_data']['extra data'] = extra_data
+        options['metadata']['extra data'] = extra_data

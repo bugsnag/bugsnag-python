@@ -2,10 +2,10 @@ import sys
 import threading
 
 from functools import wraps
-from types import FunctionType
+from typing import Union, Tuple, Callable, Optional, List, Type
 
 from bugsnag.configuration import Configuration, RequestConfiguration
-from bugsnag.notification import Notification
+from bugsnag.event import Event
 from bugsnag.handlers import BugsnagHandler
 from bugsnag.sessiontracker import SessionTracker
 
@@ -15,79 +15,80 @@ import bugsnag
 __all__ = ('Client',)
 
 
-class Client(object):
+class Client:
     """
     A Bugsnag monitoring and reporting client.
 
-    >>> client = Client(api_key='...')
+    >>> client = Client(api_key='...')  # doctest: +SKIP
     """
 
-    def __init__(self, configuration=None, install_sys_hook=True, **kwargs):
-        self.configuration = configuration or Configuration()
+    def __init__(self, configuration: Optional[Configuration] = None,
+                 install_sys_hook=True, **kwargs):
+        self.configuration = configuration or Configuration()  # type: Configuration  # noqa: E501
         self.session_tracker = SessionTracker(self.configuration)
         self.configuration.configure(**kwargs)
 
         if install_sys_hook:
             self.install_sys_hook()
 
-    def capture(self, exceptions=None, **options):
+    def capture(self,
+                exceptions: Union[Tuple[Type, ...], Callable, None] = None,
+                **options):
         """
         Run a block of code within the clients context.
         Any exception raised will be reported to bugsnag.
 
-        >>> with client.capture():
-        >>>     raise Exception('an exception passed to bugsnag then reraised')
+        >>> with client.capture():  # doctest: +SKIP
+        ...     raise Exception('an exception passed to bugsnag then reraised')
 
         The context can optionally include specific types to capture.
 
-        >>> with client.capture((TypeError,)):
-        >>>     raise Exception('an exception which does get captured')
+        >>> with client.capture((TypeError,)):  # doctest: +SKIP
+        ...     raise Exception('an exception which does get captured')
 
         Alternately, functions can be decorated to capture any
         exceptions thrown during execution and reraised.
 
-        >>> @client.capture
-        >>> def foo():
-        >>>     raise Exception('an exception passed to bugsnag then reraised')
+        >>> @client.capture  # doctest: +SKIP
+        ... def foo():
+        ...     raise Exception('an exception passed to bugsnag then reraised')
 
         The decoration can optionally include specific types to capture.
 
-        >>> @client.capture((TypeError,))
-        >>> def foo():
-        >>>     raise Exception('an exception which does not get captured')
+        >>> @client.capture((TypeError,))  # doctest: +SKIP
+        ... def foo():
+        ...     raise Exception('an exception which does not get captured')
         """
 
-        if isinstance(exceptions, FunctionType):
+        if callable(exceptions):
             return ClientContext(self, (Exception,))(exceptions)
 
         return ClientContext(self, exceptions, **options)
 
-    def notify(self, exception, asynchronous=None, **options):
+    def notify(self, exception: BaseException, asynchronous=None, **options):
         """
         Notify bugsnag of an exception.
 
-        >>> client.notify(Exception('Example'))
+        >>> client.notify(Exception('Example'))  # doctest: +SKIP
         """
 
-        notification = Notification(exception, self.configuration,
-                                    RequestConfiguration.get_instance(),
-                                    **options)
-        self.deliver(notification, asynchronous=asynchronous)
+        event = Event(exception, self.configuration,
+                      RequestConfiguration.get_instance(), **options)
+        self.deliver(event, asynchronous=asynchronous)
 
     def notify_exc_info(self, exc_type, exc_value, traceback,
                         asynchronous=None, **options):
         """
         Notify bugsnag of an exception via exc_info.
 
-        >>> client.notify_exc_info(*sys.exc_info())
+        >>> client.notify_exc_info(*sys.exc_info())  # doctest: +SKIP
         """
 
         exception = exc_value
         options['traceback'] = traceback
-        notification = Notification(exception, self.configuration,
-                                    RequestConfiguration.get_instance(),
-                                    **options)
-        self.deliver(notification, asynchronous=asynchronous)
+        event = Event(exception, self.configuration,
+                      RequestConfiguration.get_instance(), **options)
+        self.deliver(event, asynchronous=asynchronous)
 
     def excepthook(self, exc_type, exc_value, traceback):
         if self.configuration.auto_notify:
@@ -136,18 +137,18 @@ class Client(object):
                 threading.excepthook = self.threading_excepthook
                 self.threading_excepthook = None
 
-    def deliver(self, notification,
-                asynchronous=None):  # type: ignore
+    def deliver(self, event: Event,
+                asynchronous: Optional[bool] = None):
         """
-        Deliver the exception notification to Bugsnag.
+        Deliver the exception event to Bugsnag.
         """
 
-        if not self.should_deliver(notification):
+        if not self.should_deliver(event):
             return
 
         def run_middleware():
-            initial_severity = notification.severity
-            initial_reason = notification.severity_reason.copy()
+            initial_severity = event.severity
+            initial_reason = event.severity_reason.copy()
 
             def send_payload():
                 if asynchronous is None:
@@ -155,17 +156,17 @@ class Client(object):
                 else:
                     options = {'asynchronous': asynchronous}
 
-                if notification.api_key is None:
+                if event.api_key is None:
                     bugsnag.logger.warning(
                         "No API key configured, couldn't notify")
                     return
-                if initial_severity != notification.severity:
-                    notification.severity_reason = {
+                if initial_severity != event.severity:
+                    event.severity_reason = {
                         'type': 'userCallbackSetSeverity'
                     }
                 else:
-                    notification.severity_reason = initial_reason
-                payload = notification._payload()
+                    event.severity_reason = initial_reason
+                payload = event._payload()
                 try:
                     self.configuration.delivery.deliver(self.configuration,
                                                         payload, options)
@@ -174,35 +175,36 @@ class Client(object):
                 # Trigger session delivery
                 self.session_tracker.send_sessions()
 
-            self.configuration.middleware.run(notification, send_payload)
+            self.configuration.middleware.run(event, send_payload)
 
-        self.configuration.internal_middleware.run(notification,
-                                                   run_middleware)
+        self.configuration.internal_middleware.run(event, run_middleware)
 
-    def should_deliver(self, notification):  # type: (Notification) -> bool
+    def should_deliver(self, event: Event) -> bool:
         # Return early if we shouldn't notify for current release stage
         if not self.configuration.should_notify():
             return False
 
         # Return early if we should ignore exceptions of this type
-        if self.configuration.should_ignore(notification.exception):
+        if self.configuration.should_ignore(event.exception):
             return False
 
         return True
 
-    def log_handler(self, extra_fields=None):
+    def log_handler(self, extra_fields: List[str] = None) -> BugsnagHandler:
         return BugsnagHandler(client=self, extra_fields=extra_fields)
 
 
-class ClientContext(object):
-    def __init__(self, client, exception_types=None, **options):
+class ClientContext:
+    def __init__(self, client,
+                 exception_types: Optional[Tuple[Type, ...]] = None,
+                 **options):
         self.client = client
         self.options = options
         if 'severity' in options:
             options['severity_reason'] = dict(type='userContextSetSeverity')
         self.exception_types = exception_types or (Exception,)
 
-    def __call__(self, function):
+    def __call__(self, function: Callable):
         @wraps(function)
         def decorate(*args, **kwargs):
             try:

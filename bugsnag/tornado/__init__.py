@@ -1,24 +1,26 @@
 import tornado
-from tornado.web import RequestHandler
-from tornado.web import HTTPError
-from six.moves import urllib
+from tornado.web import RequestHandler, HTTPError
+from tornado.wsgi import WSGIContainer
+from typing import Dict, Any
+from urllib.parse import parse_qs
 from bugsnag.utils import is_json_content_type
 import bugsnag
 import json
 
 
 class BugsnagRequestHandler(RequestHandler):
-    def add_tornado_request_to_notification(self, notification):
+    def add_tornado_request_to_notification(self, event: bugsnag.Event):
         if not hasattr(self, "request"):
             return
 
+        event.request = self.request
         request_tab = {
             'method': self.request.method,
             'path': self.request.path,
-            'GET': urllib.parse.parse_qs(self.request.query),
+            'GET': parse_qs(self.request.query),
             'POST': {},
             'url': self.request.full_url(),
-        }
+        }  # type: Dict[str, Any]
         try:
             if (len(self.request.body) > 0):
                 headers = self.request.headers
@@ -31,13 +33,13 @@ class BugsnagRequestHandler(RequestHandler):
         except Exception:
             pass
 
-        notification.add_tab("request", request_tab)
+        event.add_tab("request", request_tab)
 
         if bugsnag.configure().send_environment:
-            env = tornado.wsgi.WSGIContainer.environ(self.request)
-            notification.add_tab("environment", env)
+            env = WSGIContainer.environ(self.request)
+            event.add_tab("environment", env)
 
-    def _handle_request_exception(self, exc):
+    def _handle_request_exception(self, exc: BaseException):
         options = {
             "user": {"id": self.request.remote_ip},
             "context": self._get_context(),
@@ -57,7 +59,7 @@ class BugsnagRequestHandler(RequestHandler):
         # Notify bugsnag, unless it's an HTTPError that we specifically want
         # to ignore
         should_notify_bugsnag = True
-        if type(exc) == HTTPError:
+        if isinstance(exc, HTTPError):
             ignore_status_codes = self.bugsnag_ignore_status_codes()
             if ignore_status_codes and exc.status_code in ignore_status_codes:
                 should_notify_bugsnag = False
@@ -66,7 +68,7 @@ class BugsnagRequestHandler(RequestHandler):
             bugsnag.auto_notify(exc, **options)
 
         # Call the parent handler
-        RequestHandler._handle_request_exception(self, exc)
+        RequestHandler._handle_request_exception(self, exc)  # type: ignore
 
     def prepare(self):
         middleware = bugsnag.configure().internal_middleware

@@ -2,7 +2,7 @@ import json
 import re
 from flask import Flask
 from bugsnag.flask import handle_exceptions
-import bugsnag.notification
+import bugsnag.event
 from tests.utils import IntegrationTest
 
 
@@ -14,8 +14,7 @@ class TestFlask(IntegrationTest):
 
     def setUp(self):
         super(TestFlask, self).setUp()
-        bugsnag.configure(use_ssl=False,
-                          endpoint=self.server.address,
+        bugsnag.configure(endpoint=self.server.url,
                           api_key='3874876376238728937',
                           notify_release_stages=['dev'],
                           release_stage='dev',
@@ -52,11 +51,10 @@ class TestFlask(IntegrationTest):
                          'test_flask.SentinelError')
         self.assertEqual(event['metaData']['request']['url'],
                          'http://localhost/hello')
-        self.assertEqual(event['metaData']['environment']['REMOTE_ADDR'],
-                         '127.0.0.1')
+        assert 'environment' not in event['metaData']
 
-    def test_disable_environment(self):
-        bugsnag.configure(send_environment=False)
+    def test_enable_environment(self):
+        bugsnag.configure(send_environment=True)
 
         app = Flask("bugsnag")
 
@@ -69,7 +67,9 @@ class TestFlask(IntegrationTest):
 
         self.assertEqual(1, len(self.server.received))
         payload = self.server.received[0]['json_body']
-        assert 'environment' not in payload['events'][0]['metaData']
+        event = payload['events'][0]
+        self.assertEqual(event['metaData']['environment']['REMOTE_ADDR'],
+                         '127.0.0.1')
 
     def test_bugsnag_notify(self):
         app = Flask("bugsnag")
@@ -88,14 +88,14 @@ class TestFlask(IntegrationTest):
                          'http://localhost/hello')
 
     def test_bugsnag_custom_data(self):
-        meta_data = [{"hello": {"world": "once"}},
-                     {"again": {"hello": "world"}}]
+        metadata = [{"hello": {"world": "once"}},
+                    {"again": {"hello": "world"}}]
 
         app = Flask("bugsnag")
 
         @app.route("/hello")
         def hello():
-            bugsnag.configure_request(meta_data=meta_data.pop())
+            bugsnag.configure_request(metadata=metadata.pop())
             raise SentinelError("oops")
 
         handle_exceptions(app)
@@ -210,7 +210,7 @@ class TestFlask(IntegrationTest):
         @app.route("/hello")
         def hello():
             bugsnag.notify(SentinelError("oops"),
-                           context="custom_context_notification_testing")
+                           context="custom_context_event_testing")
             return "OK"
 
         handle_exceptions(app)
@@ -219,7 +219,7 @@ class TestFlask(IntegrationTest):
         self.assertEqual(1, len(self.server.received))
         payload = self.server.received[0]['json_body']
         self.assertEqual(payload['events'][0]['context'],
-                         'custom_context_notification_testing')
+                         'custom_context_event_testing')
 
     def test_flask_intergration_includes_middleware_severity(self):
         app = Flask("bugsnag")
@@ -262,3 +262,22 @@ class TestFlask(IntegrationTest):
                                  device_data['runtimeVersions']['python']))
         self.assertTrue(re.match(r'\d+\.\d+\.\d+',
                                  device_data['runtimeVersions']['flask']))
+
+    def test_read_request_in_callback(self):
+        def callback(event):
+            event.set_user(id=event.request.args['id'])
+            return True
+
+        app = Flask("bugsnag")
+
+        @app.route("/hello")
+        def hello():
+            raise SentinelError("oops")
+
+        bugsnag.before_notify(callback)
+        handle_exceptions(app)
+        app.test_client().get('/hello?id=foo')
+
+        assert len(self.server.received) == 1
+        payload = self.server.received[0]['json_body']
+        assert payload['events'][0]['user']['id'] == 'foo'

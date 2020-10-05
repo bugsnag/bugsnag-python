@@ -11,50 +11,6 @@ import pytest
 
 class TestConfiguration(unittest.TestCase):
 
-    def test_get_endpoint_use_ssl(self):
-        c = Configuration()
-        c.use_ssl = True
-        self.assertEqual(c.get_endpoint(), "https://notify.bugsnag.com")
-
-    def test_get_endpoint_no_use_ssl(self):
-        c = Configuration()
-        c.use_ssl = False
-        self.assertEqual(c.get_endpoint(), "http://notify.bugsnag.com")
-
-    def test_custom_get_endpoint_default_ssl(self):
-        c = Configuration()
-        c.endpoint = "localhost:1234"
-        self.assertEqual(c.get_endpoint(), "https://localhost:1234")
-
-    def test_custom_get_endpoint_use_ssl(self):
-        c = Configuration()
-        c.use_ssl = True
-        c.endpoint = "localhost:1234"
-        self.assertEqual(c.get_endpoint(), "https://localhost:1234")
-
-    def test_custom_get_endpoint_no_use_ssl(self):
-        c = Configuration()
-        c.use_ssl = False
-        c.endpoint = "localhost:1234"
-        self.assertEqual(c.get_endpoint(), "http://localhost:1234")
-
-    def test_full_custom_get_endpoint(self):
-        c = Configuration()
-        c.endpoint = "https://localhost:1234"
-        self.assertEqual(c.get_endpoint(), "https://localhost:1234")
-
-    def test_full_custom_get_endpoint_use_ssl(self):
-        c = Configuration()
-        c.use_ssl = True
-        c.endpoint = "https://localhost:1234"
-        self.assertEqual(c.get_endpoint(), "https://localhost:1234")
-
-    def test_full_custom_get_endpoint_no_use_ssl(self):
-        c = Configuration()
-        c.use_ssl = False
-        c.endpoint = "https://localhost:1234"
-        self.assertEqual(c.get_endpoint(), "http://localhost:1234")
-
     def test_reads_api_key_from_environ(self):
         os.environ['BUGSNAG_API_KEY'] = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
         c = Configuration()
@@ -110,33 +66,22 @@ class TestConfiguration(unittest.TestCase):
 
     def test_validate_api_key(self):
         c = Configuration()
-        with pytest.warns(RuntimeWarning) as record:
+        with pytest.raises(TypeError) as e:
             c.configure(api_key=[])
-
-            assert len(record) == 1
-            assert (str(record[0].message) ==
-                    'api_key should be str, got list. ' +
-                    'This will be an error in a future release.')
-            c.configure(api_key='ffff')
-
-            assert len(record) == 1
-            assert c.api_key == 'ffff'
+            assert str(e) == 'api_key should be str, got list.'
+        c.configure(api_key='ffff')
+        assert c.api_key == 'ffff'
 
     def test_validate_endpoint(self):
         c = Configuration()
-        with pytest.warns(RuntimeWarning) as record:
+        with pytest.raises(TypeError) as e:
             c.configure(endpoint=56)
 
-            assert len(record) == 1
-            assert (str(record[0].message) ==
-                    'endpoint should be str, got int. ' +
-                    'This will be an error in a future release.')
+            assert str(e) == 'endpoint should be str, got int. '
             assert c.endpoint == 'https://notify.bugsnag.com'
 
-            c.configure(endpoint='https://notify.example.com')
-
-            assert len(record) == 1
-            assert c.endpoint == 'https://notify.example.com'
+        c.configure(endpoint='https://notify.example.com')
+        assert c.endpoint == 'https://notify.example.com'
 
     def test_validate_app_type(self):
         c = Configuration()
@@ -373,34 +318,29 @@ class TestConfiguration(unittest.TestCase):
 
     def test_validate_send_environment(self):
         c = Configuration()
-        assert c.send_environment is True
+        assert c.send_environment is False
         with pytest.warns(RuntimeWarning) as record:
-            c.configure(send_environment='False')
+            c.configure(send_environment='True')
 
             assert len(record) == 1
             assert (str(record[0].message) ==
                     'send_environment should be bool, got str')
-            assert c.send_environment is True
-
-            c.configure(send_environment=False)
-            assert len(record) == 1
             assert c.send_environment is False
+
+            c.configure(send_environment=True)
+            assert len(record) == 1
+            assert c.send_environment is True
 
     def test_validate_session_endpoint(self):
         c = Configuration()
-        with pytest.warns(RuntimeWarning) as record:
+        with pytest.raises(TypeError) as e:
             c.configure(session_endpoint=False)
 
-            assert len(record) == 1
-            assert (str(record[0].message) ==
-                    'session_endpoint should be str, got bool. This will be' +
-                    ' an error in a future release.')
+            assert str(e) == 'session_endpoint should be str, got bool.'
             assert c.session_endpoint == 'https://sessions.bugsnag.com'
 
-            c.configure(session_endpoint='https://sessions.example.com')
-
-            assert len(record) == 1
-            assert c.session_endpoint == 'https://sessions.example.com'
+        c.configure(session_endpoint='https://sessions.example.com')
+        assert c.session_endpoint == 'https://sessions.example.com'
 
     def test_validate_traceback_exclude_modules(self):
         c = Configuration()
@@ -420,8 +360,5 @@ class TestConfiguration(unittest.TestCase):
 
     def test_validate_unknown_config_option(self):
         c = Configuration()
-        with pytest.warns(RuntimeWarning) as record:
+        with pytest.raises(TypeError):
             c.configure(emperor=True)
-            assert len(record) == 1
-            assert (str(record[0].message) ==
-                    'received unknown configuration option "emperor"')

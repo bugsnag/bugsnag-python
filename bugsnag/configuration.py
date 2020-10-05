@@ -1,15 +1,8 @@
-from __future__ import absolute_import, division, print_function
-
 import os
 import platform
 import socket
-try:
-    import sysconfig
-
-    def get_python_lib(): sysconfig.get_path('purelib')
-except ImportError:
-    # Compatibility with Python 2.6
-    from distutils.sysconfig import get_python_lib
+import sysconfig
+from typing import List, Any, Tuple, Union
 import warnings
 
 from bugsnag.sessiontracker import SessionMiddleware
@@ -32,28 +25,7 @@ except ImportError:
 __all__ = ('Configuration', 'RequestConfiguration')
 
 
-class _BaseConfiguration(object):
-    def get(self, name, overrides=None):
-        """
-        Get a single configuration option, using values from overrides
-        first if they exist.
-        """
-        if overrides:
-            return overrides.get(name, getattr(self, name))
-        else:
-            return getattr(self, name)
-
-    def configure(self, **options):
-        """
-        Set one or more configuration settings.
-        """
-        for name, value in options.items():
-            setattr(self, name, value)
-
-        return self
-
-
-class Configuration(_BaseConfiguration):
+class Configuration:
     """
     Global app-level Bugsnag configuration settings.
     """
@@ -64,11 +36,10 @@ class Configuration(_BaseConfiguration):
         self.notify_release_stages = None
         self.auto_notify = True
         self.send_code = True
-        self.send_environment = True
+        self.send_environment = False
         self.asynchronous = True
-        self.use_ssl = True  # Deprecated
         self.delivery = create_default_delivery()
-        self.lib_root = get_python_lib()
+        self.lib_root = sysconfig.get_path('purelib')
         self.project_root = os.getcwd()
         self.app_type = None
         self.app_version = None
@@ -99,31 +70,68 @@ class Configuration(_BaseConfiguration):
 
         self.runtime_versions = {"python": platform.python_version()}
 
-    def configure(self, **options):
+    def configure(self, api_key=None, app_type=None, app_version=None,
+                  asynchronous=None, auto_notify=None,
+                  auto_capture_sessions=None, delivery=None, endpoint=None,
+                  hostname=None, ignore_classes=None, lib_root=None,
+                  notify_release_stages=None, params_filters=None,
+                  project_root=None, proxy_host=None, release_stage=None,
+                  send_code=None, send_environment=None, session_endpoint=None,
+                  traceback_exclude_modules=None):
         """
         Validate and set configuration options. Will warn if an option is of an
         incorrect type.
         """
-        # Overrides the default implementation to provide warnings for unknown
-        # options. In the __future__ this will not be necessary by instead
-        # making configure() enumerate all of the options as kwargs rather than
-        # allowing arbitrary input.
-        configurable_options = [
-            'api_key', 'app_version', 'asynchronous', 'auto_notify',
-            'auto_capture_sessions', 'delivery', 'endpoint', 'hostname',
-            'ignore_classes', 'lib_root', 'notify_release_stages',
-            'params_filters', 'project_root', 'proxy_host', 'release_stage',
-            'send_code', 'session_endpoint', 'traceback_exclude_modules',
-            'use_ssl', 'app_type', 'send_environment',
-        ]
-
-        for option_name in options.keys():
-            if option_name not in configurable_options:
-                message = 'received unknown configuration option "{0}"'
-                warnings.warn(message.format(option_name), RuntimeWarning)
-            setattr(self, option_name, options.get(option_name))
-
+        if api_key is not None:
+            self.api_key = api_key
+        if app_type is not None:
+            self.app_type = app_type
+        if app_version is not None:
+            self.app_version = app_version
+        if asynchronous is not None:
+            self.asynchronous = asynchronous
+        if auto_notify is not None:
+            self.auto_notify = auto_notify
+        if auto_capture_sessions is not None:
+            self.auto_capture_sessions = auto_capture_sessions
+        if delivery is not None:
+            self.delivery = delivery
+        if endpoint is not None:
+            self.endpoint = endpoint
+        if hostname is not None:
+            self.hostname = hostname
+        if ignore_classes is not None:
+            self.ignore_classes = ignore_classes
+        if lib_root is not None:
+            self.lib_root = lib_root
+        if notify_release_stages is not None:
+            self.notify_release_stages = notify_release_stages
+        if params_filters is not None:
+            self.params_filters = params_filters
+        if project_root is not None:
+            self.project_root = project_root
+        if proxy_host is not None:
+            self.proxy_host = proxy_host
+        if release_stage is not None:
+            self.release_stage = release_stage
+        if send_code is not None:
+            self.send_code = send_code
+        if send_environment is not None:
+            self.send_environment = send_environment
+        if session_endpoint is not None:
+            self.session_endpoint = session_endpoint
+        if traceback_exclude_modules is not None:
+            self.traceback_exclude_modules = traceback_exclude_modules
         return self
+
+    def get(self, name):
+        """
+        Get a single configuration option
+        """
+        warnings.warn('Using get() to retrieve a Configuration property is ' +
+                      'deprecated in favor of referencing properties directly',
+                      DeprecationWarning)
+        return getattr(self, name)
 
     @property
     def api_key(self):
@@ -134,7 +142,7 @@ class Configuration(_BaseConfiguration):
 
     @api_key.setter  # type: ignore
     @validate_required_str_setter
-    def api_key(self, value):
+    def api_key(self, value: str):
         self._api_key = value
 
     @property
@@ -146,7 +154,7 @@ class Configuration(_BaseConfiguration):
 
     @app_type.setter  # type: ignore
     @validate_str_setter
-    def app_type(self, value):
+    def app_type(self, value: str):
         self._app_type = value
 
     @property
@@ -158,7 +166,7 @@ class Configuration(_BaseConfiguration):
 
     @app_version.setter  # type: ignore
     @validate_str_setter
-    def app_version(self, value):
+    def app_version(self, value: str):
         self._app_version = value
 
     @property
@@ -170,7 +178,7 @@ class Configuration(_BaseConfiguration):
 
     @asynchronous.setter  # type: ignore
     @validate_bool_setter
-    def asynchronous(self, value):
+    def asynchronous(self, value: bool):
         self._asynchronous = value
         if value:
             warn_if_running_uwsgi_without_threads()
@@ -185,7 +193,7 @@ class Configuration(_BaseConfiguration):
 
     @auto_capture_sessions.setter  # type: ignore
     @validate_bool_setter
-    def auto_capture_sessions(self, value):
+    def auto_capture_sessions(self, value: bool):
         self._auto_capture_sessions = value
 
     @property
@@ -197,7 +205,7 @@ class Configuration(_BaseConfiguration):
 
     @auto_notify.setter  # type: ignore
     @validate_bool_setter
-    def auto_notify(self, value):
+    def auto_notify(self, value: bool):
         self._auto_notify = value
 
     @property
@@ -229,7 +237,7 @@ class Configuration(_BaseConfiguration):
 
     @endpoint.setter  # type: ignore
     @validate_required_str_setter
-    def endpoint(self, value):
+    def endpoint(self, value: str):
         self._endpoint = value
 
     @property
@@ -242,7 +250,7 @@ class Configuration(_BaseConfiguration):
 
     @hostname.setter  # type: ignore
     @validate_str_setter
-    def hostname(self, value):
+    def hostname(self, value: str):
         self._hostname = value
 
     @property
@@ -256,7 +264,7 @@ class Configuration(_BaseConfiguration):
 
     @ignore_classes.setter  # type: ignore
     @validate_iterable_setter
-    def ignore_classes(self, value):
+    def ignore_classes(self, value: Union[List[str], Tuple[str]]):
         self._ignore_classes = value
 
     @property
@@ -270,7 +278,7 @@ class Configuration(_BaseConfiguration):
 
     @lib_root.setter  # type: ignore
     @validate_str_setter
-    def lib_root(self, value):
+    def lib_root(self, value: str):
         self._lib_root = value
 
     @property
@@ -284,7 +292,7 @@ class Configuration(_BaseConfiguration):
 
     @notify_release_stages.setter  # type: ignore
     @validate_iterable_setter
-    def notify_release_stages(self, value):
+    def notify_release_stages(self, value: List[str]):
         self._notify_release_stages = value
 
     @property
@@ -302,7 +310,7 @@ class Configuration(_BaseConfiguration):
 
     @params_filters.setter  # type: ignore
     @validate_iterable_setter
-    def params_filters(self, value):
+    def params_filters(self, value: List[str]):
         self._params_filters = value
 
     @property
@@ -317,7 +325,7 @@ class Configuration(_BaseConfiguration):
 
     @project_root.setter  # type: ignore
     @validate_str_setter
-    def project_root(self, value):
+    def project_root(self, value: str):
         self._project_root = value
 
     @property
@@ -329,7 +337,7 @@ class Configuration(_BaseConfiguration):
 
     @proxy_host.setter  # type: ignore
     @validate_str_setter
-    def proxy_host(self, value):
+    def proxy_host(self, value: str):
         self._proxy_host = value
 
     @property
@@ -343,7 +351,7 @@ class Configuration(_BaseConfiguration):
 
     @release_stage.setter  # type: ignore
     @validate_str_setter
-    def release_stage(self, value):
+    def release_stage(self, value: str):
         self._release_stage = value
 
     @property
@@ -356,7 +364,7 @@ class Configuration(_BaseConfiguration):
 
     @send_code.setter  # type: ignore
     @validate_bool_setter
-    def send_code(self, value):
+    def send_code(self, value: bool):
         self._send_code = value
 
     @property
@@ -369,7 +377,7 @@ class Configuration(_BaseConfiguration):
 
     @send_environment.setter  # type: ignore
     @validate_bool_setter
-    def send_environment(self, value):
+    def send_environment(self, value: bool):
         self._send_environment = value
 
     @property
@@ -384,7 +392,7 @@ class Configuration(_BaseConfiguration):
 
     @session_endpoint.setter  # type: ignore
     @validate_required_str_setter
-    def session_endpoint(self, value):
+    def session_endpoint(self, value: str):
         self._session_endpoint = value
 
     @property
@@ -396,59 +404,26 @@ class Configuration(_BaseConfiguration):
 
     @traceback_exclude_modules.setter  # type: ignore
     @validate_iterable_setter
-    def traceback_exclude_modules(self, value):
+    def traceback_exclude_modules(self, value: List[str]):
         self._traceback_exclude_modules = value
 
-    @property
-    def use_ssl(self):
-        """
-        This property is used to determine the protocol of endpoint and is
-        deprecated in favor of including the protocol in the endpoint property.
-        """
-        return self._use_ssl
-
-    @use_ssl.setter  # type: ignore
-    @validate_bool_setter
-    def use_ssl(self, value):
-        warnings.warn('use_ssl is deprecated in favor of including the '
-                      'protocol in the endpoint property and will be removed '
-                      'in a future release', DeprecationWarning)
-        self._use_ssl = value
-
-    def should_notify(self):  # type: () -> bool
+    def should_notify(self) -> bool:
         return self.notify_release_stages is None or \
             (isinstance(self.notify_release_stages, (tuple, list)) and
              self.release_stage in self.notify_release_stages)
 
-    def should_ignore(self, exception):  # type: (Exception) -> bool
+    def should_ignore(self, exception: BaseException) -> bool:
         return self.ignore_classes is not None and \
             fully_qualified_class_name(exception) in self.ignore_classes
 
-    def get_endpoint(self):  # type: () -> str
-        warnings.warn('get_endpoint and use_ssl are deprecated in favor '
-                      'of including the protocol in the endpoint '
-                      'configuration option and will be removed in a future '
-                      'release', DeprecationWarning)
 
-        def format_endpoint(endpoint):
-            proto = "https" if self.use_ssl is True else "http"
-            return "%s://%s" % (proto, endpoint)
-
-        if '://' not in self.endpoint:
-            return format_endpoint(self.endpoint)
-        elif self.use_ssl is not None:
-            return format_endpoint(self.endpoint.split('://')[1])
-
-        return self.endpoint
-
-
-class RequestConfiguration(_BaseConfiguration):
+class RequestConfiguration:
     """
     Per-request Bugsnag configuration settings.
     """
 
     @classmethod
-    def get_instance(cls):  # type: () -> RequestConfiguration
+    def get_instance(cls):
         """
         Get this thread's instance of the RequestConfiguration.
         """
@@ -475,7 +450,7 @@ class RequestConfiguration(_BaseConfiguration):
         self.context = None
         self.grouping_hash = None
         self.user = {}
-        self.meta_data = {}
+        self.metadata = {}
 
         # legacy fields
         self.user_id = None
@@ -483,3 +458,24 @@ class RequestConfiguration(_BaseConfiguration):
         self.request_data = {}
         self.environment_data = {}
         self.session_data = {}
+
+    def get(self, name) -> Any:
+        """
+        Get a single configuration option
+        """
+        return getattr(self, name)
+
+    def configure(self, **options):
+        """
+        Set one or more configuration settings.
+        """
+        for name, value in options.items():
+            setattr(self, name, value)
+
+        return self
+
+    @property
+    def meta_data(self) -> Any:
+        warnings.warn('RequestConfiguration.meta_data has been renamed to ' +
+                      '"metadata"', DeprecationWarning)
+        return self.metadata

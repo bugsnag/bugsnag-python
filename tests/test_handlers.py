@@ -1,8 +1,6 @@
 from functools import wraps
 import logging
 
-from six import u
-
 from bugsnag.handlers import BugsnagHandler
 from bugsnag import Client
 import bugsnag
@@ -13,9 +11,7 @@ from tests.utils import IntegrationTest, ScaryException
 def use_client_logger(func):
     @wraps(func)
     def wrapped(obj):
-        client = Client(use_ssl=False,
-                        endpoint=obj.server.address,
-                        api_key='tomatoes',
+        client = Client(endpoint=obj.server.url,
                         asynchronous=False)
         handler = client.log_handler()
         logger = logging.getLogger(__name__)
@@ -33,9 +29,7 @@ class HandlersTest(IntegrationTest):
 
     def setUp(self):
         super(HandlersTest, self).setUp()
-        bugsnag.configure(use_ssl=False,
-                          endpoint=self.server.address,
-                          api_key='tomatoes',
+        bugsnag.configure(endpoint=self.server.url,
                           notify_release_stages=['dev'],
                           release_stage='dev',
                           asynchronous=False)
@@ -77,7 +71,7 @@ class HandlersTest(IntegrationTest):
         self.assertEqual('error', event['severity'])
         self.assertEqual(logging.CRITICAL,
                          event['metaData']['extra data']['levelno'])
-        self.assertEqual(u('CRITICAL'),
+        self.assertEqual('CRITICAL',
                          event['metaData']['extra data']['levelname'])
 
     def test_severity_error(self):
@@ -97,7 +91,7 @@ class HandlersTest(IntegrationTest):
         self.assertEqual('error', event['severity'])
         self.assertEqual(logging.ERROR,
                          event['metaData']['extra data']['levelno'])
-        self.assertEqual(u('ERROR'),
+        self.assertEqual('ERROR',
                          event['metaData']['extra data']['levelname'])
 
     def test_severity_warning(self):
@@ -116,7 +110,7 @@ class HandlersTest(IntegrationTest):
         self.assertEqual('warning', event['severity'])
         self.assertEqual(logging.WARNING,
                          event['metaData']['extra data']['levelno'])
-        self.assertEqual(u('WARNING'),
+        self.assertEqual('WARNING',
                          event['metaData']['extra data']['levelname'])
 
     def test_severity_info(self):
@@ -136,7 +130,7 @@ class HandlersTest(IntegrationTest):
         self.assertEqual('info', event['severity'])
         self.assertEqual(logging.INFO,
                          event['metaData']['extra data']['levelno'])
-        self.assertEqual(u('INFO'),
+        self.assertEqual('INFO',
                          event['metaData']['extra data']['levelname'])
 
     def test_levelname_message(self):
@@ -191,8 +185,8 @@ class HandlersTest(IntegrationTest):
         self.assertEqual('LogOMG', exception['errorClass'])
         self.assertEqual('error', event['severity'])
 
-    def test_exc_info_api_key(self):
-        handler = BugsnagHandler(api_key='new news')
+    def test_exc_info(self):
+        handler = BugsnagHandler()
         logger = logging.getLogger(__name__)
         logger.addHandler(handler)
 
@@ -205,15 +199,12 @@ class HandlersTest(IntegrationTest):
 
         self.assertSentReportCount(1)
         json_body = self.server.received[0]['json_body']
-        headers = self.server.received[0]['headers']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
-        self.assertEqual('new news', headers['Bugsnag-Api-Key'])
         self.assertEqual(exception['errorClass'], 'tests.utils.ScaryException')
 
     def test_extra_fields(self):
-        handler = BugsnagHandler(api_key='new news',
-                                 extra_fields={'fruit': ['grapes', 'pears']})
+        handler = BugsnagHandler(extra_fields={'fruit': ['grapes', 'pears']})
         logger = logging.getLogger(__name__)
         logger.addHandler(handler)
 
@@ -229,9 +220,7 @@ class HandlersTest(IntegrationTest):
         })
 
     def test_client_metadata_fields(self):
-        client = Client(use_ssl=False,
-                        endpoint=self.server.address,
-                        api_key='new news',
+        client = Client(endpoint=self.server.url,
                         asynchronous=False)
         handler = client.log_handler(extra_fields={
             'fruit': ['grapes', 'pears']
@@ -275,7 +264,7 @@ class HandlersTest(IntegrationTest):
         self.assertEqual('error', event['severity'])
         self.assertEqual(logging.CRITICAL,
                          event['metaData']['extra data']['levelno'])
-        self.assertEqual(u('CRITICAL'),
+        self.assertEqual('CRITICAL',
                          event['metaData']['extra data']['levelname'])
 
     @use_client_logger
@@ -292,7 +281,7 @@ class HandlersTest(IntegrationTest):
         self.assertEqual('error', event['severity'])
         self.assertEqual(logging.ERROR,
                          event['metaData']['extra data']['levelno'])
-        self.assertEqual(u('ERROR'),
+        self.assertEqual('ERROR',
                          event['metaData']['extra data']['levelname'])
 
     @use_client_logger
@@ -308,7 +297,7 @@ class HandlersTest(IntegrationTest):
         self.assertEqual('warning', event['severity'])
         self.assertEqual(logging.WARNING,
                          event['metaData']['extra data']['levelno'])
-        self.assertEqual(u('WARNING'),
+        self.assertEqual('WARNING',
                          event['metaData']['extra data']['levelname'])
 
     @use_client_logger
@@ -324,7 +313,7 @@ class HandlersTest(IntegrationTest):
         self.assertEqual('info', event['severity'])
         self.assertEqual(logging.INFO,
                          event['metaData']['extra data']['levelno'])
-        self.assertEqual(u('INFO'),
+        self.assertEqual('INFO',
                          event['metaData']['extra data']['levelname'])
 
     @use_client_logger
@@ -332,7 +321,7 @@ class HandlersTest(IntegrationTest):
 
         def some_callback(record, options):
             for key in record.meals:
-                options['meta_data'][key] = record.meals[key]
+                options['metadata'][key] = record.meals[key]
 
         handler.add_callback(some_callback)
         logger.info('Everything is fine', extra={'meals': {
@@ -354,10 +343,10 @@ class HandlersTest(IntegrationTest):
     def test_client_remove_callback(self, handler, logger):
 
         def some_callback(record, options):
-            options['meta_data']['tab'] = {'key': 'value'}
+            options['metadata']['tab'] = {'key': 'value'}
 
         def some_other_callback(record, options):
-            options['meta_data']['tab2'] = {'key': 'value'}
+            options['metadata']['tab2'] = {'key': 'value'}
 
         handler.add_callback(some_callback)
         handler.add_callback(some_other_callback)
@@ -376,10 +365,10 @@ class HandlersTest(IntegrationTest):
     def test_client_clear_callbacks(self, handler, logger):
 
         def some_callback(record, options):
-            options['meta_data']['tab'] = {'key': 'value'}
+            options['metadata']['tab'] = {'key': 'value'}
 
         def some_other_callback(record, options):
-            options['meta_data']['tab2'] = {'key': 'value'}
+            options['metadata']['tab2'] = {'key': 'value'}
 
         handler.add_callback(some_callback)
         handler.add_callback(some_other_callback)
@@ -396,11 +385,11 @@ class HandlersTest(IntegrationTest):
     def test_client_crashing_callback(self, handler, logger):
 
         def some_callback(record, options):
-            options['meta_data']['tab'] = {'key': 'value'}
+            options['metadata']['tab'] = {'key': 'value'}
             raise ScaryException('Oh dear')
 
         def some_other_callback(record, options):
-            options['meta_data']['tab']['key2'] = 'other value'
+            options['metadata']['tab']['key2'] = 'other value'
 
         handler.add_callback(some_callback)
         handler.add_callback(some_other_callback)

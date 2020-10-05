@@ -1,4 +1,3 @@
-from __future__ import absolute_import, unicode_literals
 from celery import shared_task
 import bugsnag
 
@@ -33,7 +32,7 @@ def metadivide(x, y):
     try:
         return x / y
     except ZeroDivisionError as e:
-        bugsnag.notify(e, meta_data={'Diagnostics': {'x': x, 'y': y}})
+        bugsnag.notify(e, metadata={'Diagnostics': {'x': x, 'y': y}})
 
 
 @shared_task

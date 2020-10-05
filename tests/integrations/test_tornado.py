@@ -11,8 +11,7 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
 
     def setUp(self):
         super(TornadoTests, self).setUp()
-        bugsnag.configure(use_ssl=False,
-                          endpoint=self.server.address,
+        bugsnag.configure(endpoint=self.server.url,
                           api_key='3874876376238728937',
                           notify_release_stages=['dev'],
                           release_stage='dev',
@@ -122,7 +121,6 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
         payload = self.server.received[0]['json_body']
         event = payload['events'][0]
         expectedUrl = 'http://127.0.0.1:{}/crash'.format(self.get_http_port())
-        self.assertEqual(event['metaData']['environment'], {})
         self.assertEqual(event['metaData']['request'], {
             'method': 'GET',
             'url': expectedUrl,
@@ -131,6 +129,7 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
             'POST': {},
             'GET': {}
         })
+        assert 'environment' not in payload['events'][0]['metaData']
 
     def test_unhandled_post(self):
         response = self.fetch('/crash', method="POST", body="test=post")
@@ -173,11 +172,21 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
         self.assertEqual(response.code, 404)
         self.assertEqual(len(self.server.received), 0)
 
-    def test_disable_environment(self):
-        bugsnag.configure(send_environment=False)
+    def test_enable_environment(self):
+        bugsnag.configure(send_environment=True)
         response = self.fetch('/notify', method="POST", body="test=post")
         self.assertEqual(response.code, 200)
         self.assertEqual(len(self.server.received), 1)
 
         payload = self.server.received[0]['json_body']
-        assert 'environment' not in payload['events'][0]['metaData']
+        event = payload['events'][0]
+        self.assertEqual(event['metaData']['environment']['REQUEST_METHOD'],
+                         'POST')
+
+    def test_read_request_in_callback(self):
+        self.fetch('/crash_with_callback?user_id=foo')
+        assert len(self.server.received) == 1
+
+        payload = self.server.received[0]['json_body']
+        event = payload['events'][0]
+        assert event['user']['id'] == 'foo'

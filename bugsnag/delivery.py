@@ -1,18 +1,19 @@
 from threading import Thread
+from typing import Dict, Callable, Any
 import sys
 import json
 import warnings
 
 from time import strftime, gmtime
 
-from six.moves.urllib.request import (
+from urllib.request import (
     Request,
     ProxyHandler,
     build_opener
 )
 
 import bugsnag
-from bugsnag.notification import Notification
+from bugsnag.event import Event
 
 try:
     if sys.version_info < (2, 7):
@@ -29,6 +30,8 @@ except ImportError:
 DEFAULT_ENDPOINT = 'https://notify.bugsnag.com'
 DEFAULT_SESSIONS_ENDPOINT = 'https://sessions.bugsnag.com'
 
+__all__ = ('default_headers', 'Delivery')
+
 
 def create_default_delivery():
     if requests is not None:
@@ -37,29 +40,29 @@ def create_default_delivery():
     return UrllibDelivery()
 
 
-def default_headers(api_key):
+def default_headers(api_key: str):
     return {
         'Bugsnag-Api-Key': api_key,
-        'Bugsnag-Payload-Version': Notification.PAYLOAD_VERSION,
+        'Bugsnag-Payload-Version': Event.PAYLOAD_VERSION,
         'Bugsnag-Sent-At': strftime('%Y-%m-%dT%H:%M:%S', gmtime()),
         'Content-Type': 'application/json',
     }
 
 
-class Delivery(object):
+class Delivery:
     """
     Mechanism for sending a request to Bugsnag
     """
     def __init__(self):
         self.sent_session_warning = False
 
-    def deliver(self, config, payload, options={}):
+    def deliver(self, config, payload: Any, options={}):
         """
         Sends error reports to Bugsnag
         """
         pass
 
-    def deliver_sessions(self, config, payload):
+    def deliver_sessions(self, config, payload: Any):
         """
         Sends sessions to Bugsnag
         """
@@ -76,7 +79,7 @@ class Delivery(object):
             }
             self.deliver(config, payload, options)
 
-    def queue_request(self, request, config, options):
+    def queue_request(self, request: Callable, config, options: Dict):
         if config.asynchronous and options.pop('asynchronous', True):
             Thread(target=request).start()
         else:
@@ -85,13 +88,13 @@ class Delivery(object):
 
 class UrllibDelivery(Delivery):
 
-    def deliver(self, config, payload, options={}):
+    def deliver(self, config, payload: Any, options={}):
 
         def request():
             uri = options.pop('endpoint', config.endpoint)
             if '://' not in uri:
-                uri = config.get_endpoint()
-            api_key = json.loads(payload).pop('apiKey', config.get('api_key'))
+                uri = ('https://{}' % uri)
+            api_key = json.loads(payload).pop('apiKey', config.api_key)
             req = Request(uri,
                           payload.encode('utf-8', 'replace'),
                           default_headers(api_key))
@@ -122,14 +125,14 @@ class UrllibDelivery(Delivery):
 
 class RequestsDelivery(Delivery):
 
-    def deliver(self, config, payload, options={}):
+    def deliver(self, config, payload: Any, options={}):
 
         def request():
             uri = options.pop('endpoint', config.endpoint)
             if '://' not in uri:
-                uri = config.get_endpoint()
+                uri = ('https://{}' % uri)
 
-            api_key = json.loads(payload).pop('apiKey', config.get('api_key'))
+            api_key = json.loads(payload).pop('apiKey', config.api_key)
             req_options = {'data': payload,
                            'headers': default_headers(api_key)}
 

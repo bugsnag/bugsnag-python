@@ -3,7 +3,7 @@ import time
 import unittest
 from threading import Thread
 
-from six.moves import BaseHTTPServer
+from http.server import SimpleHTTPRequestHandler, HTTPServer
 
 import bugsnag
 
@@ -52,7 +52,7 @@ class FakeBugsnagServer(object):
         self.received = []
         self.paused = False
 
-        class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
+        class Handler(SimpleHTTPRequestHandler):
 
             def do_POST(handler):
                 start = time.time()
@@ -77,7 +77,7 @@ class FakeBugsnagServer(object):
             def log_request(self, *args):
                 pass
 
-        self.server = BaseHTTPServer.HTTPServer(('localhost', 0), Handler)
+        self.server = HTTPServer(('localhost', 0), Handler)
         self.server.timeout = 0.5
         self.thread = Thread(target=self.server.serve_forever, args=(0.1,))
         self.thread.daemon = True

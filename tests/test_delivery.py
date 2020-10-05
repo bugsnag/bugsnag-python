@@ -17,17 +17,8 @@ class DeliveryTest(IntegrationTest):
         super(DeliveryTest, self).setUp()
         self.config = Configuration()
         self.config.configure(api_key='abc',
-                              endpoint=self.server.address,
-                              use_ssl=False,
+                              endpoint=self.server.url,
                               asynchronous=False)
-
-    def test_urllib_delivery_full_url(self):
-        self.config.configure(endpoint=self.server.url, use_ssl=None)
-        UrllibDelivery().deliver(self.config, '{"legit": 4}')
-
-        self.assertSentReportCount(1)
-        request = self.server.received[0]
-        self.assertEqual(request['json_body'], {"legit": 4})
 
     def test_urllib_delivery(self):
         UrllibDelivery().deliver(self.config, '{"legit": 4}')

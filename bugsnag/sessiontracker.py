@@ -1,8 +1,8 @@
-from __future__ import print_function
 from copy import deepcopy
 from uuid import uuid4
 from time import strftime, gmtime
 from threading import Lock, Timer
+from typing import List, Dict, Callable
 import atexit
 
 try:
@@ -15,10 +15,13 @@ except ImportError:
 
 import bugsnag
 from bugsnag.utils import package_version, FilterDict, SanitizingJSONEncoder
-from bugsnag.notification import Notification
+from bugsnag.event import Event
 
 
-class SessionTracker(object):
+__all__ = []  # type: List[str]
+
+
+class SessionTracker:
 
     MAXIMUM_SESSION_COUNT = 100
     SESSION_PAYLOAD_VERSION = "1.0"
@@ -26,8 +29,9 @@ class SessionTracker(object):
     """
     Session tracking class for Bugsnag
     """
+
     def __init__(self, configuration):
-        self.session_counts = {}
+        self.session_counts = {}  # type: Dict[str, int]
         self.config = configuration
         self.mutex = Lock()
         self.auto_sessions = False
@@ -82,7 +86,7 @@ class SessionTracker(object):
 
             atexit.register(cleanup)
 
-    def __queue_session(self, start_time):
+    def __queue_session(self, start_time: str):
         self.mutex.acquire()
         try:
             if start_time not in self.session_counts:
@@ -91,7 +95,7 @@ class SessionTracker(object):
         finally:
             self.mutex.release()
 
-    def __deliver(self, sessions):
+    def __deliver(self, sessions: List[Dict]):
         if not sessions:
             bugsnag.logger.debug("No sessions to deliver")
             return
@@ -108,17 +112,17 @@ class SessionTracker(object):
 
         payload = {
             'notifier': {
-                'name': Notification.NOTIFIER_NAME,
-                'url': Notification.NOTIFIER_URL,
+                'name': Event.NOTIFIER_NAME,
+                'url': Event.NOTIFIER_URL,
                 'version': notifier_version
             },
             'device': FilterDict({
-                'hostname': self.config.get('hostname'),
-                'runtimeVersions': self.config.get('runtime_versions')
+                'hostname': self.config.hostname,
+                'runtimeVersions': self.config.runtime_versions
             }),
             'app': {
-                'releaseStage': self.config.get('release_stage'),
-                'version': self.config.get('app_version')
+                'releaseStage': self.config.release_stage,
+                'version': self.config.app_version
             },
             'sessionCounts': sessions
         }
@@ -133,19 +137,19 @@ class SessionTracker(object):
             bugsnag.logger.exception('Sending sessions failed %s', e)
 
 
-class SessionMiddleware(object):
+class SessionMiddleware:
     """
-    Session middleware ensures that a session is appended to the notification.
+    Session middleware ensures that a session is appended to the event.
     """
-    def __init__(self, bugsnag):
+    def __init__(self, bugsnag: Callable[[Event], Callable]):
         self.bugsnag = bugsnag
 
-    def __call__(self, notification):
+    def __call__(self, event: Event):
         session = _session_info.get()
         if session:
-            if notification.unhandled:
+            if event.unhandled:
                 session['events']['unhandled'] += 1
             else:
                 session['events']['handled'] += 1
-            notification.session = deepcopy(session)
-        self.bugsnag(notification)
+            event.session = deepcopy(session)
+        self.bugsnag(event)

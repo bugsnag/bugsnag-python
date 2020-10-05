@@ -3,8 +3,7 @@
 import sys
 import time
 
-from six import u
-
+import pytest
 import bugsnag
 from tests.utils import ScaryException, IntegrationTest
 from tests.fixtures import samples
@@ -14,8 +13,7 @@ class TestBugsnag(IntegrationTest):
 
     def setUp(self):
         super(TestBugsnag, self).setUp()
-        bugsnag.configure(use_ssl=False,
-                          endpoint=self.server.address,
+        bugsnag.configure(endpoint=self.server.url,
                           api_key='tomatoes',
                           notify_release_stages=['dev'],
                           release_stage='dev',
@@ -117,8 +115,7 @@ class TestBugsnag(IntegrationTest):
     def test_notify_override_metadata_sections(self):
         bugsnag.add_metadata_tab('food', {'beans': 3, 'corn': 'purple'})
         bugsnag.notify(ScaryException('unexpected failover'),
-                       meta_data={'food': {'beans': 5},
-                                  'skills': {'spear': 6}})
+                       metadata={'food': {'beans': 5}, 'skills': {'spear': 6}})
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual(6, event['metaData']['skills']['spear'])
@@ -177,7 +174,7 @@ class TestBugsnag(IntegrationTest):
 
         self.assertEqual(4, event['metaData']['custom']['foo'])
         self.assertEqual('[FILTERED]', event['metaData']['custom']['bar'])
-        self.assertEqual(172, exception['stacktrace'][0]['lineNumber'])
+        self.assertEqual(169, exception['stacktrace'][0]['lineNumber'])
 
     def test_notify_ignore_class(self):
         bugsnag.configure(ignore_classes=['tests.utils.ScaryException'])
@@ -185,7 +182,8 @@ class TestBugsnag(IntegrationTest):
         self.assertEqual(0, len(self.server.received))
 
     def test_notify_configured_invalid_api_key(self):
-        bugsnag.configure(api_key=None)
+        config = bugsnag.configure()
+        config.api_key = None
         bugsnag.notify(ScaryException('unexpected failover'))
         self.assertEqual(0, len(self.server.received))
 
@@ -249,7 +247,7 @@ class TestBugsnag(IntegrationTest):
     def test_notify_before_notify_modifying_metadata(self):
 
         def callback(report):
-            report.meta_data['foo'] = {'sandwich': 'bar'}
+            report.metadata['foo'] = {'sandwich': 'bar'}
 
         bugsnag.before_notify(callback)
         bugsnag.notify(ScaryException('unexpected failover'))
@@ -445,7 +443,7 @@ class TestBugsnag(IntegrationTest):
         event = json_body['events'][0]
         exception = event['exceptions'][0]
         self.assertEqual(1, len(self.server.received))
-        self.assertEqual(u("RuntimeError"), exception['errorClass'])
+        self.assertEqual("RuntimeError", exception['errorClass'])
 
     def test_notify_metadata_set_value(self):
         bugsnag.notify(ScaryException('unexpected failover'),
@@ -475,25 +473,25 @@ class TestBugsnag(IntegrationTest):
         self.assertEqual(-13, event['metaData']['custom']['value2'])
 
     def test_notify_error_message(self):
-        bugsnag.notify(ScaryException(u('unexpécted failover')))
+        bugsnag.notify(ScaryException('unexpécted failover'))
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
-        self.assertEqual(u('unexpécted failover'), exception['message'])
+        self.assertEqual('unexpécted failover', exception['message'])
 
     def test_notify_unicode_metadata(self):
-        bins = (u('\x98\x00\x00\x00\t\x81\x19\x1b\x00\x00\x00\x00\xd4\x07\x00'
-                  '\x00\x00\x00\x00\x00R\x00\x00\x00\x00\x00\xff\xff\xff\xffe'
-                  '\x00\x00\x00\x02project\x00%\x00\x00\x00f65f051b-d762-5983'
-                  '-838b-a05aadc06a5\x00\x02uid\x00%\x00\x00\x001bab969f-7b30'
-                  '-459a-adee-917b9e028eed\x00\x00'))
+        bins = ('\x98\x00\x00\x00\t\x81\x19\x1b\x00\x00\x00\x00\xd4\x07\x00'
+                '\x00\x00\x00\x00\x00R\x00\x00\x00\x00\x00\xff\xff\xff\xffe'
+                '\x00\x00\x00\x02project\x00%\x00\x00\x00f65f051b-d762-5983'
+                '-838b-a05aadc06a5\x00\x02uid\x00%\x00\x00\x001bab969f-7b30'
+                '-459a-adee-917b9e028eed\x00\x00')
         self_class = 'tests.test_notify.TestBugsnag'
-        bugsnag.notify(Exception('free food'), meta_data={'payload': {
-            'project': u('∆πåß∂ƒ'),
-            'filename': u('DISPOSITIFS DE SÉCURITÉ.pdf'),
-            u('♥♥i'): u('♥♥♥♥♥♥'),
-            'src_name': u('☻☻☻☻☻ RDC DISPOSITIFS DE SÉCURTÉ.pdf'),
-            u('accénted'): u('☘☘☘éééé@me.com'),
+        bugsnag.notify(Exception('free food'), metadata={'payload': {
+            'project': '∆πåß∂ƒ',
+            'filename': 'DISPOSITIFS DE SÉCURITÉ.pdf',
+            '♥♥i': '♥♥♥♥♥♥',
+            'src_name': '☻☻☻☻☻ RDC DISPOSITIFS DE SÉCURTÉ.pdf',
+            'accénted': '☘☘☘éééé@me.com',
             'class': self.__class__,
             'another_class': dict,
             'self': self,
@@ -501,15 +499,15 @@ class TestBugsnag(IntegrationTest):
         }})
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
-        self.assertEqual(u('∆πåß∂ƒ'), event['metaData']['payload']['project'])
-        self.assertEqual(u('♥♥♥♥♥♥'),
-                         event['metaData']['payload'][u('♥♥i')])
-        self.assertEqual(u('DISPOSITIFS DE SÉCURITÉ.pdf'),
+        self.assertEqual('∆πåß∂ƒ', event['metaData']['payload']['project'])
+        self.assertEqual('♥♥♥♥♥♥',
+                         event['metaData']['payload']['♥♥i'])
+        self.assertEqual('DISPOSITIFS DE SÉCURITÉ.pdf',
                          event['metaData']['payload']['filename'])
-        self.assertEqual(u('☻☻☻☻☻ RDC DISPOSITIFS DE SÉCURTÉ.pdf'),
+        self.assertEqual('☻☻☻☻☻ RDC DISPOSITIFS DE SÉCURTÉ.pdf',
                          event['metaData']['payload']['src_name'])
-        self.assertEqual(u('☘☘☘éééé@me.com'),
-                         event['metaData']['payload'][u('accénted')])
+        self.assertEqual('☘☘☘éééé@me.com',
+                         event['metaData']['payload']['accénted'])
         self.assertEqual('test_notify_unicode_metadata (%s)' % self_class,
                          event['metaData']['payload']['self'])
         self.assertEqual(bins, event['metaData']['payload']['var'])
@@ -594,11 +592,11 @@ class TestBugsnag(IntegrationTest):
         })
 
     def test_middleware_stack_order_legacy(self):
-        def first_callback(notification):
-            notification.meta_data['test']['array'].append(1)
+        def first_callback(event):
+            event.metadata['test']['array'].append(1)
 
-        def second_callback(notification):
-            notification.meta_data['test']['array'].append(2)
+        def second_callback(event):
+            event.metadata['test']['array'].append(2)
 
         # Add a regular callback function
         bugsnag.before_notify(second_callback)
@@ -615,18 +613,17 @@ class TestBugsnag(IntegrationTest):
         self.assertEqual(event['metaData']['test']['array'], [1, 2])
 
     def test_middleware_stack_order(self):
-        client = bugsnag.Client(use_ssl=False,
-                                endpoint=self.server.address,
+        client = bugsnag.Client(endpoint=self.server.url,
                                 api_key='tomatoes',
                                 notify_release_stages=['dev'],
                                 release_stage='dev',
                                 asynchronous=False)
 
-        def first_callback(notification):
-            notification.meta_data['test']['array'].append(1)
+        def first_callback(event):
+            event.metadata['test']['array'].append(1)
 
-        def second_callback(notification):
-            notification.meta_data['test']['array'].append(2)
+        def second_callback(event):
+            event.metadata['test']['array'].append(2)
 
         client.configuration.middleware.before_notify(second_callback)
         client.configuration.internal_middleware.before_notify(first_callback)
@@ -639,15 +636,14 @@ class TestBugsnag(IntegrationTest):
         self.assertEqual(event['metaData']['test']['array'], [1, 2])
 
     def test_internal_middleware_changes_severity(self):
-        client = bugsnag.Client(use_ssl=False,
-                                endpoint=self.server.address,
+        client = bugsnag.Client(endpoint=self.server.url,
                                 api_key='tomatoes',
                                 notify_release_stages=['dev'],
                                 release_stage='dev',
                                 asynchronous=False)
 
-        def severity_callback(notification):
-            notification.severity = 'info'
+        def severity_callback(event):
+            event.severity = 'info'
 
         internal_middleware = client.configuration.internal_middleware
         internal_middleware.before_notify(severity_callback)
@@ -660,15 +656,14 @@ class TestBugsnag(IntegrationTest):
         self.assertEqual(event['severityReason']['type'], 'handledException')
 
     def test_internal_middleware_can_change_severity_reason(self):
-        client = bugsnag.Client(use_ssl=False,
-                                endpoint=self.server.address,
+        client = bugsnag.Client(endpoint=self.server.url,
                                 api_key='tomatoes',
                                 notify_release_stages=['dev'],
                                 release_stage='dev',
                                 asynchronous=False)
 
-        def severity_reason_callback(notification):
-            notification.severity_reason['type'] = 'testReason'
+        def severity_reason_callback(event):
+            event.severity_reason['type'] = 'testReason'
 
         internal_middleware = client.configuration.internal_middleware
         internal_middleware.before_notify(severity_reason_callback)
@@ -681,8 +676,8 @@ class TestBugsnag(IntegrationTest):
 
     def test_external_middleware_can_change_severity(self):
 
-        def severity_callback(notification):
-            notification.severity = 'info'
+        def severity_callback(event):
+            event.severity = 'info'
 
         bugsnag.before_notify(severity_callback)
 
@@ -696,8 +691,8 @@ class TestBugsnag(IntegrationTest):
 
     def test_external_middleware_cannot_change_severity_reason(self):
 
-        def severity_reason_callback(notification):
-            notification.severity_reason['type'] = 'testReason'
+        def severity_reason_callback(event):
+            event.severity_reason['type'] = 'testReason'
 
         bugsnag.before_notify(severity_reason_callback)
 
@@ -805,3 +800,17 @@ class TestBugsnag(IntegrationTest):
         bugsnag.notify(ScaryException('unexpected failover'),
                        asynchronous=False)
         assert len(self.server.received) == 1
+
+    def test_meta_data_warning(self):
+        with pytest.warns(DeprecationWarning) as records:
+            bugsnag.notify(ScaryException('false equivalence'),
+                           meta_data={'fruit': {'apples': 2}})
+
+            assert len(records) == 1
+            assert str(records[0].message) == ('The Event "metadata" ' +
+                                               'argument has been replaced ' +
+                                               'with "metadata"')
+
+        json_body = self.server.received[0]['json_body']
+        metadata = json_body['events'][0]['metaData']
+        assert metadata['fruit']['apples'] == 2

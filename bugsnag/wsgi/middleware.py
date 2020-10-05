@@ -15,27 +15,31 @@ if 'bottle' in sys.modules:
         bottle_present = False
 
 
-def add_wsgi_request_data_to_notification(notification):
-    if not hasattr(notification.request_config, "wsgi_environ"):
+__all__ = ('BugsnagMiddleware',)
+
+
+def add_wsgi_request_data_to_notification(event):
+    if not hasattr(event.request_config, "wsgi_environ"):
         return
 
-    environ = notification.request_config.wsgi_environ
+    environ = event.request_config.wsgi_environ
     request = Request(environ)
+    event.request = request
     path = request_path(environ)
 
-    notification.context = "%s %s" % (request.method, path)
-    notification.set_user(id=request.remote_addr)
-    notification.add_tab("request", {
+    event.context = "%s %s" % (request.method, path)
+    event.set_user(id=request.client_addr)
+    event.add_tab("request", {
         "url": "%s%s" % (request.application_url, path),
         "headers": dict(request.headers),
         "params": dict(request.params),
     })
 
     if bugsnag.configure().send_environment:
-        notification.add_tab("environment", dict(request.environ))
+        event.add_tab("environment", dict(request.environ))
 
 
-class WrappedWSGIApp(object):
+class WrappedWSGIApp:
     """
     Wraps a running WSGI app and sends all exceptions to bugsnag.
     """
@@ -88,7 +92,7 @@ class WrappedWSGIApp(object):
             bugsnag.clear_request_config()
 
 
-class BugsnagMiddleware(object):
+class BugsnagMiddleware:
     """
     Notifies Bugsnag on any unhandled exception that happens while processing
     a request in your application.

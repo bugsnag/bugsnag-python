@@ -1,5 +1,6 @@
-from six.moves import urllib
+from typing import Dict
+from urllib.parse import quote
 
 
-def request_path(env):
-    return urllib.parse.quote('/' + env.get('PATH_INFO', '').lstrip('/'))
+def request_path(env: Dict):
+    return quote('/' + env.get('PATH_INFO', '').lstrip('/'))

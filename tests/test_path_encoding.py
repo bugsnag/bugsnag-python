@@ -1,9 +1,9 @@
 # coding=utf-8
 
 import unittest
-from six.moves import urllib
+from urllib.parse import quote
 
-from bugsnag.notification import Notification
+from bugsnag.event import Event
 from bugsnag.configuration import (Configuration, RequestConfiguration)
 
 
@@ -24,19 +24,19 @@ class PathEncodingTest(unittest.TestCase):
         bugsnag.configure_request(wsgi_environ=environ)
 
         config = Configuration()
-        notification = Notification(
+        event = Event(
             Exception("oops"),
             config,
             RequestConfiguration.get_instance()
         )
 
         bugsnag.wsgi.middleware.add_wsgi_request_data_to_notification(
-            notification
+            event
         )
 
         self.assertEqual(
             'http://localhost/hello/world',
-            notification.meta_data['request']['url']
+            event.metadata['request']['url']
         )
 
     def test_wrongly_encoded_url_should_not_raise(self):
@@ -48,22 +48,22 @@ class PathEncodingTest(unittest.TestCase):
         bugsnag.configure_request(wsgi_environ=environ)
 
         config = Configuration()
-        notification = Notification(
+        event = Event(
             Exception("oops"),
             config,
             RequestConfiguration.get_instance()
         )
 
         bugsnag.wsgi.middleware.add_wsgi_request_data_to_notification(
-            notification
+            event
         )
 
         # We have to use "urllib.parse.quote" here because the exact output
         # differs on different Python versions because of how they handle
         # invalid encoding sequences
         self.assertEqual(
-            'http://localhost/%s' % urllib.parse.quote('%83'),
-            notification.meta_data['request']['url']
+            'http://localhost/%s' % quote('%83'),
+            event.metadata['request']['url']
         )
 
     def test_path_supports_emoji(self):
@@ -73,7 +73,7 @@ class PathEncodingTest(unittest.TestCase):
         environ['PATH_INFO'] = '/😇'
 
         config = Configuration()
-        notification = Notification(
+        event = Event(
             Exception("oops"),
             config,
             RequestConfiguration.get_instance()
@@ -82,13 +82,13 @@ class PathEncodingTest(unittest.TestCase):
         bugsnag.configure_request(wsgi_environ=environ)
 
         bugsnag.wsgi.middleware.add_wsgi_request_data_to_notification(
-            notification
+            event
         )
 
         # You can validate this by using "encodeURIComponent" in a browser.
         self.assertEqual(
             'http://localhost/%F0%9F%98%87',
-            notification.meta_data['request']['url']
+            event.metadata['request']['url']
         )
 
     def test_path_supports_non_ascii_characters(self):
@@ -98,7 +98,7 @@ class PathEncodingTest(unittest.TestCase):
         environ['PATH_INFO'] = '/ôßłガ'
 
         config = Configuration()
-        notification = Notification(
+        event = Event(
             Exception("oops"),
             config,
             RequestConfiguration.get_instance()
@@ -107,13 +107,13 @@ class PathEncodingTest(unittest.TestCase):
         bugsnag.configure_request(wsgi_environ=environ)
 
         bugsnag.wsgi.middleware.add_wsgi_request_data_to_notification(
-            notification
+            event
         )
 
         # You can validate this by using "encodeURIComponent" in a browser.
         self.assertEqual(
             'http://localhost/%C3%B4%C3%9F%C5%82%E3%82%AC',
-            notification.meta_data['request']['url']
+            event.metadata['request']['url']
         )
 
 

@@ -1,6 +1,58 @@
 Changelog
 =========
 
+## 4.0.0 (2020-10-01)
+
+This is a major release which adds new features while removing previously
+deprecated portions of the library. For a guide to upgrading your existing
+codebase, see [the upgrade guide](UPGRADING.md).
+
+### Breaking Changes
+
+The minimum supported Python version is now 3.5. Older versions of Python are
+now at
+[end-of-life](https://docs.python.org/devguide/#status-of-python-branches).
+Please upgrade.
+
+* Added `__all__` lists throughout to indicate the boundaries of the public
+  interface. This may affect your integration if using `import *`.
+
+* Removed `Configuration.use_ssl` and `Configuration.get_endpoint()` in favor of
+  including the protocol in `Configuration.endpoint`
+* `Configuration.send_environment` is now `False` by default. Enable it as a
+  part of your configuration to send the full request context (if any) as a part
+  of each event.
+
+* Removed `bugsnag.utils.ThreadLocals` as it has been superseded by the
+  `contextvars` API
+* Removed `bugsnag.utils.merge_dicts`, an unused helper function
+* Removed `bugsnag.send_sessions`
+
+### Deprecations
+
+* Deprecated `bugsnag.notification.Notification` in favor of
+  `bugsnag.event.Event` to better align with Bugsnag libraries on other
+  platforms. The `Notification` class is functionally equivalent and will be
+  removed in a future release.
+* `Event.meta_data` has been renamed to `Event.metadata`
+* `RequestConfiguration.meta_data` has been renamed to
+  `RequestConfiguration.metadata`
+
+### Enhancements
+
+* Added a `request` property to `Event`. Events created by errors which occur in
+  the HTTP request cycle (when using the integrations for Django, Flask, WSGI,
+  or Tornado) will have the request object available. The request object can be
+  used to add custom information to the Event which will be sent to Bugsnag. The
+  request object itself is not serialized.
+* Added type signatures throughout the library
+
+* [WSGI] Use `X-Forwarded-For` header if present to determine the IP address
+  used as the default user ID. The remote address remains available in the
+  request metadata attached to the event.
+  [Wolfgang Schnerring](https://github.com/wosc)
+  [#133](https://github.com/bugsnag/bugsnag-python/pull/133)
+
 ## 3.9.0 (2020-08-27)
 
 ### Enhancements

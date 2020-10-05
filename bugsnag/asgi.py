@@ -66,11 +66,11 @@ class BugsnagMiddleware:
     requests.
 
     >>> async def app(scope, receive, send):
-    >>>     await send({
-    >>>         "type": "http.request",
-    >>>         "body": b"Hello World",
-    >>>         "more_body": False,
-    >>>     })
+    ...     await send({
+    ...         "type": "http.request",
+    ...         "body": b"Hello World",
+    ...         "more_body": False,
+    ...     })
     >>> app = BugsnagMiddleware(app)
     """
     def __init__(self, app):

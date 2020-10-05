@@ -1,6 +1,3 @@
-from __future__ import division, print_function, absolute_import
-
-import six
 import django
 from django.conf import settings
 from django.core.signals import request_started, got_request_exception
@@ -15,25 +12,25 @@ from bugsnag.utils import is_json_content_type
 import json
 
 
-def add_django_request_to_notification(notification):
-    if not hasattr(notification.request_config, "django_request"):
+def add_django_request_to_notification(event):
+    if not hasattr(event.request_config, "django_request"):
         return
 
-    request = notification.request_config.django_request
+    request = event.request_config.django_request
+    event.request = request
 
-    if notification.context is None:
+    if event.context is None:
         try:
             route = resolve(request.path_info)
         except Resolver404:
             route = None
 
         if route and route.url_name:
-            notification.context = route.url_name
+            event.context = route.url_name
         elif route and route.view_name:
-            notification.context = route.view_name
+            event.context = route.view_name
         else:
-            notification.context = "%s %s" % (request.method,
-                                              request.path_info)
+            event.context = "%s %s" % (request.method, request.path_info)
 
     if hasattr(request, 'user'):
         if callable(request.user.is_authenticated):
@@ -44,15 +41,15 @@ def add_django_request_to_notification(notification):
             try:
                 name = request.user.get_full_name()
                 email = getattr(request.user, 'email', None)
-                username = six.text_type(request.user.get_username())
-                notification.set_user(id=username, email=email, name=name)
+                username = str(request.user.get_username())
+                event.set_user(id=username, email=email, name=name)
             except Exception:
                 bugsnag.logger.exception('Could not get user data')
     else:
-        notification.set_user(id=request.META['REMOTE_ADDR'])
+        event.set_user(id=request.META['REMOTE_ADDR'])
 
     if getattr(request, "session", None):
-        notification.add_tab("session", dict(request.session))
+        event.add_tab("session", dict(request.session))
     request_tab = {
         'method': request.method,
         'path': request.path,
@@ -69,9 +66,9 @@ def add_django_request_to_notification(notification):
     except Exception:
         pass
 
-    notification.add_tab("request", request_tab)
+    event.add_tab("request", request_tab)
     if bugsnag.configure().send_environment:
-        notification.add_tab("environment", dict(request.META))
+        event.add_tab("environment", dict(request.META))
 
 
 def configure():

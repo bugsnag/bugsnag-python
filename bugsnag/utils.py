@@ -1,10 +1,8 @@
-from __future__ import division, print_function, absolute_import
-
 from functools import wraps, partial
 import inspect
-import six
 from json import JSONEncoder
 from threading import local as threadlocal
+from typing import Tuple, Optional
 import warnings
 
 import bugsnag
@@ -13,14 +11,21 @@ MAX_PAYLOAD_LENGTH = 128 * 1024
 MAX_STRING_LENGTH = 1024
 
 
+__all__ = []  # type: ignore
+
+
 class SanitizingJSONEncoder(JSONEncoder):
     """
     A JSON encoder which handles filtering and conversion from JSON-
     incompatible types to strings.
 
-    >>> encoder = SanitizingJSONEncoder(filters=['bananas'])
-    >>> encoder.encode({'carrots': 4, 'bananas': 5})
-    "{'carrots': 4, 'bananas': '[FILTERED]'}"
+    >>> from json import loads
+    >>> encoder = SanitizingJSONEncoder(keyword_filters=['bananas'])
+    >>> items = loads(encoder.encode(FilterDict({'carrots': 4, 'bananas': 5})))
+    >>> items['bananas']
+    '[FILTERED]'
+    >>> items['carrots']
+    4
     """
 
     filtered_value = '[FILTERED]'
@@ -63,8 +68,8 @@ class SanitizingJSONEncoder(JSONEncoder):
             seen.append(obj)
 
             clean_dict = {}
-            for key, value in six.iteritems(obj):
-                is_string = isinstance(key, six.string_types)
+            for key, value in obj.items():
+                is_string = isinstance(key, str)
                 if is_string and any(f in key.lower() for f in self.filters):
                     clean_dict[key] = self.filtered_value
                 else:
@@ -81,10 +86,10 @@ class SanitizingJSONEncoder(JSONEncoder):
         '[BADENCODING]'
         """
         try:
-            if six.PY3 and isinstance(obj, bytes):
-                return six.text_type(obj, encoding='utf-8', errors='replace')
+            if isinstance(obj, bytes):
+                return str(obj, encoding='utf-8', errors='replace')
             else:
-                return six.text_type(obj)
+                return str(obj)
 
         except Exception:
             bugsnag.logger.exception('Could not add object to payload')
@@ -120,7 +125,7 @@ class SanitizingJSONEncoder(JSONEncoder):
                 items.append(
                         self._sanitize(value, trim_strings, ignored, seen))
             return items
-        elif trim_strings and isinstance(obj, six.string_types):
+        elif trim_strings and isinstance(obj, str):
             return obj[:MAX_STRING_LENGTH]
         else:
             return obj
@@ -130,15 +135,15 @@ class SanitizingJSONEncoder(JSONEncoder):
         Safely sets the provided key on the dictionary by coercing the key
         to a string
         """
-        if six.PY3 and isinstance(key, bytes):
+        if isinstance(key, bytes):
             try:
-                key = six.text_type(key, encoding='utf-8', errors='replace')
+                key = str(key, encoding='utf-8', errors='replace')
                 clean_dict[key] = clean_value
             except Exception:
                 bugsnag.logger.exception(
                     'Could not add sanitize key for dictionary, '
                     'dropping value.')
-        if isinstance(key, six.string_types):
+        if isinstance(key, str):
             clean_dict[key] = clean_value
         else:
             try:
@@ -157,7 +162,7 @@ class SanitizingJSONEncoder(JSONEncoder):
             obj = self.filter_string_values(obj)
 
         clean_dict = {}
-        for key, value in six.iteritems(obj):
+        for key, value in obj.items():
 
             clean_value = self._sanitize(value, trim_strings, ignored, seen)
 
@@ -173,22 +178,26 @@ class FilterDict(dict):
     pass
 
 
-def parse_content_type(value):
+ContentType = Tuple[str, Optional[str], Optional[str], Optional[str]]
+
+
+def parse_content_type(value: str) -> ContentType:
     """
     Generate a tuple of (type, subtype, suffix, parameters) from a type based
     on RFC 6838
 
     >>> parse_content_type("text/plain")
-    >>> ("text", "plain", None, None)
+    ('text', 'plain', None, None)
     >>> parse_content_type("application/hal+json")
-    >>> ("application", "hal", "json", None)
-    >>> parse_content_type("application/json;schema=\"https://example.com/a\"")
-    >>> ("application", "json", None, "schema=https://example.com/a")
+    ('application', 'hal', 'json', None)
+    >>> parse_content_type("application/json;schema=\\"ftp://example.com/a\\"")
+    ('application', 'json', None, 'schema="ftp://example.com/a"')
     """
+    parameters = None  # type: Optional[str]
     if ';' in value:
         types, parameters = value.split(';', 1)
     else:
-        types, parameters = value, None
+        types = value
     if '/' in types:
         maintype, subtype = types.split('/', 1)
         if '+' in subtype:
@@ -200,16 +209,16 @@ def parse_content_type(value):
         return (types, None, None, parameters)
 
 
-def is_json_content_type(value):  # type: (str) -> bool
+def is_json_content_type(value: str) -> bool:
     """
     Check if a content type is JSON-parseable
 
     >>> is_json_content_type('text/plain')
-    >>> False
+    False
     >>> is_json_content_type('application/schema+json')
-    >>> True
+    True
     >>> is_json_content_type('application/json')
-    >>> True
+    True
     """
     type, subtype, suffix, _ = parse_content_type(value.lower())
     return type == 'application' and (subtype == 'json' or suffix == 'json')
@@ -235,11 +244,11 @@ def package_version(package_name):
             return None
 
 
-def _validate_setter(types, func, future_error=False):
+def _validate_setter(types, func, should_error=False):
     """
     Check that the first argument of a function is of a provided set of types
     before calling the body of the wrapped function, printing a runtime warning
-    if the validation fails.
+    (or raising a TypeError) if the validation fails.
     """
     @wraps(func)
     def wrapper(obj, value):
@@ -248,72 +257,44 @@ def _validate_setter(types, func, future_error=False):
             func(obj, value)
         else:
             error_format = '{0} should be {1}, got {2}'
-            if future_error:
-                error_format += '. This will be an error in a future release.'
             actual = type(value).__name__
-            if types == six.string_types:
-                requirement = 'str'
-            else:
-                requirement = ' or '.join([t.__name__ for t in types])
+            requirement = ' or '.join([t.__name__ for t in types])
             message = error_format.format(option_name, requirement, actual)
-            warnings.warn(message, RuntimeWarning)
+            if should_error:
+                raise TypeError(message)
+            else:
+                warnings.warn(message, RuntimeWarning)
     return wrapper
 
 
-validate_str_setter = partial(_validate_setter, six.string_types)
-validate_required_str_setter = partial(_validate_setter, six.string_types,
-                                       future_error=True)
+validate_str_setter = partial(_validate_setter, (str,))
+validate_required_str_setter = partial(_validate_setter, (str,),
+                                       should_error=True)
 validate_bool_setter = partial(_validate_setter, (bool,))
 validate_iterable_setter = partial(_validate_setter, (list, tuple))
 
 
-def merge_dicts(lhs, rhs):
-    for key, value in rhs.items():
-        if isinstance(value, dict):
-            node = lhs.setdefault(key, {})
-            merge_dicts(node, value)
-        elif isinstance(value, list):
-            array = lhs.setdefault(key, [])
-            array += value
-        else:
-            lhs[key] = value
-
-
-class ThreadLocals(object):
+class ThreadContextVar:
+    """
+    A wrapper around thread-local variables to mimic the API of contextvars
+    """
     LOCALS = None
 
-    @staticmethod
-    def get_instance():
-        if not ThreadLocals.LOCALS:
-            ThreadLocals.LOCALS = threadlocal()
-        return ThreadLocals()
+    @classmethod
+    def local_context(cls):
+        if not ThreadContextVar.LOCALS:
+            ThreadContextVar.LOCALS = threadlocal()
+        return ThreadContextVar.LOCALS
 
-    def get_item(self, key, default=None):
-        return getattr(ThreadLocals.LOCALS, key, default)
-
-    def set_item(self, key, value):
-        return setattr(ThreadLocals.LOCALS, key, value)
-
-    def has_item(self, key):
-        return hasattr(ThreadLocals.LOCALS, key)
-
-    def del_item(self, key):
-        return delattr(ThreadLocals.LOCALS, key)
-
-
-class ThreadContextVar(object):
-    """
-    A wrapper around ThreadLocals to mimic the API of contextvars
-    """
     def __init__(self, name, default=None):
         self.name = name
-        ThreadLocals.get_instance().set_item(name, default)
+        setattr(ThreadContextVar.local_context(), name, default)
 
     def get(self):
-        local = ThreadLocals.get_instance()
-        if local.has_item(self.name):
-            return local.get_item(self.name)
+        local = ThreadContextVar.local_context()
+        if hasattr(local, self.name):
+            return getattr(local, self.name)
         raise LookupError("No value for '{}'".format(self.name))
 
     def set(self, new_value):
-        ThreadLocals.get_instance().set_item(self.name, new_value)
+        setattr(ThreadContextVar.local_context(), self.name, new_value)

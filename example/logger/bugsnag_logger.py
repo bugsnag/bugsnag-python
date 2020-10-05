@@ -46,7 +46,7 @@ bugsnag.configure(
 logger = logging.getLogger("test.logger")
 
 # Create a Bugsnag handler.
-# Optionally, add 'extra_fields' which will attach meta_data to every Bugsnag
+# Optionally, add 'extra_fields' which will attach metadata to every Bugsnag
 # report. The values should be attributes to pull off each log record.
 handler = BugsnagHandler(extra_fields={"logger": ["__repr__"]})
 
@@ -99,8 +99,8 @@ def use_custom_exception_data(report):
     exception data with it, overriding the class and message seen on the
     Bugsnag dashboard. This attaches to the bugsnag.before_notify().
     """
-    if 'custom' in report.meta_data:
-        exception = report.meta_data['custom'].pop('custom exception', None)
+    if 'custom' in report.metadata:
+        exception = report.metadata['custom'].pop('custom exception', None)
         if exception is not None:
             report.exception = exception
 

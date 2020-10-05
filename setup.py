@@ -14,13 +14,14 @@ from setuptools import setup, find_packages
 
 setup(
     name='bugsnag',
-    version='3.9.0',
+    version='4.0.0',
     description='Automatic error monitoring for django, flask, etc.',
     long_description=__doc__,
     author='Simon Maynard',
     author_email='simon@bugsnag.com',
     url='https://bugsnag.com/',
     license='MIT',
+    python_requires='>=3.5.*, <4',
     packages=find_packages(include=['bugsnag', 'bugsnag.*']),
     classifiers=[
         'Development Status :: 5 - Production/Stable',
@@ -31,18 +32,15 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Topic :: Software Development'
     ],
     test_suite='tests',
-    install_requires=['webob', 'six>=1.9,<2'],
+    install_requires=['webob'],
     extras_require={
         'flask': ['flask', 'blinker']
     },

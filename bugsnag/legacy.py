@@ -1,3 +1,4 @@
+from typing import Dict, Any, Tuple, Type
 import types
 import sys
 
@@ -8,6 +9,12 @@ import bugsnag
 
 default_client = Client()
 configuration = default_client.configuration
+ExcInfoType = Tuple[Type, Exception, types.TracebackType]
+
+
+__all__ = ('configure', 'configure_request', 'add_metadata_tab',
+           'clear_request_config', 'notify', 'start_session', 'auto_notify',
+           'auto_notify_exc_info', 'before_notify')
 
 
 def configure(**options):
@@ -24,17 +31,17 @@ def configure_request(**options):
     RequestConfiguration.get_instance().configure(**options)
 
 
-def add_metadata_tab(tab_name, data):
+def add_metadata_tab(tab_name: str, data: Dict[str, Any]):
     """
     Add metaData to the tab
 
     bugsnag.add_metadata_tab("user", {"id": "1", "name": "Conrad"})
     """
-    meta_data = RequestConfiguration.get_instance().meta_data
-    if tab_name not in meta_data:
-        meta_data[tab_name] = {}
+    metadata = RequestConfiguration.get_instance().metadata
+    if tab_name not in metadata:
+        metadata[tab_name] = {}
 
-    meta_data[tab_name].update(data)
+    metadata[tab_name].update(data)
 
 
 def clear_request_config():
@@ -44,7 +51,7 @@ def clear_request_config():
     RequestConfiguration.clear()
 
 
-def notify(exception, **options):
+def notify(exception: BaseException, **options):
     """
     Notify bugsnag of an exception.
     """
@@ -77,14 +84,7 @@ def start_session():
     default_client.session_tracker.start_session()
 
 
-def send_sessions():
-    """
-    Delivers all currently undelivered sessions to Bugsnag
-    """
-    default_client.session_tracker.send_sessions()
-
-
-def auto_notify(exception, **options):
+def auto_notify(exception: BaseException, **options):
     """
     Notify bugsnag of an exception if auto_notify is enabled.
     """
@@ -100,7 +100,7 @@ def auto_notify(exception, **options):
         )
 
 
-def auto_notify_exc_info(exc_info=None, **options):
+def auto_notify_exc_info(exc_info: ExcInfoType = None, **options):
     """
     Notify bugsnag of a exc_info tuple if auto_notify is enabled
     """
@@ -123,6 +123,6 @@ def before_notify(callback):
     """
     Add a callback to be called before bugsnag is notified
 
-    This can be used to alter the notification before sending it to Bugsnag.
+    This can be used to alter the event before sending it to Bugsnag.
     """
     configuration.middleware.before_notify(callback)
