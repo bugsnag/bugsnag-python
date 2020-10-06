@@ -39,6 +39,9 @@ setup(
         'Programming Language :: Python :: 3.9',
         'Topic :: Software Development'
     ],
+    package_data = {
+        'bugsnag': ['py.typed'],
+    },
     test_suite='tests',
     install_requires=['webob'],
     extras_require={
