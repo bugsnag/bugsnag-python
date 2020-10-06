@@ -3,6 +3,8 @@ Changelog
 
 ## 4.0.1 (2020-10-06)
 
+### Bug fixes
+
 * Fix issue where types were not packaged with the library
 
 ## 4.0.0 (2020-10-01)
