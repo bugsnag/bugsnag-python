@@ -19,7 +19,7 @@ setup(
     long_description=__doc__,
     author='Simon Maynard',
     author_email='simon@bugsnag.com',
-    url='https://bugsnag.com/',
+    url='https://docs.bugsnag.com/platforms/python/',
     license='MIT',
     python_requires='>=3.5.*, <4',
     packages=find_packages(include=['bugsnag', 'bugsnag.*']),
@@ -41,6 +41,11 @@ setup(
     ],
     package_data = {
         'bugsnag': ['py.typed'],
+    },
+    project_urls={
+        'Documentation': 'https://docs.bugsnag.com/platforms/python/',
+        'Source': 'https://github.com/bugsnag/bugsnag-python/',
+        'Tracker': 'https://github.com/bugsnag/bugsnag-python/issues/',
     },
     test_suite='tests',
     install_requires=['webob'],
