@@ -190,6 +190,10 @@ class Event:
             if skip_module:
                 continue
 
+            # Fetch the code before (potentially) removing the project root
+            # from the file path
+            code = self._code_for(file_name, int(str(line[1])))
+
             if lib_root and file_name.startswith(lib_root):
                 file_name = file_name[len(lib_root):]
             elif project_root and file_name.startswith(project_root):
@@ -201,7 +205,7 @@ class Event:
                 "lineNumber": int(str(line[1])),
                 "method": str(line[2]),
                 "inProject": in_project,
-                "code": self._code_for(file_name, int(str(line[1])))
+                "code": code
             })
 
         stacktrace.reverse()
