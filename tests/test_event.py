@@ -114,6 +114,15 @@ class TestEvent(unittest.TestCase):
         first_traceback = exception['stacktrace'][0]
 
         self.assertEqual(first_traceback['file'], 'fixtures/helpers.py')
+        self.assertEqual(
+            {
+                '1': 'def invoke_exception_on_other_file(config):',
+                '2': '    from bugsnag.event import Event',
+                '3': '',
+                '4': '    return Event(Exception("another file!"), config, {})'
+            },
+            first_traceback['code']
+        )
 
     def test_traceback_exclude_modules(self):
         # Make sure samples.py is compiling to pyc

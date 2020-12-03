@@ -1,6 +1,13 @@
 Changelog
 =========
 
+## 4.0.2 (2020-12-03)
+
+### Bug fixes
+
+* Fixed an issue preventing code being fetched from files in the project root but not in the PWD
+  [#246](https://github.com/bugsnag/bugsnag-python/pull/246)
+
 ## 4.0.1 (2020-10-06)
 
 ### Bug fixes
