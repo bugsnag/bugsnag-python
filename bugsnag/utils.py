@@ -4,6 +4,7 @@ from json import JSONEncoder
 from threading import local as threadlocal
 from typing import Tuple, Optional
 import warnings
+import copy
 
 import bugsnag
 
@@ -288,12 +289,18 @@ class ThreadContextVar:
 
     def __init__(self, name, default=None):
         self.name = name
-        setattr(ThreadContextVar.local_context(), name, default)
+        self.default = default
+        # Make a deep copy so that each thread starts with a fresh default
+        self.set(copy.deepcopy(default))
 
     def get(self):
         local = ThreadContextVar.local_context()
         if hasattr(local, self.name):
             return getattr(local, self.name)
+        elif self.default is not None:
+            result = copy.deepcopy(self.default)
+            self.set(result)
+            return result
         raise LookupError("No value for '{}'".format(self.name))
 
     def set(self, new_value):

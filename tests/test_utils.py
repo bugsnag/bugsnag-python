@@ -4,6 +4,7 @@ import timeit
 import sys
 import datetime
 import re
+import threading
 
 from bugsnag.utils import (SanitizingJSONEncoder, FilterDict,
                            is_json_content_type, parse_content_type,
@@ -95,6 +96,32 @@ class TestUtils(unittest.TestCase):
         token = ThreadContextVar("TEST_contextvars", {'pips': 3})
         token.set({'carrots': 'no'})
         self.assertEqual({'carrots': 'no'}, token.get())
+
+    def test_thread_context_vars_in_thread(self):
+        """
+        Verify that ThreadContextVar backport has correct behavior
+        inside a new thread.
+        """
+        # TODO: Tokens are a different class, not yet emulated
+        # (https://docs.python.org/3/library/contextvars.html#contextvars.contextvars.Token)
+        token = ThreadContextVar('TEST_contextvars', default={'pips': 3})
+        token.set({'pips': 4})
+
+        def thread_worker():
+            result = token.get()
+            # Test that we got a new, unmodified copy of the default
+            self.assertEqual({'pips': 3}, result)
+            result['pips'] = 5
+            result2 = token.get()
+            # Test that local modifications are persistent
+            self.assertEqual({'pips': 5}, result2)
+
+        thread = threading.Thread(target=thread_worker)
+        thread.start()
+        thread.join()
+        result3 = token.get()
+        # Test that non-local changes don't leak through
+        self.assertEqual({'pips': 4}, result3)
 
     def test_encoding_recursive(self):
         """
