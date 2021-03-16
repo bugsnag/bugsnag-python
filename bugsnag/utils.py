@@ -298,6 +298,7 @@ class ThreadContextVar:
         if hasattr(local, self.name):
             return getattr(local, self.name)
         elif self.default is not None:
+            # Make a deep copy so that each thread starts with a fresh default
             result = copy.deepcopy(self.default)
             self.set(result)
             return result
