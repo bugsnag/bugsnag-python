@@ -6,6 +6,7 @@ import six
 from json import JSONEncoder
 from threading import local as threadlocal
 import warnings
+import copy
 
 import bugsnag
 
@@ -307,12 +308,21 @@ class ThreadContextVar(object):
     """
     def __init__(self, name, default=None):
         self.name = name
-        ThreadLocals.get_instance().set_item(name, default)
+        self.default = default
+
+        # Make a deep copy so that each thread starts with a fresh default
+        self.set(copy.deepcopy(default))
 
     def get(self):
         local = ThreadLocals.get_instance()
+
         if local.has_item(self.name):
             return local.get_item(self.name)
+        elif self.default is not None:
+            result = copy.deepcopy(self.default)
+            self.set(result)
+            return result
+
         raise LookupError("No value for '{}'".format(self.name))
 
     def set(self, new_value):
