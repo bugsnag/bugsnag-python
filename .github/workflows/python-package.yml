@@ -32,7 +32,7 @@ jobs:
         COVERALLS_PARALLEL: true
       run: |
         coverage combine
-        coveralls
+        coveralls --service github
 
   coveralls:
     name: Finish Coveralls processing
@@ -43,6 +43,6 @@ jobs:
     - name: Send request
       run: |
         pip3 install --upgrade coveralls
-        coveralls --finish
+        coveralls --service github --finish
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
