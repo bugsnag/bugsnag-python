@@ -85,16 +85,21 @@ class TestUtils(unittest.TestCase):
         sane_data = json.loads(encoder.encode(data))
         self.assertEqual(sane_data, data)
 
-    def test_thread_context_vars_default(self):
+    def test_thread_context_vars_get_raises_if_no_default(self):
         token = ThreadContextVar(str(uuid.uuid4()))
-        self.assertEqual(None, token.get())  # default value is none
+        self.assertRaises(LookupError, token.get)
 
-    def test_thread_context_vars_set_default_value(self):
-        token = ThreadContextVar(str(uuid.uuid4()), {'pips': 3})
+    def test_thread_context_vars_returns_default_value_from_get(self):
+        token = ThreadContextVar(str(uuid.uuid4()), default={'pips': 3})
         self.assertEqual({'pips': 3}, token.get())
 
+    def test_thread_context_vars_set_new_value_with_no_default(self):
+        token = ThreadContextVar(str(uuid.uuid4()))
+        token.set({'peas': 'maybe'})
+        self.assertEqual({'peas': 'maybe'}, token.get())
+
     def test_thread_context_vars_set_new_value(self):
-        token = ThreadContextVar(str(uuid.uuid4()), {'pips': 3})
+        token = ThreadContextVar(str(uuid.uuid4()), default={'pips': 3})
         token.set({'carrots': 'no'})
         self.assertEqual({'carrots': 'no'}, token.get())
 
