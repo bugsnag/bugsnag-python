@@ -102,26 +102,35 @@ class TestUtils(unittest.TestCase):
         Verify that ThreadContextVar backport has correct behavior
         inside a new thread.
         """
-        # TODO: Tokens are a different class, not yet emulated
-        # (https://docs.python.org/3/library/contextvars.html#contextvars.contextvars.Token)
         token = ThreadContextVar('TEST_contextvars', default={'pips': 3})
         token.set({'pips': 4})
 
         def thread_worker():
-            result = token.get()
-            # Test that we got a new, unmodified copy of the default
-            self.assertEqual({'pips': 3}, result)
-            result['pips'] = 5
-            result2 = token.get()
-            # Test that local modifications are persistent
-            self.assertEqual({'pips': 5}, result2)
+            try:
+                thread.exc_info = None
+
+                result = token.get()
+
+                # Test that we got a new, unmodified copy of the default
+                self.assertEqual({'pips': 3}, result)
+
+                result['pips'] = 5
+
+                # Test that local modifications are persistent
+                self.assertEqual({'pips': 5}, token.get())
+            except Exception:
+                import sys
+                thread.exc_info = sys.exc_info()
 
         thread = threading.Thread(target=thread_worker)
         thread.start()
         thread.join()
-        result3 = token.get()
+
+        # ensure exceptions in the thread_worker fail the test
+        self.assertEqual(None, thread.exc_info, thread.exc_info)
+
         # Test that non-local changes don't leak through
-        self.assertEqual({'pips': 4}, result3)
+        self.assertEqual({'pips': 4}, token.get())
 
     def test_encoding_recursive(self):
         """
