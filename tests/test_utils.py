@@ -5,6 +5,7 @@ import sys
 import datetime
 import re
 import threading
+import uuid
 
 from bugsnag.utils import (SanitizingJSONEncoder, FilterDict,
                            is_json_content_type, parse_content_type,
@@ -85,15 +86,15 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(sane_data, data)
 
     def test_thread_context_vars_default(self):
-        token = ThreadContextVar("TEST_contextvars")
+        token = ThreadContextVar(str(uuid.uuid4()))
         self.assertEqual(None, token.get())  # default value is none
 
     def test_thread_context_vars_set_default_value(self):
-        token = ThreadContextVar("TEST_contextvars", {'pips': 3})
+        token = ThreadContextVar(str(uuid.uuid4()), {'pips': 3})
         self.assertEqual({'pips': 3}, token.get())
 
     def test_thread_context_vars_set_new_value(self):
-        token = ThreadContextVar("TEST_contextvars", {'pips': 3})
+        token = ThreadContextVar(str(uuid.uuid4()), {'pips': 3})
         token.set({'carrots': 'no'})
         self.assertEqual({'carrots': 'no'}, token.get())
 
@@ -102,7 +103,7 @@ class TestUtils(unittest.TestCase):
         Verify that ThreadContextVar backport has correct behavior
         inside a new thread.
         """
-        token = ThreadContextVar('TEST_contextvars', default={'pips': 3})
+        token = ThreadContextVar(str(uuid.uuid4()), default={'pips': 3})
         token.set({'pips': 4})
 
         def thread_worker():
