@@ -306,19 +306,24 @@ class ThreadContextVar(object):
     """
     A wrapper around ThreadLocals to mimic the API of contextvars
     """
-    def __init__(self, name, default=None):
+    def __init__(self, name, **kwargs):
         self.name = name
-        self.default = default
 
-        # Make a deep copy so that each thread starts with a fresh default
-        self.set(copy.deepcopy(default))
+        # Mimic the behaviour of ContextVar - if a default has been explicitly
+        # passed then we will use it, otherwise don't set an initial value
+        # This allows 'get' to know when to raise a LookupError
+        if 'default' in kwargs:
+            self.default = kwargs['default']
+            # Make a deep copy so this thread starts with a fresh default
+            self.set(copy.deepcopy(self.default))
 
     def get(self):
         local = ThreadLocals.get_instance()
 
         if local.has_item(self.name):
             return local.get_item(self.name)
-        elif self.default is not None:
+
+        if hasattr(self, 'default'):
             # Make a deep copy so that each thread starts with a fresh default
             result = copy.deepcopy(self.default)
             self.set(result)
