@@ -1,6 +1,15 @@
 Changelog
 =========
 
+## TBD
+
+### Fixes
+
+* Fixed an issue with `ContextVar` backport for Python versions before 3.7
+  [Michael J.T. O'Kelly](https://github.com/mokelly)
+  [#254](https://github.com/bugsnag/bugsnag-python/pull/254)
+  ([#259](https://github.com/bugsnag/bugsnag-python/pull/259))
+
 ## 3.9.0 (2020-08-27)
 
 ### Enhancements
