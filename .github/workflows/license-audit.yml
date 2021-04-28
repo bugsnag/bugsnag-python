@@ -22,7 +22,7 @@ jobs:
     - name: Set up requirements.txt for License Finder
       run: |
         pip3 install '.[flask]'
-        pip3 freeze --local | tee requirements.txt
+        pip3 freeze --local --exclude bugsnag | tee requirements.txt
 
     - name: Run License Finder
       # for some reason license finder doesn't run without a login shell (-l)
