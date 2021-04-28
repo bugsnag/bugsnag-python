@@ -4,6 +4,7 @@ from json import JSONEncoder
 from threading import local as threadlocal
 from typing import Tuple, Optional
 import warnings
+import copy
 
 import bugsnag
 
@@ -286,14 +287,28 @@ class ThreadContextVar:
             ThreadContextVar.LOCALS = threadlocal()
         return ThreadContextVar.LOCALS
 
-    def __init__(self, name, default=None):
+    def __init__(self, name, **kwargs):
         self.name = name
-        setattr(ThreadContextVar.local_context(), name, default)
+
+        # Mimic the behaviour of ContextVar - if a default has been explicitly
+        # passed then we will use it, otherwise don't set an initial value
+        # This allows 'get' to know when to raise a LookupError
+        if 'default' in kwargs:
+            self.default = kwargs['default']
+            # Make a deep copy so this thread starts with a fresh default
+            self.set(copy.deepcopy(self.default))
 
     def get(self):
         local = ThreadContextVar.local_context()
         if hasattr(local, self.name):
             return getattr(local, self.name)
+
+        if hasattr(self, 'default'):
+            # Make a deep copy so that each thread starts with a fresh default
+            result = copy.deepcopy(self.default)
+            self.set(result)
+            return result
+
         raise LookupError("No value for '{}'".format(self.name))
 
     def set(self, new_value):

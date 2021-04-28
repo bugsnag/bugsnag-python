@@ -1,6 +1,14 @@
 Changelog
 =========
 
+## 4.0.3 (2021-04-28)
+
+### Bug fixes
+
+* Fixed an issue with `ContextVar` backport for Python 3.5 and 3.6
+  [Michael J.T. O'Kelly](https://github.com/mokelly)
+  [#254](https://github.com/bugsnag/bugsnag-python/pull/254)
+
 ## 4.0.2 (2020-12-03)
 
 ### Bug fixes
