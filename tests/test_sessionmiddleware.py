@@ -1,4 +1,5 @@
 import unittest
+import threading
 
 from bugsnag.sessiontracker import SessionTracker, SessionMiddleware
 from bugsnag.configuration import Configuration
@@ -42,3 +43,27 @@ class TestSessionMiddleware(unittest.TestCase):
         # Session counts should not change for events already handled
         assert event.session['events']['unhandled'] == 0
         assert event.session['events']['handled'] == 1
+
+    def test_it_does_nothing_if_no_session_exists(self):
+        def run_session_middleware():
+            def next_callable(event):
+                pass
+
+            try:
+                thread.exc_info = None
+                middleware = SessionMiddleware(next_callable)
+
+                event = Notification(Exception('shucks'), self.config, None)
+                middleware(event)
+
+                assert event.session is None
+            except Exception:
+                import sys
+                thread.exc_info = sys.exc_info()
+
+        thread = threading.Thread(target=run_session_middleware)
+        thread.start()
+        thread.join()
+
+        # ensure there was no exception in the thread
+        self.assertEqual(None, thread.exc_info, thread.exc_info)
