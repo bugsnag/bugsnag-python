@@ -9,7 +9,7 @@ import bugsnag.django
 
 class BugsnagMiddleware(MiddlewareMixin):
     def __init__(self, get_response=None):
-        bugsnag.django.configure()
+        self.config = bugsnag.django.configure()
         super(BugsnagMiddleware, self).__init__(get_response)
 
     # pylint: disable-msg=R0201
@@ -37,7 +37,7 @@ class BugsnagMiddleware(MiddlewareMixin):
             )
 
         except Exception:
-            bugsnag.logger.exception("Error in exception middleware")
+            self.config.logger.exception("Error in exception middleware")
 
         bugsnag.clear_request_config()
 
