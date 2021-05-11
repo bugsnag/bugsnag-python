@@ -1,6 +1,9 @@
 import os
 import socket
+import logging
 import unittest
+from unittest.mock import patch
+from io import StringIO
 
 from bugsnag.configuration import Configuration
 from bugsnag.middleware import DefaultMiddleware
@@ -362,3 +365,138 @@ class TestConfiguration(unittest.TestCase):
         c = Configuration()
         with pytest.raises(TypeError):
             c.configure(emperor=True)
+
+    @patch('sys.stderr', new_callable=StringIO)
+    def test_default_logger(self, mock_stderr):
+        config = Configuration()
+
+        assert isinstance(config.logger, logging.Logger)
+
+        # debug and info calls should be ignored by default
+        config.logger.debug('hello debug!')
+        config.logger.info('hello info!')
+        assert mock_stderr.getvalue() == ''
+
+        config.logger.warning('hello warning!')
+        assert mock_stderr.getvalue().endswith(
+            '[bugsnag] WARNING - hello warning!\n'
+        )
+
+        config.logger.error('hello error!')
+        assert mock_stderr.getvalue().endswith(
+            '[bugsnag] ERROR - hello error!\n'
+        )
+
+        config.logger.critical('hello critical!')
+        assert mock_stderr.getvalue().endswith(
+            '[bugsnag] CRITICAL - hello critical!\n'
+        )
+
+        config.logger.exception('hello exception! %s', Exception('oh no!'))
+        assert mock_stderr.getvalue().endswith(
+            '[bugsnag] ERROR - hello exception! oh no!\nNoneType: None\n'
+        )
+
+    @patch('sys.stderr', new_callable=StringIO)
+    def test_default_logger_with_configure_call(self, mock_stderr):
+        config = Configuration()
+        config.configure(app_type='very good')
+
+        assert isinstance(config.logger, logging.Logger)
+
+        # debug and info calls should be ignored by default
+        config.logger.debug('hello debug!')
+        config.logger.info('hello info!')
+        assert mock_stderr.getvalue() == ''
+
+        config.logger.warning('hello warning!')
+        assert mock_stderr.getvalue().endswith(
+            '[bugsnag] WARNING - hello warning!\n'
+        )
+
+        config.logger.error('hello error!')
+        assert mock_stderr.getvalue().endswith(
+            '[bugsnag] ERROR - hello error!\n'
+        )
+
+        config.logger.critical('hello critical!')
+        assert mock_stderr.getvalue().endswith(
+            '[bugsnag] CRITICAL - hello critical!\n'
+        )
+
+        config.logger.exception('hello exception! %s', Exception('oh no!'))
+        assert mock_stderr.getvalue().endswith(
+            '[bugsnag] ERROR - hello exception! oh no!\nNoneType: None\n'
+        )
+
+    @patch('sys.stderr', new_callable=StringIO)
+    def test_logger_can_be_disabled(self, mock_stderr):
+        config = Configuration(logger=None)
+
+        assert isinstance(config.logger, logging.Logger)
+
+        config.logger.debug('hello debug!')
+        config.logger.info('hello info!')
+        config.logger.warning('hello warning!')
+        config.logger.error('hello error!')
+        config.logger.critical('hello critical!')
+        config.logger.exception('hello exception!')
+
+        assert mock_stderr.getvalue() == ''
+
+    @patch('sys.stderr', new_callable=StringIO)
+    def test_logger_can_be_disabled_using_configure(self, mock_stderr):
+        config = Configuration()
+        config.configure(logger=None)
+
+        assert isinstance(config.logger, logging.Logger)
+
+        config.logger.debug('hello debug!')
+        config.logger.info('hello info!')
+        config.logger.warning('hello warning!')
+        config.logger.error('hello error!')
+        config.logger.critical('hello critical!')
+        config.logger.exception('hello exception!')
+
+        assert mock_stderr.getvalue() == ''
+
+    @patch('sys.stderr', new_callable=StringIO)
+    def test_default_logger_is_used_if_invalid_logger_set(self, mock_stderr):
+        with pytest.warns(RuntimeWarning) as warnings:
+            config = Configuration(logger=123)
+
+        expected_message = 'logger should be logging.Logger, got int'
+
+        assert len(warnings) == 1
+        assert warnings[0].message.args[0] == expected_message
+
+        # the default logger should be used
+        assert isinstance(config.logger, logging.Logger)
+
+        config.logger.warning('hello warning!')
+        assert mock_stderr.getvalue().endswith(
+            '[bugsnag] WARNING - hello warning!\n'
+        )
+
+    @patch('sys.stderr', new_callable=StringIO)
+    def test_default_logger_is_used_if_invalid_logger_set_with_configure(
+        self,
+        mock_stderr
+    ):
+        config = Configuration()
+
+        with pytest.warns(RuntimeWarning) as warnings:
+            config.configure(logger='hello')
+
+        expected_message = 'logger should be logging.Logger, got str'
+
+        assert len(warnings) == 1
+        assert warnings[0].message.args[0] == expected_message
+
+        # the default logger should be used
+        assert isinstance(config.logger, logging.Logger)
+
+        config.logger.warning('hello warning!')
+        assert mock_stderr.getvalue().endswith(
+            '[bugsnag] WARNING - hello warning!\n'
+        )

@@ -1,9 +1,11 @@
 import os
 import platform
 import socket
+import sys
 import sysconfig
-from typing import List, Any, Tuple, Union
+from typing import List, Any, Tuple, Union, Optional
 import warnings
+import logging
 
 from bugsnag.sessiontracker import SessionMiddleware
 from bugsnag.middleware import DefaultMiddleware, MiddlewareStack
@@ -23,13 +25,15 @@ except ImportError:
 
 
 __all__ = ('Configuration', 'RequestConfiguration')
+_sentinel = object()
 
 
 class Configuration:
     """
     Global app-level Bugsnag configuration settings.
     """
-    def __init__(self):
+
+    def __init__(self, logger=_sentinel):
         self.api_key = os.environ.get('BUGSNAG_API_KEY', None)
         self.release_stage = os.environ.get("BUGSNAG_RELEASE_STAGE",
                                             "production")
@@ -70,6 +74,8 @@ class Configuration:
 
         self.runtime_versions = {"python": platform.python_version()}
 
+        self.logger = logger
+
     def configure(self, api_key=None, app_type=None, app_version=None,
                   asynchronous=None, auto_notify=None,
                   auto_capture_sessions=None, delivery=None, endpoint=None,
@@ -77,7 +83,7 @@ class Configuration:
                   notify_release_stages=None, params_filters=None,
                   project_root=None, proxy_host=None, release_stage=None,
                   send_code=None, send_environment=None, session_endpoint=None,
-                  traceback_exclude_modules=None):
+                  traceback_exclude_modules=None, logger=_sentinel):
         """
         Validate and set configuration options. Will warn if an option is of an
         incorrect type.
@@ -122,6 +128,9 @@ class Configuration:
             self.session_endpoint = session_endpoint
         if traceback_exclude_modules is not None:
             self.traceback_exclude_modules = traceback_exclude_modules
+        if logger is not _sentinel:
+            self.logger = logger
+
         return self
 
     def get(self, name):
@@ -407,6 +416,29 @@ class Configuration:
     def traceback_exclude_modules(self, value: List[str]):
         self._traceback_exclude_modules = value
 
+    @property
+    def logger(self) -> logging.Logger:
+        """
+        Logger for use internally
+        """
+        return self._logger
+
+    @logger.setter  # type: ignore
+    def logger(self, logger: Optional[logging.Logger]) -> None:
+        if logger is _sentinel:
+            logger = self._create_default_logger()
+        elif logger is None:
+            logger = self._create_null_logger()
+
+        if not isinstance(logger, logging.Logger):
+            actual = type(logger).__name__
+            message = 'logger should be logging.Logger, got ' + actual
+            warnings.warn(message, RuntimeWarning)
+
+            logger = self._create_default_logger()
+
+        self._logger = logger
+
     def should_notify(self) -> bool:
         return self.notify_release_stages is None or \
             (isinstance(self.notify_release_stages, (tuple, list)) and
@@ -415,6 +447,28 @@ class Configuration:
     def should_ignore(self, exception: BaseException) -> bool:
         return self.ignore_classes is not None and \
             fully_qualified_class_name(exception) in self.ignore_classes
+
+    def _create_default_logger(self) -> logging.Logger:
+        logger = logging.getLogger('bugsnag')
+        logger.setLevel(logging.WARNING)
+
+        format = '%(asctime)s - [%(name)s] %(levelname)s - %(message)s'
+        formatter = logging.Formatter(format)
+
+        handler = logging.StreamHandler(sys.stderr)
+        handler.setFormatter(formatter)
+
+        logger.addHandler(handler)
+
+        return logger
+
+    def _create_null_logger(self) -> logging.Logger:
+        logger = logging.getLogger('bugsnag')
+        logger.handlers = []
+
+        logger.addHandler(logging.NullHandler())
+
+        return logger
 
 
 class RequestConfiguration:
