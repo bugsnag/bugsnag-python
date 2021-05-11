@@ -13,7 +13,6 @@ except ImportError:
     # flake8: noqa
     _session_info = ThreadContextVar('bugsnag-session', default={})  # type: ignore
 
-import bugsnag
 from bugsnag.utils import package_version, FilterDict, SanitizingJSONEncoder
 from bugsnag.event import Event
 
@@ -97,15 +96,17 @@ class SessionTracker:
 
     def __deliver(self, sessions: List[Dict]):
         if not sessions:
-            bugsnag.logger.debug("No sessions to deliver")
+            self.config.logger.debug("No sessions to deliver")
             return
 
         if not self.config.api_key:
-            bugsnag.logger.debug("Not delivering due to an invalid api_key")
+            self.config.logger.debug(
+                "Not delivering due to an invalid api_key"
+            )
             return
 
         if not self.config.should_notify():
-            bugsnag.logger.debug("Not delivering due to release_stages")
+            self.config.logger.debug("Not delivering due to release_stages")
             return
 
         notifier_version = package_version('bugsnag') or 'unknown'
@@ -134,7 +135,7 @@ class SessionTracker:
             encoded_payload = encoder.encode(payload)
             self.config.delivery.deliver_sessions(self.config, encoded_payload)
         except Exception as e:
-            bugsnag.logger.exception('Sending sessions failed %s', e)
+            self.config.logger.exception('Sending sessions failed %s', e)
 
 
 class SessionMiddleware:

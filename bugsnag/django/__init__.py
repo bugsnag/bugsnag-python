@@ -44,7 +44,7 @@ def add_django_request_to_notification(event):
                 username = str(request.user.get_username())
                 event.set_user(id=username, email=email, name=name)
             except Exception:
-                bugsnag.logger.exception('Could not get user data')
+                event.config.logger.exception('Could not get user data')
     else:
         event.set_user(id=request.META['REMOTE_ADDR'])
 

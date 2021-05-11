@@ -155,7 +155,7 @@ class Event:
                     module_file = module_file[:-1]
                 exclude_module_paths.append(module_file)
             except Exception:
-                bugsnag.logger.exception(
+                self.config.logger.exception(
                     'Could not exclude module: %s' % repr(exclude_module))
 
         lib_root = self.config.lib_root
