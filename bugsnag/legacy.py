@@ -9,6 +9,7 @@ import bugsnag
 
 default_client = Client()
 configuration = default_client.configuration
+logger = configuration.logger
 ExcInfoType = Tuple[Type, Exception, types.TracebackType]
 
 
