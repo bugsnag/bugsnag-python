@@ -1,15 +1,17 @@
 import unittest
 import json
 import timeit
-import sys
 import datetime
 import re
 import threading
 import uuid
+import logging
 
 from bugsnag.utils import (SanitizingJSONEncoder, FilterDict,
                            is_json_content_type, parse_content_type,
                            ThreadContextVar)
+
+logger = logging.getLogger(__name__)
 
 
 class TestUtils(unittest.TestCase):
@@ -19,8 +21,11 @@ class TestUtils(unittest.TestCase):
     def test_encode_filters(self):
         data = FilterDict({"credit_card": "123213213123", "password": "456",
                            "cake": True})
-        encoder = SanitizingJSONEncoder(keyword_filters=["credit_card",
-                                                         "password"])
+        encoder = SanitizingJSONEncoder(
+            logger,
+            keyword_filters=["credit_card", "password"]
+        )
+
         sane_data = json.loads(encoder.encode(data))
         self.assertEqual(sane_data, {"credit_card": "[FILTERED]",
                                      "password": "[FILTERED]",
@@ -29,59 +34,68 @@ class TestUtils(unittest.TestCase):
     def test_sanitize_list(self):
         data = FilterDict({"list": ["carrots", "apples", "peas"],
                            "passwords": ["abc", "def"]})
-        encoder = SanitizingJSONEncoder(keyword_filters=["credit_card",
-                                                         "passwords"])
+
+        encoder = SanitizingJSONEncoder(
+            logger,
+            keyword_filters=["credit_card", "passwords"]
+        )
+
         sane_data = json.loads(encoder.encode(data))
         self.assertEqual(sane_data, {"list": ["carrots", "apples", "peas"],
                                      "passwords": "[FILTERED]"})
 
     def test_sanitize_valid_unicode_object(self):
         data = {"item": '\U0001f62c'}
-        encoder = SanitizingJSONEncoder(keyword_filters=[])
+        encoder = SanitizingJSONEncoder(logger, keyword_filters=[])
         sane_data = json.loads(encoder.encode(data))
         self.assertEqual(sane_data, data)
 
     def test_sanitize_nested_object_filters(self):
         data = FilterDict({"metadata": {"another_password": "My password"}})
-        encoder = SanitizingJSONEncoder(keyword_filters=["password"])
+
+        encoder = SanitizingJSONEncoder(
+            logger,
+            keyword_filters=["password"]
+        )
+
         sane_data = json.loads(encoder.encode(data))
         self.assertEqual(sane_data,
                          {"metadata": {"another_password": "[FILTERED]"}})
 
     def test_sanitize_bad_utf8_object(self):
         data = {"bad_utf8": "test \xe9"}
-        encoder = SanitizingJSONEncoder(keyword_filters=[])
+        encoder = SanitizingJSONEncoder(logger, keyword_filters=[])
         sane_data = json.loads(encoder.encode(data))
         self.assertEqual(sane_data, data)
 
     def test_sanitize_unencoded_object(self):
         data = {"exc": Exception()}
-        encoder = SanitizingJSONEncoder(keyword_filters=[])
+        encoder = SanitizingJSONEncoder(logger, keyword_filters=[])
         sane_data = json.loads(encoder.encode(data))
         self.assertEqual(sane_data, {"exc": ""})
 
     def test_json_encode(self):
         payload = {"a": "a" * 512 * 1024}
         expected = {"a": "a" * 1024}
-        encoder = SanitizingJSONEncoder(keyword_filters=[])
+        encoder = SanitizingJSONEncoder(logger, keyword_filters=[])
         self.assertEqual(json.loads(encoder.encode(payload)), expected)
 
     def test_filter_dict(self):
         data = FilterDict({"metadata": {"another_password": "My password"}})
-        encoder = SanitizingJSONEncoder(keyword_filters=["password"])
+        encoder = SanitizingJSONEncoder(logger, keyword_filters=["password"])
         sane_data = encoder.filter_string_values(data)
         self.assertEqual(sane_data,
                          {"metadata": {"another_password": "[FILTERED]"}})
 
     def test_decode_bytes(self):
         data = FilterDict({b"metadata": "value"})
-        encoder = SanitizingJSONEncoder(keyword_filters=["password"])
+        encoder = SanitizingJSONEncoder(logger, keyword_filters=["password"])
         sane_data = json.loads(encoder.encode(data))
         self.assertEqual(sane_data, {"metadata": "value"})
 
     def test_unfiltered_encode(self):
         data = {"metadata": {"another_password": "My password"}}
-        encoder = SanitizingJSONEncoder(keyword_filters=["password"])
+        encoder = SanitizingJSONEncoder(logger, keyword_filters=["password"])
         sane_data = json.loads(encoder.encode(data))
         self.assertEqual(sane_data, data)
 
@@ -144,7 +158,7 @@ class TestUtils(unittest.TestCase):
         """
         data = {"Test": ["a", "b", "c"]}
         data["Self"] = data
-        encoder = SanitizingJSONEncoder(keyword_filters=[])
+        encoder = SanitizingJSONEncoder(logger, keyword_filters=[])
         sane_data = json.loads(encoder.encode(data))
         self.assertEqual(sane_data,
                          {"Test": ["a", "b", "c"], "Self": "[RECURSIVE]"})
@@ -155,7 +169,7 @@ class TestUtils(unittest.TestCase):
         """
         data = {"Test": ["a", "b", "c"]}
         data["Self"] = data
-        encoder = SanitizingJSONEncoder(keyword_filters=[])
+        encoder = SanitizingJSONEncoder(logger, keyword_filters=[])
         sane_data = json.loads(encoder.encode(data))
         self.assertEqual(sane_data,
                          {"Test": ["a", "b", "c"], "Self": "[RECURSIVE]"})
@@ -168,7 +182,7 @@ class TestUtils(unittest.TestCase):
         Test that encoding the same object within a new object is not
         incorrectly marked as recursive
         """
-        encoder = SanitizingJSONEncoder(keyword_filters=[])
+        encoder = SanitizingJSONEncoder(logger, keyword_filters=[])
         data = {"Test": ["a", "b", "c"]}
         encoder.encode(data)
         data = {"Previous": data, "Other": 400}
@@ -184,7 +198,7 @@ class TestUtils(unittest.TestCase):
         """
         data = {"Test": ["a" * 128 * 1024, "b", "c"], "Other": {"a": 300}}
         data["Self"] = data
-        encoder = SanitizingJSONEncoder(keyword_filters=[])
+        encoder = SanitizingJSONEncoder(logger, keyword_filters=[])
         sane_data = json.loads(encoder.encode(data))
         self.assertEqual(sane_data,
                          {"Test": ["a" * 1024, "b", "c"],
@@ -197,25 +211,25 @@ class TestUtils(unittest.TestCase):
         """
         setup = """\
 import json
+import logging
 from tests.large_object import large_object_file_path
 from bugsnag.utils import SanitizingJSONEncoder
-encoder = SanitizingJSONEncoder(keyword_filters=[])
+
+logger = logging.getLogger(__name__)
+encoder = SanitizingJSONEncoder(logger, keyword_filters=[])
 with open(large_object_file_path()) as json_data:
     data = json.load(json_data)
         """
-        stmt = """\
-encoder.encode(data)
-        """
+
+        stmt = "encoder.encode(data)"
+
         time = timeit.timeit(stmt=stmt, setup=setup, number=1000)
         maximum_time = 6
-        if sys.version_info[0:2] <= (2, 6):
-            # json encoding is very slow on python 2.6 so we need to increase
-            # the allowable time when running on it
-            maximum_time = 18
-        self.assertTrue(time < maximum_time,
-                        "Encoding required {0}s (expected {1}s)".format(
-                            time, maximum_time
-                        ))
+
+        self.assertTrue(
+            time < maximum_time,
+            "Encoding required {0}s (expected {1}s)".format(time, maximum_time)
+        )
 
     def test_filter_string_values_list_handling(self):
         """
@@ -223,7 +237,7 @@ encoder.encode(data)
         parameter for backwards compatibility
         """
         data = {}
-        encoder = SanitizingJSONEncoder()
+        encoder = SanitizingJSONEncoder(logger)
         # no assert as we are just expecting this not to throw
         encoder.filter_string_values(data, ['password'])
 
@@ -233,7 +247,7 @@ encoder.encode(data)
         backwards compatibility
         """
         data = {}
-        encoder = SanitizingJSONEncoder()
+        encoder = SanitizingJSONEncoder(logger)
         # no assert as we are just expecting this not to throw
         encoder._sanitize(data, ['password'], ['password'])
 
@@ -243,7 +257,7 @@ encoder.encode(data)
         name or some other bad data is passed as a key in the payload
         dictionary.
         """
-        encoder = SanitizingJSONEncoder(keyword_filters=[])
+        encoder = SanitizingJSONEncoder(logger, keyword_filters=[])
 
         def foo():
             return "123"
@@ -284,7 +298,7 @@ encoder.encode(data)
                 }),
             }
         }
-        encoder = SanitizingJSONEncoder(keyword_filters=['password'])
+        encoder = SanitizingJSONEncoder(logger, keyword_filters=['password'])
         sane_data = json.loads(encoder.encode(data))
         self.assertEqual(sane_data, {
                             'level1-key1': {
@@ -331,7 +345,12 @@ encoder.encode(data)
                 },
             }
         })
-        encoder = SanitizingJSONEncoder(keyword_filters=['password', 'token'])
+
+        encoder = SanitizingJSONEncoder(
+            logger,
+            keyword_filters=['password', 'token']
+        )
+
         filtered_data = encoder.filter_string_values(data)
         self.assertEqual(filtered_data, {
                             'level1-key1': {

@@ -238,9 +238,12 @@ class Event:
     def _payload(self):
         # Fetch the notifier version from the package
         notifier_version = package_version("bugsnag") or "unknown"
-        filters = self.config.params_filters
-        encoder = SanitizingJSONEncoder(separators=(',', ':'),
-                                        keyword_filters=filters)
+        encoder = SanitizingJSONEncoder(
+            self.config.logger,
+            separators=(',', ':'),
+            keyword_filters=self.config.params_filters
+        )
+
         # Construct the payload dictionary
         return encoder.encode({
             "apiKey": self.api_key,

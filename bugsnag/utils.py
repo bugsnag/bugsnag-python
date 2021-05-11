@@ -5,8 +5,7 @@ from threading import local as threadlocal
 from typing import Tuple, Optional
 import warnings
 import copy
-
-import bugsnag
+import logging
 
 MAX_PAYLOAD_LENGTH = 128 * 1024
 MAX_STRING_LENGTH = 1024
@@ -20,8 +19,10 @@ class SanitizingJSONEncoder(JSONEncoder):
     A JSON encoder which handles filtering and conversion from JSON-
     incompatible types to strings.
 
+    >>> import logging
     >>> from json import loads
-    >>> encoder = SanitizingJSONEncoder(keyword_filters=['bananas'])
+    >>> logger = logging.getLogger(__name__)
+    >>> encoder = SanitizingJSONEncoder(logger, keyword_filters=['bananas'])
     >>> items = loads(encoder.encode(FilterDict({'carrots': 4, 'bananas': 5})))
     >>> items['bananas']
     '[FILTERED]'
@@ -33,7 +34,8 @@ class SanitizingJSONEncoder(JSONEncoder):
     recursive_value = '[RECURSIVE]'
     unencodeable_value = '[BADENCODING]'
 
-    def __init__(self, keyword_filters=None, **kwargs):
+    def __init__(self, logger: logging.Logger, keyword_filters=None, **kwargs):
+        self.logger = logger
         self.filters = list(map(str.lower, keyword_filters or []))
         super(SanitizingJSONEncoder, self).__init__(**kwargs)
 
@@ -93,7 +95,7 @@ class SanitizingJSONEncoder(JSONEncoder):
                 return str(obj)
 
         except Exception:
-            bugsnag.logger.exception('Could not add object to payload')
+            self.logger.exception('Could not add object to payload')
             return self.unencodeable_value
 
     def _sanitize(self, obj, trim_strings, ignored=None, seen=None):
@@ -141,7 +143,7 @@ class SanitizingJSONEncoder(JSONEncoder):
                 key = str(key, encoding='utf-8', errors='replace')
                 clean_dict[key] = clean_value
             except Exception:
-                bugsnag.logger.exception(
+                self.logger.exception(
                     'Could not add sanitize key for dictionary, '
                     'dropping value.')
         if isinstance(key, str):
@@ -150,7 +152,7 @@ class SanitizingJSONEncoder(JSONEncoder):
             try:
                 clean_dict[str(key)] = clean_value
             except Exception:
-                bugsnag.logger.exception(
+                self.logger.exception(
                     'Could not add sanitize key for dictionary, '
                     'dropping value.')
 

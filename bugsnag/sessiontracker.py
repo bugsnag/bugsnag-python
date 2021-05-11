@@ -129,9 +129,12 @@ class SessionTracker:
         }
 
         try:
-            filters = self.config.params_filters
-            encoder = SanitizingJSONEncoder(separators=(',', ':'),
-                                            keyword_filters=filters)
+            encoder = SanitizingJSONEncoder(
+                self.config.logger,
+                separators=(',', ':'),
+                keyword_filters=self.config.params_filters
+            )
+
             encoded_payload = encoder.encode(payload)
             self.config.delivery.deliver_sessions(self.config, encoded_payload)
         except Exception as e:
