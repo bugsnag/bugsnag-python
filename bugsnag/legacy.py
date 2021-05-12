@@ -5,8 +5,6 @@ import sys
 from bugsnag.configuration import RequestConfiguration
 from bugsnag.client import Client
 
-import bugsnag
-
 default_client = Client()
 configuration = default_client.configuration
 logger = configuration.logger
@@ -71,8 +69,10 @@ def notify(exception: BaseException, **options):
             except Exception:
                 value = '[BADENCODING]'
 
-            bugsnag.logger.warning('Coercing invalid notify()'
-                                   ' value to RuntimeError: %s' % value)
+            default_client.configuration.logger.warning(
+                'Coercing invalid notify() value to RuntimeError: %s' % value
+            )
+
             exception = RuntimeError(value)
 
         default_client.notify(exception, **options)

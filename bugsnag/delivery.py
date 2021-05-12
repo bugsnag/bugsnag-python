@@ -12,7 +12,6 @@ from urllib.request import (
     build_opener
 )
 
-import bugsnag
 from bugsnag.event import Event
 
 try:
@@ -117,8 +116,9 @@ class UrllibDelivery(Delivery):
             else:
                 success = 200
             if status != success:
-                bugsnag.logger.warning(
-                    'Delivery to %s failed, status %d' % (uri, status))
+                config.logger.warning(
+                    'Delivery to %s failed, status %d' % (uri, status)
+                )
 
         self.queue_request(request, config, options)
 
@@ -150,7 +150,8 @@ class RequestsDelivery(Delivery):
                 success = requests.codes.ok
 
             if status != success:
-                bugsnag.logger.warning(
-                    'Delivery to %s failed, status %d' % (uri, status))
+                config.logger.warning(
+                    'Delivery to %s failed, status %d' % (uri, status)
+                )
 
         self.queue_request(request, config, options)

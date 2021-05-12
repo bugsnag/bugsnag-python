@@ -9,9 +9,6 @@ from bugsnag.event import Event
 from bugsnag.handlers import BugsnagHandler
 from bugsnag.sessiontracker import SessionTracker
 
-import bugsnag
-
-
 __all__ = ('Client',)
 
 
@@ -157,9 +154,12 @@ class Client:
                     options = {'asynchronous': asynchronous}
 
                 if event.api_key is None:
-                    bugsnag.logger.warning(
-                        "No API key configured, couldn't notify")
+                    self.configuration.logger.warning(
+                        "No API key configured, couldn't notify"
+                    )
+
                     return
+
                 if initial_severity != event.severity:
                     event.severity_reason = {
                         'type': 'userCallbackSetSeverity'
@@ -171,7 +171,11 @@ class Client:
                     self.configuration.delivery.deliver(self.configuration,
                                                         payload, options)
                 except Exception as e:
-                    bugsnag.logger.exception('Notifying Bugsnag failed %s', e)
+                    self.configuration.logger.exception(
+                        'Notifying Bugsnag failed %s',
+                        e
+                    )
+
                 # Trigger session delivery
                 self.session_tracker.send_sessions()
 

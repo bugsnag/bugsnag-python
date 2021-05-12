@@ -155,7 +155,7 @@ class Event:
                     module_file = module_file[:-1]
                 exclude_module_paths.append(module_file)
             except Exception:
-                bugsnag.logger.exception(
+                self.config.logger.exception(
                     'Could not exclude module: %s' % repr(exclude_module))
 
         lib_root = self.config.lib_root
@@ -238,9 +238,12 @@ class Event:
     def _payload(self):
         # Fetch the notifier version from the package
         notifier_version = package_version("bugsnag") or "unknown"
-        filters = self.config.params_filters
-        encoder = SanitizingJSONEncoder(separators=(',', ':'),
-                                        keyword_filters=filters)
+        encoder = SanitizingJSONEncoder(
+            self.config.logger,
+            separators=(',', ':'),
+            keyword_filters=self.config.params_filters
+        )
+
         # Construct the payload dictionary
         return encoder.encode({
             "apiKey": self.api_key,
