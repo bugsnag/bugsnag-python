@@ -35,6 +35,7 @@ class SanitizingJSONEncoder(JSONEncoder):
 
     def __init__(self, keyword_filters=None, **kwargs):
         self.filters = list(map(str.lower, keyword_filters or []))
+        self.bytes_filters = [x.lower().encode('utf-8') for x in keyword_filters or []]
         super(SanitizingJSONEncoder, self).__init__(**kwargs)
 
     def encode(self, obj):
@@ -71,7 +72,9 @@ class SanitizingJSONEncoder(JSONEncoder):
             clean_dict = {}
             for key, value in obj.items():
                 is_string = isinstance(key, str)
-                if is_string and any(f in key.lower() for f in self.filters):
+                is_bytes = isinstance(key, bytes)
+                if ((is_string and any(f in key.lower() for f in self.filters)) or
+                        (is_bytes and any(f in key.lower() for f in self.bytes_filters))):
                     clean_dict[key] = self.filtered_value
                 else:
                     clean_dict[key] = self.filter_string_values(

@@ -26,6 +26,16 @@ class TestUtils(unittest.TestCase):
                                      "password": "[FILTERED]",
                                      "cake": True})
 
+    def test_encode_filters_bytes(self):
+        data = FilterDict({b"credit_card": "123213213123", b"password": "456",
+                           "cake": True})
+        encoder = SanitizingJSONEncoder(keyword_filters=["credit_card",
+                                                         "password"])
+        sane_data = json.loads(encoder.encode(data))
+        self.assertEqual(sane_data, {"credit_card": "[FILTERED]",
+                                     "password": "[FILTERED]",
+                                     "cake": True})
+
     def test_sanitize_list(self):
         data = FilterDict({"list": ["carrots", "apples", "peas"],
                            "passwords": ["abc", "def"]})
