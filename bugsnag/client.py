@@ -4,6 +4,7 @@ import threading
 from functools import wraps
 from typing import Union, Tuple, Callable, Optional, List, Type
 
+from bugsnag.breadcrumbs import Breadcrumb
 from bugsnag.configuration import Configuration, RequestConfiguration
 from bugsnag.event import Event
 from bugsnag.handlers import BugsnagHandler
@@ -196,6 +197,16 @@ class Client:
 
     def log_handler(self, extra_fields: List[str] = None) -> BugsnagHandler:
         return BugsnagHandler(client=self, extra_fields=extra_fields)
+
+    @property
+    def breadcrumbs(self) -> List[Breadcrumb]:
+        return self.configuration.breadcrumbs
+
+    def add_on_breadcrumb(self, on_breadcrumb) -> None:
+        self.configuration.add_on_breadcrumb(on_breadcrumb)
+
+    def remove_on_breadcrumb(self, on_breadcrumb) -> None:
+        self.configuration.remove_on_breadcrumb(on_breadcrumb)
 
 
 class ClientContext:

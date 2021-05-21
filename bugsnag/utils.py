@@ -275,6 +275,7 @@ validate_required_str_setter = partial(_validate_setter, (str,),
                                        should_error=True)
 validate_bool_setter = partial(_validate_setter, (bool,))
 validate_iterable_setter = partial(_validate_setter, (list, tuple))
+validate_int_setter = partial(_validate_setter, (int,))
 
 
 class ThreadContextVar:
