@@ -1,5 +1,6 @@
 import os
 import sys
+import pytest
 
 from bugsnag import Client, Configuration
 from tests.utils import IntegrationTest, ScaryException
@@ -357,8 +358,46 @@ class ClientTest(IntegrationTest):
         self.assertEqual(client1, sys.excepthook.bugsnag_client)
         self.assertEqual(client1.sys_excepthook, excepthook)
 
-    # Session Tracking
-
     def test_session_tracker_object_exists(self):
         client = Client()
         self.assertTrue(hasattr(client, 'session_tracker'))
+
+    def test_breadcrumbs_are_read_only(self):
+        client = Client()
+        assert client.breadcrumbs == []
+
+        client.breadcrumbs.append('definitely a breadcrumb')
+        assert client.breadcrumbs == []
+
+        with pytest.raises(AttributeError) as e:
+            client.breadcrumbs = ['??']
+
+            assert str(e) == "AttributeError: can't set attribute"
+
+    def test_on_breadcrumb_callbacks_can_be_added_and_removed(self):
+        client = Client()
+        config = client.configuration
+        assert config._on_breadcrumbs == []
+
+        def on_breadcrumb():
+            pass
+
+        on_breadcrumb_2 = lambda: None  # noqa: E731
+
+        client.add_on_breadcrumb(on_breadcrumb)
+        assert config._on_breadcrumbs == [on_breadcrumb]
+
+        client.add_on_breadcrumb(on_breadcrumb_2)
+        assert config._on_breadcrumbs == [on_breadcrumb, on_breadcrumb_2]
+
+        client.remove_on_breadcrumb(on_breadcrumb)
+        assert config._on_breadcrumbs == [on_breadcrumb_2]
+
+        client.remove_on_breadcrumb(on_breadcrumb_2)
+        assert config._on_breadcrumbs == []
+
+    def test_removing_a_nonexistent_on_breadcrumb_callback_does_nothing(self):
+        client = Client()
+
+        client.remove_on_breadcrumb(lambda: None)
+        assert client.configuration._on_breadcrumbs == []

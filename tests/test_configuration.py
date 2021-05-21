@@ -1,10 +1,14 @@
 import os
 import socket
 import logging
+import random
+import time
 import unittest
 from unittest.mock import patch
 from io import StringIO
+from threading import Thread
 
+from bugsnag.breadcrumbs import BreadcrumbType
 from bugsnag.configuration import Configuration
 from bugsnag.middleware import DefaultMiddleware
 from bugsnag.sessiontracker import SessionMiddleware
@@ -500,3 +504,165 @@ class TestConfiguration(unittest.TestCase):
         assert mock_stderr.getvalue().endswith(
             '[bugsnag] WARNING - hello warning!\n'
         )
+
+    def test_validate_max_breadcrumbs_type(self):
+        c = Configuration()
+
+        with pytest.warns(RuntimeWarning) as record:
+            c.configure(max_breadcrumbs='one million')
+
+            assert len(record) == 1
+
+            message = str(record[0].message)
+            assert message == 'max_breadcrumbs should be int, got str'
+            assert c.max_breadcrumbs == 25
+
+        c.configure(max_breadcrumbs=12)
+        assert c.max_breadcrumbs == 12
+
+    def test_validate_max_breadcrumbs_less_than_0(self):
+        c = Configuration()
+
+        with pytest.warns(RuntimeWarning) as record:
+            c.configure(max_breadcrumbs=-1)
+
+            assert len(record) == 1
+
+            message = str(record[0].message)
+            assert message == 'max_breadcrumbs should be an int between 0 ' \
+                'and 100, got "-1"'
+            assert c.max_breadcrumbs == 25
+
+        c.configure(max_breadcrumbs=0)
+        assert c.max_breadcrumbs == 0
+
+    def test_validate_max_breadcrumbs_greater_than_100(self):
+        c = Configuration()
+
+        with pytest.warns(RuntimeWarning) as record:
+            c.configure(max_breadcrumbs=101)
+
+            assert len(record) == 1
+
+            message = str(record[0].message)
+            assert message == 'max_breadcrumbs should be an int between 0 ' \
+                'and 100, got "101"'
+            assert c.max_breadcrumbs == 25
+
+        c.configure(max_breadcrumbs=100)
+        assert c.max_breadcrumbs == 100
+
+    def test_breadcrumb_log_level(self):
+        c = Configuration()
+        assert c.breadcrumb_log_level == logging.INFO
+
+        c.configure(breadcrumb_log_level=logging.ERROR)
+        assert c.breadcrumb_log_level == logging.ERROR
+
+    def test_enabled_breadcrumb_types(self):
+        c = Configuration()
+        assert c.enabled_breadcrumb_types == list(BreadcrumbType)
+
+        c.configure(enabled_breadcrumb_types=[BreadcrumbType.ERROR])
+        assert c.enabled_breadcrumb_types == [BreadcrumbType.ERROR]
+
+    def test_breadcrumbs_are_read_only(self):
+        c = Configuration()
+        assert c.breadcrumbs == []
+
+        c.breadcrumbs.append('definitely a breadcrumb')
+        assert c.breadcrumbs == []
+
+        with pytest.raises(AttributeError) as e:
+            c.breadcrumbs = ['??']
+
+            assert str(e) == "AttributeError: can't set attribute"
+
+    def test_on_breadcrumb_callbacks_can_be_added_and_removed(self):
+        c = Configuration()
+        assert c._on_breadcrumbs == []
+
+        def on_breadcrumb():
+            pass
+
+        on_breadcrumb_2 = lambda: None  # noqa: E731
+
+        c.add_on_breadcrumb(on_breadcrumb)
+        assert c._on_breadcrumbs == [on_breadcrumb]
+
+        c.add_on_breadcrumb(on_breadcrumb_2)
+        assert c._on_breadcrumbs == [on_breadcrumb, on_breadcrumb_2]
+
+        c.remove_on_breadcrumb(on_breadcrumb)
+        assert c._on_breadcrumbs == [on_breadcrumb_2]
+
+        c.remove_on_breadcrumb(on_breadcrumb_2)
+        assert c._on_breadcrumbs == []
+
+    def test_removing_a_nonexistent_on_breadcrumb_callback_does_nothing(self):
+        c = Configuration()
+
+        c.remove_on_breadcrumb(lambda: None)
+        assert c._on_breadcrumbs == []
+
+    def test_concurrent_access_to_on_breadcrumb_callbacks(self):
+        c = Configuration()
+
+        def first_on_breadcrumb():
+            pass
+
+        def second_on_breadcrumb():
+            pass
+
+        def add_callbacks():
+            try:
+                thread.exception = None
+
+                c.add_on_breadcrumb(first_on_breadcrumb)
+
+                # sleep for a bit to allow other threads time to interfere
+                time.sleep(random.randrange(0, 100) / 1000)
+
+                c.remove_on_breadcrumb(first_on_breadcrumb)
+                c.add_on_breadcrumb(first_on_breadcrumb)
+
+                # sleep for a bit to allow other threads time to interfere
+                time.sleep(random.randrange(0, 100) / 1000)
+
+                c.add_on_breadcrumb(second_on_breadcrumb)
+
+                # sleep for a bit to allow other threads time to interfere
+                time.sleep(random.randrange(0, 100) / 1000)
+
+                c.remove_on_breadcrumb(second_on_breadcrumb)
+                c.add_on_breadcrumb(second_on_breadcrumb)
+
+            except Exception as e:
+                thread.exception = e
+
+        number_of_threads = 5
+
+        threads = []
+        for i in range(number_of_threads):
+            thread = Thread(target=add_callbacks)
+            threads.append(thread)
+
+        # shuffle the list of threads so they don't run in a reliable order
+        random.shuffle(threads)
+
+        for thread in threads:
+            thread.start()
+
+        # shuffle the list of threads so they don't run in a reliable order
+        random.shuffle(threads)
+
+        for thread in threads:
+            thread.join(2)
+
+            assert not thread.is_alive()
+
+            # if an exception happened in the thread, raise it here instead
+            if thread.exception is not None:
+                raise thread.exception
+
+        assert len(c._on_breadcrumbs) == number_of_threads * 2
