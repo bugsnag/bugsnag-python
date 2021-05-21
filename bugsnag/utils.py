@@ -6,6 +6,7 @@ from typing import Tuple, Optional
 import warnings
 import copy
 import logging
+from datetime import datetime, timedelta
 
 MAX_PAYLOAD_LENGTH = 128 * 1024
 MAX_STRING_LENGTH = 1024
@@ -316,3 +317,48 @@ class ThreadContextVar:
 
     def set(self, new_value):
         setattr(ThreadContextVar.local_context(), self.name, new_value)
+
+
+# to_rfc3339: format a datetime instance to match to_rfc3339/iso8601 with
+# milliseconds precision
+# Python can do this natively from version 3.6, but we need to include a
+# fallback implementation for Python 3.5
+try:
+    # this will raise if 'timespec' isn't supported
+    datetime.utcnow().isoformat(timespec='milliseconds')  # type: ignore
+
+    def to_rfc3339(dt: datetime) -> str:
+        return dt.isoformat(timespec='milliseconds')  # type: ignore
+
+except Exception:
+    def _get_timezone_offset(dt: datetime) -> str:
+        if dt.tzinfo is None:
+            return ''
+
+        utc_offset = dt.tzinfo.utcoffset(dt)
+
+        if utc_offset is None:
+            return ''
+
+        sign = '+'
+
+        if utc_offset.days < 0:
+            sign = '-'
+            utc_offset = -utc_offset
+
+        hours_offset, minutes = divmod(utc_offset, timedelta(hours=1))
+        minutes_offset, seconds = divmod(minutes, timedelta(minutes=1))
+
+        return '{:s}{:02d}:{:02d}'.format(sign, hours_offset, minutes_offset)
+
+    def to_rfc3339(dt: datetime) -> str:
+        return '{:04d}-{:02d}-{:02d}T{:02d}:{:02d}:{:02d}.{:03d}{:s}'.format(
+            dt.year,
+            dt.month,
+            dt.day,
+            dt.hour,
+            dt.minute,
+            dt.second,
+            int(dt.microsecond / 1000),
+            _get_timezone_offset(dt)
+        )
