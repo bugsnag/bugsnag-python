@@ -1,7 +1,8 @@
-from typing import Dict, Any, Tuple, Type
+from typing import Dict, Any, Tuple, Type, Union
 import types
 import sys
 
+from bugsnag.breadcrumbs import BreadcrumbType
 from bugsnag.configuration import RequestConfiguration
 from bugsnag.client import Client
 
@@ -13,7 +14,7 @@ ExcInfoType = Tuple[Type, Exception, types.TracebackType]
 
 __all__ = ('configure', 'configure_request', 'add_metadata_tab',
            'clear_request_config', 'notify', 'start_session', 'auto_notify',
-           'auto_notify_exc_info', 'before_notify')
+           'auto_notify_exc_info', 'before_notify', 'leave_breadcrumb')
 
 
 def configure(**options):
@@ -127,3 +128,11 @@ def before_notify(callback):
     This can be used to alter the event before sending it to Bugsnag.
     """
     configuration.middleware.before_notify(callback)
+
+
+def leave_breadcrumb(
+    message: str,
+    metadata: Dict[str, Any] = {},
+    type: Union[BreadcrumbType, str] = BreadcrumbType.MANUAL
+) -> None:
+    default_client.leave_breadcrumb(message, metadata, type)

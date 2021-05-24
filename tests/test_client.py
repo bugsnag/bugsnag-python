@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock
 
 from bugsnag import Client, Configuration, BreadcrumbType, Breadcrumbs
+import bugsnag.legacy as legacy
 from tests.utils import IntegrationTest, ScaryException
 
 timestamp_regex = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}(?:[+-]\d{2}:\d{2}|Z)'  # noqa: E501
@@ -418,6 +419,34 @@ class ClientTest(IntegrationTest):
 
         client.remove_on_breadcrumb(lambda: None)
         assert client.configuration._on_breadcrumbs == []
+
+    def test_legacy_leave_breadcrumb_defaults(self):
+        client = legacy.default_client
+        assert len(client.configuration.breadcrumbs) == 0
+
+        legacy.leave_breadcrumb('abc')
+        assert len(client.configuration.breadcrumbs) == 1
+
+        breadcrumb = client.configuration.breadcrumbs[0]
+
+        assert breadcrumb.message == 'abc'
+        assert breadcrumb.metadata == {}
+        assert breadcrumb.type == BreadcrumbType.MANUAL
+        assert is_valid_timestamp(breadcrumb.timestamp)
+
+    def test_legacy_leave_breadcrumb_with_metadata_and_type(self):
+        client = legacy.default_client
+        assert len(client.configuration.breadcrumbs) == 0
+
+        legacy.leave_breadcrumb('xyz', {'a': 2}, BreadcrumbType.LOG)
+        assert len(client.configuration.breadcrumbs) == 1
+
+        breadcrumb = client.configuration.breadcrumbs[0]
+
+        assert breadcrumb.message == 'xyz'
+        assert breadcrumb.metadata == {'a': 2}
+        assert breadcrumb.type == BreadcrumbType.LOG
+        assert is_valid_timestamp(breadcrumb.timestamp)
 
     def test_leave_breadcrumb_defaults(self):
         client = Client()
