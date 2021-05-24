@@ -1,15 +1,16 @@
 import unittest
 import json
 import timeit
-import datetime
 import re
 import threading
 import uuid
 import logging
+import pytest
+from datetime import datetime, timedelta, timezone
 
 from bugsnag.utils import (SanitizingJSONEncoder, FilterDict,
                            is_json_content_type, parse_content_type,
-                           ThreadContextVar)
+                           ThreadContextVar, to_rfc3339)
 
 logger = logging.getLogger(__name__)
 
@@ -267,7 +268,7 @@ with open(large_object_file_path()) as json_data:
                                  list(result.keys())[0]) is not None)
         self.assertEqual(list(result.values()), ["a"])
 
-        now = datetime.datetime.now()
+        now = datetime.now()
         result = json.loads(encoder.encode({now: "a"}))
         self.assertEqual(list(result.keys())[0], str(now))
         self.assertEqual(list(result.values()), ["a"])
@@ -417,3 +418,34 @@ with open(large_object_file_path()) as json_data:
         self.assertFalse(is_json_content_type('text/plain'))
         self.assertFalse(is_json_content_type('json'))
         self.assertFalse(is_json_content_type('application/jsonfoo'))
+
+
+utc = timezone.utc
+plus_1 = timezone(timedelta(hours=1))
+plus_12 = timezone(timedelta(hours=12))
+plus_0_15 = timezone(timedelta(hours=0, minutes=15))
+plus_12_30 = timezone(timedelta(hours=12, minutes=30))
+minus_1 = timezone(timedelta(hours=-1))
+minus_12 = timezone(timedelta(hours=-12))
+minus_0_15 = timezone(timedelta(hours=0, minutes=-15))
+minus_12_30 = timezone(timedelta(hours=-12, minutes=-30))
+
+
+@pytest.mark.parametrize("dt, expected", [
+    (datetime(1, 1, 1, 1, 1, 1, 1), '0001-01-01T01:01:01.000'),  # noqa: E501
+    (datetime(1900, 1, 2, 3, 4, 5, 678900), '1900-01-02T03:04:05.678'),  # noqa: E501
+    (datetime(9999, 12, 31, 23, 59, 59, 999999), '9999-12-31T23:59:59.999'),  # noqa: E501
+    (datetime(1950, 5, 14, 20, 34, 52, 61000), '1950-05-14T20:34:52.061'),  # noqa: E501
+    (datetime(1999, 4, 3, 14, 7, 12), '1999-04-03T14:07:12.000'),  # noqa: E501
+    (datetime(2021, 1, 1, tzinfo=timezone.utc), '2021-01-01T00:00:00.000+00:00'),  # noqa: E501
+    (datetime(1, 1, 1, 1, 1, 1, 1, tzinfo=plus_1), '0001-01-01T01:01:01.000+01:00'),  # noqa: E501
+    (datetime(1900, 1, 2, 3, 4, 5, 678900, tzinfo=plus_12), '1900-01-02T03:04:05.678+12:00'),  # noqa: E501
+    (datetime(1999, 4, 3, 14, 7, 12, tzinfo=plus_0_15), '1999-04-03T14:07:12.000+00:15'),  # noqa: E501
+    (datetime(1950, 5, 14, 20, 34, 52, 61000, tzinfo=plus_12_30), '1950-05-14T20:34:52.061+12:30'),  # noqa: E501
+    (datetime(9999, 12, 31, 23, 59, 59, 999999, tzinfo=minus_1), '9999-12-31T23:59:59.999-01:00'),  # noqa: E501
+    (datetime(1950, 5, 14, 20, 34, 52, 61000, tzinfo=minus_12), '1950-05-14T20:34:52.061-12:00'),  # noqa: E501
+    (datetime(1999, 4, 3, 14, 7, 12, tzinfo=minus_0_15), '1999-04-03T14:07:12.000-00:15'),  # noqa: E501
+    (datetime(1950, 5, 14, 20, 34, 52, 61000, tzinfo=minus_12_30), '1950-05-14T20:34:52.061-12:30'),  # noqa: E501
+])
+def test_to_rfc3339(dt: datetime, expected: str):
+    assert to_rfc3339(dt) == expected
