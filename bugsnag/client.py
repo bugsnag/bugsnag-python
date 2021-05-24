@@ -1,14 +1,16 @@
 import sys
 import threading
 
+from datetime import datetime, timezone
 from functools import wraps
-from typing import Union, Tuple, Callable, Optional, List, Type
+from typing import Union, Tuple, Callable, Optional, List, Type, Dict, Any
 
-from bugsnag.breadcrumbs import Breadcrumb
+from bugsnag.breadcrumbs import Breadcrumb, BreadcrumbType
 from bugsnag.configuration import Configuration, RequestConfiguration
 from bugsnag.event import Event
 from bugsnag.handlers import BugsnagHandler
 from bugsnag.sessiontracker import SessionTracker
+from bugsnag.utils import to_rfc3339
 
 __all__ = ('Client',)
 
@@ -207,6 +209,42 @@ class Client:
 
     def remove_on_breadcrumb(self, on_breadcrumb) -> None:
         self.configuration.remove_on_breadcrumb(on_breadcrumb)
+
+    def leave_breadcrumb(
+        self,
+        message: str,
+        metadata: Dict[str, Any] = {},
+        type: Union[BreadcrumbType, str] = BreadcrumbType.MANUAL
+    ) -> None:
+        # Don't create breadcrumbs if the max_breadcrumbs is 0 as they would
+        # be immediately discarded anyway
+        if self.configuration.max_breadcrumbs == 0:
+            return
+
+        if not isinstance(type, BreadcrumbType):
+            # Coerce the "type" into a valid BreadcrumbType, this will default
+            # to "MANUAL" if the given type is invalid
+            type = BreadcrumbType.from_string(type)
+
+        timestamp = to_rfc3339(datetime.now(timezone.utc))
+        breadcrumb = Breadcrumb(message, type, metadata, timestamp)
+
+        for callback in self.configuration._on_breadcrumbs:
+            try:
+                should_continue = callback(breadcrumb)
+
+                if should_continue is False:
+                    self.configuration.logger.info(
+                        'Breadcrumb not attached due to on_breadcrumb callback'
+                    )
+
+                    return
+            except Exception:
+                self.configuration.logger.exception(
+                    'Exception raised in on_breadcrumb callback'
+                )
+
+        self.configuration._breadcrumbs.append(breadcrumb)
 
 
 class ClientContext:
