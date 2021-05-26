@@ -6,7 +6,7 @@ import sys
 import unittest
 
 import pytest
-from bugsnag.breadcrumbs import Breadcrumbs, Breadcrumb, BreadcrumbType
+from bugsnag.breadcrumbs import Breadcrumb, BreadcrumbType
 from bugsnag.configuration import Configuration
 from bugsnag.event import Event
 from tests import fixtures
@@ -14,11 +14,6 @@ from tests import fixtures
 
 class TestEvent(unittest.TestCase):
     event_class = Event
-
-    # resize the breadcrumb list to 0 before each test to prevent tests from
-    # interfering with eachother
-    def setUp(self):
-        Breadcrumbs(0).resize(0)
 
     def test_sanitize(self):
         """
