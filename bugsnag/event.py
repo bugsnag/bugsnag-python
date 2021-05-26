@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 import linecache
 import logging
 import os
@@ -6,9 +6,11 @@ import sys
 import traceback
 import inspect
 import warnings
+from copy import deepcopy
 
 import bugsnag
 
+from bugsnag.breadcrumbs import Breadcrumb
 from bugsnag.utils import fully_qualified_class_name as class_name
 from bugsnag.utils import FilterDict, package_version, SanitizingJSONEncoder
 
@@ -49,6 +51,9 @@ class Event:
         self.config = config
         self.request_config = request_config
         self.request = None  # type: Any
+        self._breadcrumbs = [
+            deepcopy(breadcrumb) for breadcrumb in config.breadcrumbs
+        ]
 
         def get_config(key):
             return options.pop(key, getattr(self.config, key))
@@ -101,6 +106,10 @@ class Event:
         warnings.warn('The Event "metadata" property has been replaced ' +
                       'with "meta_data".', DeprecationWarning)
         return self.metadata
+
+    @property
+    def breadcrumbs(self) -> List[Breadcrumb]:
+        return self._breadcrumbs.copy()
 
     def set_user(self, id=None, name=None, email=None):
         """
@@ -276,6 +285,9 @@ class Event:
                 }),
                 "projectRoot": self.config.project_root,
                 "libRoot": self.config.lib_root,
-                "session": self.session
+                "session": self.session,
+                "breadcrumbs": [
+                    breadcrumb.to_dict() for breadcrumb in self._breadcrumbs
+                ]
             }]
         })

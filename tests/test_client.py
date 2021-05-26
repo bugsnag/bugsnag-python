@@ -6,7 +6,14 @@ import logging
 from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock
 
-from bugsnag import Client, Configuration, BreadcrumbType, Breadcrumbs
+from bugsnag import (
+    Client,
+    Configuration,
+    BreadcrumbType,
+    Breadcrumbs,
+    Breadcrumb
+)
+
 import bugsnag.legacy as legacy
 from tests.utils import IntegrationTest, ScaryException
 
@@ -562,6 +569,32 @@ class ClientTest(IntegrationTest):
         assert len(client.configuration.breadcrumbs) == 1
         assert was_called
 
+    def test_breadcrumbs_are_mutable_in_on_breadcrumb_callbacks(self):
+        client = Client()
+        assert len(client.configuration.breadcrumbs) == 0
+
+        def on_breadcrumb(breadcrumb):
+            breadcrumb.message = 'abc'
+            breadcrumb.type = BreadcrumbType.LOG
+            breadcrumb.metadata = {'good?': 'extremely'}
+
+        client.add_on_breadcrumb(on_breadcrumb)
+
+        client.leave_breadcrumb(
+            'oh no',
+            type=BreadcrumbType.ERROR,
+            metadata={'bad?': 'yes, very'}
+        )
+
+        assert len(client.configuration.breadcrumbs) == 1
+
+        breadcrumb = client.configuration.breadcrumbs[0]
+
+        assert breadcrumb.message == 'abc'
+        assert breadcrumb.type == BreadcrumbType.LOG
+        assert breadcrumb.metadata == {'good?': 'extremely'}
+        assert is_valid_timestamp(breadcrumb.timestamp)
+
     def test_leave_breadcrumb_calls_on_breadcrumb_callbacks_in_order(self):
         client = Client()
         assert len(client.configuration.breadcrumbs) == 0
@@ -641,3 +674,73 @@ class ClientTest(IntegrationTest):
         logger.exception.assert_called_once_with(
             'Exception raised in on_breadcrumb callback'
         )
+
+    def test_notify_with_breadcrumbs(self):
+        assert len(self.server.received) == 0
+
+        self.client.leave_breadcrumb('breadcrumb 1')
+        self.client.leave_breadcrumb('breadcrumb 2', type=BreadcrumbType.USER)
+        self.client.leave_breadcrumb('breadcrumb 3', metadata={'a': 1, 'b': 2})
+
+        self.client.notify(Exception('hello'))
+
+        assert len(self.server.received) == 1
+
+        payload = self.server.received[0]['json_body']
+        event = payload['events'][0]
+
+        assert len(event['breadcrumbs']) == 3
+
+        breadcrumbs = event['breadcrumbs']
+
+        assert breadcrumbs[0]['name'] == 'breadcrumb 1'
+        assert breadcrumbs[0]['metaData'] == {}
+        assert breadcrumbs[0]['type'] == BreadcrumbType.MANUAL.value
+        assert is_valid_timestamp(breadcrumbs[0]['timestamp'])
+
+        assert breadcrumbs[1]['name'] == 'breadcrumb 2'
+        assert breadcrumbs[1]['metaData'] == {}
+        assert breadcrumbs[1]['type'] == BreadcrumbType.USER.value
+        assert is_valid_timestamp(breadcrumbs[1]['timestamp'])
+
+        assert breadcrumbs[2]['name'] == 'breadcrumb 3'
+        assert breadcrumbs[2]['metaData'] == {'a': 1, 'b': 2}
+        assert breadcrumbs[2]['type'] == BreadcrumbType.MANUAL.value
+        assert is_valid_timestamp(breadcrumbs[2]['timestamp'])
+
+    def test_can_modify_breadcrumbs_in_before_notify_callbacks(self):
+        assert len(self.server.received) == 0
+
+        self.client.leave_breadcrumb('a bad breadcrumb', metadata={'a': 1})
+
+        def on_error(event):
+            # these changes should take effect as breadcrumbs are mutable
+            event.breadcrumbs[0].message = 'a good breadcrumb'
+            event.breadcrumbs[0].metadata['a'] = 100
+            event.breadcrumbs[0].type = BreadcrumbType.LOG
+
+            # this change should not as the breadcrumb list is readonly
+            event.breadcrumbs.append(
+                Breadcrumb('haha', BreadcrumbType.LOG, {}, 'now')
+            )
+
+        self.client.configuration.middleware.before_notify(on_error)
+
+        self.client.notify(Exception('hello'))
+
+        assert len(self.server.received) == 1
+
+        payload = self.server.received[0]['json_body']
+        event = payload['events'][0]
+
+        assert len(event['breadcrumbs']) == 1
+        assert event['breadcrumbs'][0]['name'] == 'a good breadcrumb'
+        assert event['breadcrumbs'][0]['metaData'] == {'a': 100}
+        assert event['breadcrumbs'][0]['type'] == BreadcrumbType.LOG.value
+        assert is_valid_timestamp(event['breadcrumbs'][0]['timestamp'])
+
+        # changes in the on_error callback shouldn't apply to the client
+        config = self.client.configuration
+        assert config.breadcrumbs[0].message == 'a bad breadcrumb'
+        assert config.breadcrumbs[0].metadata == {'a': 1}
+        assert config.breadcrumbs[0].type == BreadcrumbType.MANUAL
