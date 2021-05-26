@@ -10,7 +10,6 @@ from bugsnag import (
     Client,
     Configuration,
     BreadcrumbType,
-    Breadcrumbs,
     Breadcrumb
 )
 
@@ -22,13 +21,6 @@ timestamp_regex = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}(?:[+-]\d{2}:\d{2
 
 def is_valid_timestamp(timestamp: str) -> bool:
     return bool(re.search(timestamp_regex, timestamp))
-
-
-# resize the breadcrumb list to 0 before each test to prevent tests from
-# interfering with eachother
-@pytest.fixture(autouse=True)
-def reset_breadcrumbs():
-    Breadcrumbs(0).resize(0)
 
 
 class ClientTest(IntegrationTest):
