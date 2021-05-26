@@ -41,6 +41,10 @@ class IntegrationTest(unittest.TestCase):
         exception = event['exceptions'][0]
         self.assertEqual(exception['errorClass'], name)
 
+    @property
+    def sent_report_count(self) -> int:
+        return len(self.server.received)
+
 
 class FakeBugsnagServer(object):
     """

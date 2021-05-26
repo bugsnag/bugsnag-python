@@ -3,7 +3,7 @@ from logging import LogRecord
 from typing import Dict
 
 import bugsnag
-
+from bugsnag.breadcrumbs import BreadcrumbType
 
 __all__ = ('BugsnagHandler',)
 
@@ -150,3 +150,25 @@ class BugsnagHandler(logging.Handler, object):
             options['metadata'] = {}
 
         options['metadata']['extra data'] = extra_data
+
+    def leave_breadcrumbs(self, record):
+        """
+        A log filter that leaves breadcrumbs for log records with a level above
+        or equal to "configuration.breadcrumb_log_level" and below the
+        handler's level
+        """
+
+        # Only leave a breadcrumb if we aren't going to notify this log record
+        # and its "bugsnag_create_breadcrumb" attribute isn't False
+        if (
+            record.levelno >= self.client.configuration.breadcrumb_log_level
+            and record.levelno < self.level
+            and getattr(record, 'bugsnag_create_breadcrumb', True)
+        ):
+            self.client._auto_leave_breadcrumb(
+                record.getMessage(),
+                {"logLevel": record.levelname},
+                BreadcrumbType.LOG
+            )
+
+        return True

@@ -2,7 +2,7 @@ from functools import wraps
 import logging
 
 from bugsnag.handlers import BugsnagHandler
-from bugsnag import Client
+from bugsnag import Client, BreadcrumbType
 import bugsnag
 
 from tests.utils import IntegrationTest, ScaryException
@@ -21,12 +21,12 @@ def use_client_logger(func):
             func(obj, handler, logger)
         finally:
             logger.removeHandler(handler)
+            logger.filters = []
 
     return wrapped
 
 
 class HandlersTest(IntegrationTest):
-
     def setUp(self):
         super(HandlersTest, self).setUp()
         bugsnag.configure(endpoint=self.server.url,
@@ -437,3 +437,145 @@ class HandlersTest(IntegrationTest):
         self.assertEqual(exception['message'], 'Everything is fine')
         self.assertEqual(event['metaData']['custom'],
                          {'exception': 'metadata'})
+
+    @use_client_logger
+    def test_log_filter_leaves_breadcrumbs_for_logs_below_report_level(
+        self,
+        handler,
+        logger
+    ):
+        logger.addFilter(handler.leave_breadcrumbs)
+        handler.setLevel(logging.ERROR)
+
+        logger.info('Everything is fine')
+
+        assert self.sent_report_count == 0
+        assert len(handler.client.configuration.breadcrumbs) == 1
+
+        breadcrumb = handler.client.configuration.breadcrumbs[0]
+        assert breadcrumb.message == 'Everything is fine'
+        assert breadcrumb.type == BreadcrumbType.LOG
+        assert breadcrumb.metadata == {'logLevel': 'INFO'}
+
+        logger.error('Everything is not fine')
+
+        assert self.sent_report_count == 1
+        assert len(handler.client.configuration.breadcrumbs) == 1
+
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        exception = event['exceptions'][0]
+
+        assert exception['errorClass'] == 'LogERROR'
+        assert exception['message'] == 'Everything is not fine'
+
+    @use_client_logger
+    def test_log_filter_does_not_leave_breadcrumbs_for_logs_below_its_level(
+        self,
+        handler,
+        logger
+    ):
+        logger.addFilter(handler.leave_breadcrumbs)
+        handler.setLevel(logging.ERROR)
+
+        handler.client.configuration.configure(
+            breadcrumb_log_level=logging.WARN
+        )
+
+        logger.info('Everything is fine')
+
+        assert self.sent_report_count == 0
+        assert len(handler.client.configuration.breadcrumbs) == 0
+
+        logger.warn('Everything might be fine')
+
+        assert self.sent_report_count == 0
+        assert len(handler.client.configuration.breadcrumbs) == 1
+
+        breadcrumb = handler.client.configuration.breadcrumbs[0]
+        assert breadcrumb.message == 'Everything might be fine'
+        assert breadcrumb.type == BreadcrumbType.LOG
+        assert breadcrumb.metadata == {'logLevel': 'WARNING'}
+
+    @use_client_logger
+    def test_log_filter_does_not_leave_breadcrumbs_when_bugsnag_create_breadcrumb_is_false(  # noqa: E501
+        self,
+        handler,
+        logger
+    ):
+        logger.addFilter(handler.leave_breadcrumbs)
+        handler.setLevel(logging.ERROR)
+
+        logger.info(
+            'Everything is fine',
+            extra={'bugsnag_create_breadcrumb': False}
+        )
+
+        assert self.sent_report_count == 0
+        assert len(handler.client.configuration.breadcrumbs) == 0
+
+        logger.info(
+            'Everything is fine',
+            extra={'bugsnag_create_breadcrumb': True}
+        )
+
+        assert self.sent_report_count == 0
+        assert len(handler.client.configuration.breadcrumbs) == 1
+
+        breadcrumb = handler.client.configuration.breadcrumbs[0]
+        assert breadcrumb.message == 'Everything is fine'
+        assert breadcrumb.type == BreadcrumbType.LOG
+        assert breadcrumb.metadata == {'logLevel': 'INFO'}
+
+        logger.info('Everything is fine')
+
+        assert self.sent_report_count == 0
+        assert len(handler.client.configuration.breadcrumbs) == 2
+
+        breadcrumb = handler.client.configuration.breadcrumbs[1]
+        assert breadcrumb.message == 'Everything is fine'
+        assert breadcrumb.type == BreadcrumbType.LOG
+        assert breadcrumb.metadata == {'logLevel': 'INFO'}
+
+    @use_client_logger
+    def test_log_filter_does_not_leave_breadcrumbs_when_log_breadcrumbs_are_disabled(  # noqa: E501
+        self,
+        handler,
+        logger
+    ):
+        logger.addFilter(handler.leave_breadcrumbs)
+        handler.setLevel(logging.ERROR)
+        handler.client.configuration.configure(enabled_breadcrumb_types=[])
+
+        logger.info('Everything is fine')
+
+        assert self.sent_report_count == 0
+        assert len(handler.client.configuration.breadcrumbs) == 0
+
+        handler.client.configuration.configure(
+            enabled_breadcrumb_types=[BreadcrumbType.LOG]
+        )
+
+        logger.info('Everything is fine')
+
+        assert self.sent_report_count == 0
+        assert len(handler.client.configuration.breadcrumbs) == 1
+
+        breadcrumb = handler.client.configuration.breadcrumbs[0]
+        assert breadcrumb.message == 'Everything is fine'
+        assert breadcrumb.type == BreadcrumbType.LOG
+        assert breadcrumb.metadata == {'logLevel': 'INFO'}
+
+        handler.client.configuration.configure(
+            enabled_breadcrumb_types=['log']
+        )
+
+        logger.info('Everything is fine')
+
+        assert self.sent_report_count == 0
+        assert len(handler.client.configuration.breadcrumbs) == 2
+
+        breadcrumb = handler.client.configuration.breadcrumbs[1]
+        assert breadcrumb.message == 'Everything is fine'
+        assert breadcrumb.type == BreadcrumbType.LOG
+        assert breadcrumb.metadata == {'logLevel': 'INFO'}

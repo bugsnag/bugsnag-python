@@ -246,6 +246,18 @@ class Client:
 
         self.configuration._breadcrumbs.append(breadcrumb)
 
+    def _auto_leave_breadcrumb(
+        self,
+        message: str,
+        metadata: Dict[str, Any],
+        type: BreadcrumbType
+    ) -> None:
+        if (
+            type in self.configuration.enabled_breadcrumb_types
+            or type.value in self.configuration.enabled_breadcrumb_types
+        ):
+            self.leave_breadcrumb(message, metadata, type)
+
 
 class ClientContext:
     def __init__(self, client,
