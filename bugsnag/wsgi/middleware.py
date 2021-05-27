@@ -1,8 +1,11 @@
 from webob import Request
 import sys
+from typing import Dict
 
 import bugsnag
 from bugsnag.wsgi import request_path
+from bugsnag.breadcrumbs import BreadcrumbType
+from bugsnag.legacy import _auto_leave_breadcrumb
 
 # Attempt to import bottle for runtime version report, but only if already
 # in use in app
@@ -58,6 +61,13 @@ class WrappedWSGIApp:
         try:
             if bugsnag.configuration.auto_capture_sessions:
                 bugsnag.start_session()
+
+            _auto_leave_breadcrumb(
+                'http request',
+                _get_breadcrumb_metadata(environ),
+                BreadcrumbType.NAVIGATION
+            )
+
             self.app = application(environ, start_response)
         except Exception as e:
             bugsnag.auto_notify(
@@ -90,6 +100,18 @@ class WrappedWSGIApp:
             raise
         finally:
             bugsnag.clear_request_config()
+
+
+def _get_breadcrumb_metadata(environ) -> Dict[str, str]:
+    metadata = {}
+
+    if 'PATH_INFO' in environ:
+        metadata['to'] = environ['PATH_INFO']
+
+    if 'HTTP_REFERER' in environ:
+        metadata['from'] = environ['HTTP_REFERER']
+
+    return metadata
 
 
 class BugsnagMiddleware:
