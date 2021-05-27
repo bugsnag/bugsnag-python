@@ -1,7 +1,9 @@
 from enum import Enum
-from typing import Any, List, Dict, Union
+from typing import Any, List, Dict, Union, Optional
 
 import bugsnag
+from bugsnag.breadcrumbs import BreadcrumbType
+from bugsnag.legacy import _auto_leave_breadcrumb
 
 __all__ = ('BugsnagMiddleware',)
 
@@ -110,7 +112,34 @@ class BugsnagMiddleware:
         try:
             if bugsnag.configuration.auto_capture_sessions:
                 bugsnag.start_session()
+
+            # only HTTP and Websocket requests have headers
+            if scope['type'] in ('http', 'websocket'):
+                _auto_leave_breadcrumb(
+                    '{} request'.format(scope['type']),
+                    _get_breadcrumb_metadata(scope),
+                    BreadcrumbType.NAVIGATION
+                )
+
             await self.app(scope, receive, send)
         except Exception as e:
             bugsnag.auto_notify(e, severity_reason=SEVERITY_REASON)
             raise
+
+
+def _get_breadcrumb_metadata(scope) -> Dict[str, str]:
+    metadata = {'to': scope['path']}
+    referer = _get_referer_header(scope)
+
+    if referer:
+        metadata['from'] = referer
+
+    return metadata
+
+
+def _get_referer_header(scope) -> Optional[str]:
+    for key, value in scope['headers']:
+        if key == b'referer':
+            return value.decode('latin-1', 'ignore')
+
+    return None

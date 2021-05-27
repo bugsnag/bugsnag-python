@@ -5,6 +5,7 @@ from starlette.websockets import WebSocket
 
 import bugsnag
 from bugsnag.asgi import BugsnagMiddleware
+from bugsnag.breadcrumbs import BreadcrumbType
 from tests.utils import IntegrationTest, ScaryException
 
 
@@ -13,7 +14,8 @@ class TestASGIMiddleware(IntegrationTest):
         super(TestASGIMiddleware, self).setUp()
         bugsnag.configure(endpoint=self.server.url,
                           asynchronous=False,
-                          api_key='3874876376238728937')
+                          api_key='3874876376238728937',
+                          max_breadcrumbs=25)
 
     def test_normal_http_operation(self):
         async def app(scope, recv, send):
@@ -56,6 +58,13 @@ class TestASGIMiddleware(IntegrationTest):
         self.assertEqual('other_func', exception['stacktrace'][0]['method'])
         self.assertEqual('index', exception['stacktrace'][1]['method'])
 
+        breadcrumbs = payload['events'][0]['breadcrumbs']
+
+        assert len(breadcrumbs) == 1
+        assert breadcrumbs[0]['name'] == 'http request'
+        assert breadcrumbs[0]['metaData'] == {'to': '/'}
+        assert breadcrumbs[0]['type'] == BreadcrumbType.NAVIGATION.value
+
     def test_enable_environment(self):
         bugsnag.configure(send_environment=True)
         app = Starlette()
@@ -78,6 +87,13 @@ class TestASGIMiddleware(IntegrationTest):
 
         self.assertEqual('/', environment['path'])
 
+        breadcrumbs = payload['events'][0]['breadcrumbs']
+
+        assert len(breadcrumbs) == 1
+        assert breadcrumbs[0]['name'] == 'http request'
+        assert breadcrumbs[0]['metaData'] == {'to': '/'}
+        assert breadcrumbs[0]['type'] == BreadcrumbType.NAVIGATION.value
+
     def test_boot_crash(self):
         async def app(scope, recv, send):
             raise ScaryException('forgot the map')
@@ -99,6 +115,13 @@ class TestASGIMiddleware(IntegrationTest):
         exception = payload['events'][0]['exceptions'][0]
         self.assertEqual('tests.utils.ScaryException', exception['errorClass'])
         self.assertEqual('forgot the map', exception['message'])
+
+        breadcrumbs = payload['events'][0]['breadcrumbs']
+
+        assert len(breadcrumbs) == 1
+        assert breadcrumbs[0]['name'] == 'http request'
+        assert breadcrumbs[0]['metaData'] == {'to': '/'}
+        assert breadcrumbs[0]['type'] == BreadcrumbType.NAVIGATION.value
 
     def test_custom_metadata(self):
         app = Starlette()
@@ -132,6 +155,13 @@ class TestASGIMiddleware(IntegrationTest):
         self.assertEqual('next_func', exception['stacktrace'][0]['method'])
         self.assertEqual('index', exception['stacktrace'][1]['method'])
 
+        breadcrumbs = payload['events'][0]['breadcrumbs']
+
+        assert len(breadcrumbs) == 1
+        assert breadcrumbs[0]['name'] == 'http request'
+        assert breadcrumbs[0]['metaData'] == {'to': '/'}
+        assert breadcrumbs[0]['type'] == BreadcrumbType.NAVIGATION.value
+
     def test_websocket_crash(self):
         async def app(scope, receive, send):
             websocket = WebSocket(scope, receive=receive, send=send)
@@ -159,6 +189,13 @@ class TestASGIMiddleware(IntegrationTest):
         self.assertEqual('invalid inputs', exception['message'])
         self.assertEqual('app', exception['stacktrace'][0]['method'])
 
+        breadcrumbs = payload['events'][0]['breadcrumbs']
+
+        assert len(breadcrumbs) == 1
+        assert breadcrumbs[0]['name'] == 'websocket request'
+        assert breadcrumbs[0]['metaData'] == {'to': '/'}
+        assert breadcrumbs[0]['type'] == BreadcrumbType.NAVIGATION.value
+
     def test_url_components(self):
         app = Starlette()
 
@@ -174,3 +211,54 @@ class TestASGIMiddleware(IntegrationTest):
         payload = self.server.received[0]['json_body']
         request = payload['events'][0]['metaData']['request']
         self.assertEqual('http://testserver/path?page=6', request['url'])
+
+        breadcrumbs = payload['events'][0]['breadcrumbs']
+
+        assert len(breadcrumbs) == 1
+        assert breadcrumbs[0]['name'] == 'http request'
+        assert breadcrumbs[0]['metaData'] == {'to': '/path'}
+        assert breadcrumbs[0]['type'] == BreadcrumbType.NAVIGATION.value
+
+    def test_breadcrumb_records_the_referer_header(self):
+        app = Starlette()
+
+        async def other_func():
+            raise ScaryException('fell winds!')
+
+        @app.route('/')
+        async def index(req):
+            await other_func()
+            return PlainTextResponse('pineapple')
+
+        app = TestClient(BugsnagMiddleware(app))
+        headers = {'referer': 'https://example.com/abc/xyz'}
+
+        self.assertRaises(
+            ScaryException,
+            lambda: app.get('/', headers=headers)
+        )
+        self.assertSentReportCount(1)
+
+        payload = self.server.received[0]['json_body']
+        request = payload['events'][0]['metaData']['request']
+        self.assertEqual('/', request['path'])
+        self.assertEqual('GET', request['httpMethod'])
+        self.assertEqual('http', request['type'])
+        self.assertEqual('http://testserver/', request['url'])
+        assert 'environment' not in payload['events'][0]['metaData']
+
+        exception = payload['events'][0]['exceptions'][0]
+        self.assertEqual('tests.utils.ScaryException', exception['errorClass'])
+        self.assertEqual('fell winds!', exception['message'])
+        self.assertEqual('other_func', exception['stacktrace'][0]['method'])
+        self.assertEqual('index', exception['stacktrace'][1]['method'])
+
+        breadcrumbs = payload['events'][0]['breadcrumbs']
+
+        assert len(breadcrumbs) == 1
+        assert breadcrumbs[0]['name'] == 'http request'
+        assert breadcrumbs[0]['metaData'] == {
+            'to': '/',
+            'from': 'https://example.com/abc/xyz'
+        }
+        assert breadcrumbs[0]['type'] == BreadcrumbType.NAVIGATION.value
