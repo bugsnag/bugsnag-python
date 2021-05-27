@@ -136,3 +136,11 @@ def leave_breadcrumb(
     type: Union[BreadcrumbType, str] = BreadcrumbType.MANUAL
 ) -> None:
     default_client.leave_breadcrumb(message, metadata, type)
+
+
+def _auto_leave_breadcrumb(
+    message: str,
+    metadata: Dict[str, Any],
+    type: BreadcrumbType
+) -> None:
+    default_client._auto_leave_breadcrumb(message, metadata, type)
