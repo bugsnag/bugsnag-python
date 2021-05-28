@@ -1,7 +1,10 @@
 import flask
+from typing import Dict
 
 import bugsnag
 from bugsnag.wsgi import request_path
+from bugsnag.legacy import _auto_leave_breadcrumb
+from bugsnag.breadcrumbs import BreadcrumbType
 
 
 __all__ = ('handle_exceptions',)
@@ -36,7 +39,7 @@ def handle_exceptions(app):
     bugsnag.configure().runtime_versions['flask'] = flask.__version__
     middleware.before_notify(add_flask_request_to_notification)
     flask.got_request_exception.connect(__log_exception, app)
-    flask.request_started.connect(__track_session, app)
+    flask.request_started.connect(_on_request_started, app)
 
 
 # pylint: disable-msg=W0613
@@ -49,6 +52,22 @@ def __log_exception(sender, exception, **extra):
     })
 
 
-def __track_session(sender, **extra):
+def _on_request_started(sender, **extra):
     if bugsnag.configuration.auto_capture_sessions:
         bugsnag.start_session()
+
+    if flask.request:
+        _auto_leave_breadcrumb(
+            'http request',
+            _get_breadcrumb_metadata(flask.request),
+            BreadcrumbType.NAVIGATION
+        )
+
+
+def _get_breadcrumb_metadata(request) -> Dict[str, str]:
+    metadata = {'to': request_path(flask.request.environ)}
+
+    if 'referer' in request.headers:
+        metadata['from'] = request.headers['referer']
+
+    return metadata
