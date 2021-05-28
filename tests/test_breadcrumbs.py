@@ -376,3 +376,26 @@ def test_the_breadcrumb_list_is_separate_on_different_async_contexts():
         loop.run_until_complete(test())
     finally:
         loop.close()
+
+
+def test_the_breadcrumb_list_can_be_cleared():
+    breadcrumbs = Breadcrumbs(max_breadcrumbs=5)
+
+    first_breadcrumb = Breadcrumb('hello', BreadcrumbType.ERROR, {}, 'time')
+    second_breadcrumb = Breadcrumb('hi', BreadcrumbType.REQUEST, {}, 'emit')
+    third_breadcrumb = Breadcrumb('howdy', BreadcrumbType.LOG, {}, 'now')
+
+    breadcrumbs.append(first_breadcrumb)
+    breadcrumbs.append(second_breadcrumb)
+    breadcrumbs.append(third_breadcrumb)
+
+    breadcrumb_list = breadcrumbs.to_list()
+
+    assert len(breadcrumb_list) == 3
+    assert breadcrumb_list[0] == first_breadcrumb
+    assert breadcrumb_list[1] == second_breadcrumb
+    assert breadcrumb_list[2] == third_breadcrumb
+
+    breadcrumbs.clear()
+
+    assert(len(breadcrumbs.to_list())) == 0

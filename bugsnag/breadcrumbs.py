@@ -98,6 +98,9 @@ class Breadcrumbs:
         # which will give the current context a new copy of the list
         self.resize(self._max_breadcrumbs)
 
+    def clear(self) -> None:
+        self._breadcrumbs.clear()
+
     def to_list(self) -> List[Breadcrumb]:
         return list(self._breadcrumbs)
 
