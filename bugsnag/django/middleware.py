@@ -3,8 +3,12 @@ try:
 except ImportError:
     from bugsnag.django.utils import MiddlewareMixin
 
+from typing import Dict
+
 import bugsnag
 import bugsnag.django
+from bugsnag.legacy import _auto_leave_breadcrumb
+from bugsnag.breadcrumbs import BreadcrumbType
 
 
 class BugsnagMiddleware(MiddlewareMixin):
@@ -16,10 +20,17 @@ class BugsnagMiddleware(MiddlewareMixin):
     def process_request(self, request):
         bugsnag.configure_request(django_request=request)
 
+        _auto_leave_breadcrumb(
+            'http request',
+            self._get_breadcrumb_metadata(request),
+            BreadcrumbType.NAVIGATION
+        )
+
         return None
 
     # pylint: disable-msg=W0613
     def process_response(self, request, response):
+        self.config._breadcrumbs.clear()
         bugsnag.clear_request_config()
 
         return response
@@ -42,3 +53,11 @@ class BugsnagMiddleware(MiddlewareMixin):
         bugsnag.clear_request_config()
 
         return None
+
+    def _get_breadcrumb_metadata(self, request) -> Dict[str, str]:
+        metadata = {'to': request.path}
+
+        if 'HTTP_REFERER' in request.META:
+            metadata['from'] = request.META['HTTP_REFERER']
+
+        return metadata

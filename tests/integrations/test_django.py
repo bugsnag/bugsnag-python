@@ -1,4 +1,5 @@
 import bugsnag
+from bugsnag.breadcrumbs import BreadcrumbType
 import pytest
 import django
 from django.contrib.auth.models import User
@@ -27,6 +28,8 @@ def pytest_configure(bugsnag_server):
 
 @pytest.fixture
 def django_client():
+    bugsnag.configure(max_breadcrumbs=25)
+
     client = Client()
     User.objects.create_user(
         username='test',
@@ -79,6 +82,13 @@ def test_notify(bugsnag_server, django_client):
         'lineNumber': 42,
         'method': 'handle_notify',
     }
+
+    breadcrumbs = payload['events'][0]['breadcrumbs']
+
+    assert len(breadcrumbs) == 1
+    assert breadcrumbs[0]['name'] == 'http request'
+    assert breadcrumbs[0]['metaData'] == {'to': '/notes/handled-exception/'}
+    assert breadcrumbs[0]['type'] == BreadcrumbType.NAVIGATION.value
 
 
 def test_enable_environment(bugsnag_server, django_client):
@@ -374,3 +384,62 @@ def test_read_request_in_callback(bugsnag_server, django_client):
     payload = bugsnag_server.received[0]['json_body']
     event = payload['events'][0]
     assert event['context'] == 'foo'
+
+
+def test_bugsnag_middleware_leaves_breadcrumb_with_referer(
+    bugsnag_server,
+    django_client
+):
+    response = django_client.get(
+        '/notes/handled-exception/?foo=strawberry',
+        HTTP_REFERER='/notes/top-10-dogs.txt'
+    )
+
+    assert response.status_code == 200
+
+    bugsnag_server.wait_for_request()
+    payload = bugsnag_server.received[0]['json_body']
+    event = payload['events'][0]
+    exception = event['exceptions'][0]
+
+    assert payload['apiKey'] == 'a05afff2bd2ffaf0ab0f52715bbdcffd'
+    assert event['context'] == 'notes.views.handle_notify'
+    assert event['severityReason'] == {'type': 'handledException'}
+    assert event['device']['runtimeVersions']['django'] == django.__version__
+    assert 'environment' not in payload['events'][0]['metaData']
+    assert event['metaData']['request'] == {
+        'method': 'GET',
+        'url': 'http://testserver/notes/handled-exception/?foo=strawberry',
+        'path': '/notes/handled-exception/',
+        'POST': {},
+        'encoding': None,
+        'GET': {'foo': ['strawberry']}
+    }
+    assert event['user'] == {}
+    assert exception['errorClass'] == 'KeyError'
+    assert exception['message'] == "'nonexistent-item'"
+    assert exception['stacktrace'][0] == {
+        'code': {
+             '39': 'def handle_notify(request):',
+             '40': '    items = {}',
+             '41': '    try:',
+             '42': '        print("item: {}" % items["nonexistent-item"])',
+             '43': '    except KeyError as e:',
+             '44': "        bugsnag.notify(e, unhappy='nonexistent-file')",
+             '45': '',
+        },
+        'file': 'notes/views.py',
+        'inProject': True,
+        'lineNumber': 42,
+        'method': 'handle_notify',
+    }
+
+    breadcrumbs = payload['events'][0]['breadcrumbs']
+
+    assert len(breadcrumbs) == 1
+    assert breadcrumbs[0]['name'] == 'http request'
+    assert breadcrumbs[0]['metaData'] == {
+        'to': '/notes/handled-exception/',
+        'from': '/notes/top-10-dogs.txt'
+    }
+    assert breadcrumbs[0]['type'] == BreadcrumbType.NAVIGATION.value
