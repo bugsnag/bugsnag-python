@@ -21,7 +21,7 @@ setup(
     author_email='simon@bugsnag.com',
     url='https://bugsnag.com/',
     license='MIT',
-    python_requires='>=3.5.*, <4',
+    python_requires='>=3.5, <4',
     packages=find_packages(include=['bugsnag', 'bugsnag.*']),
     classifiers=[
         'Development Status :: 5 - Production/Stable',
