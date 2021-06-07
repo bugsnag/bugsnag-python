@@ -3,6 +3,7 @@ import re
 from flask import Flask
 from bugsnag.flask import handle_exceptions
 import bugsnag.event
+from bugsnag.breadcrumbs import BreadcrumbType
 from tests.utils import IntegrationTest
 
 
@@ -18,7 +19,8 @@ class TestFlask(IntegrationTest):
                           api_key='3874876376238728937',
                           notify_release_stages=['dev'],
                           release_stage='dev',
-                          asynchronous=False)
+                          asynchronous=False,
+                          max_breadcrumbs=25)
 
     def test_bugsnag_middleware_working(self):
         app = Flask("bugsnag")
@@ -52,6 +54,13 @@ class TestFlask(IntegrationTest):
         self.assertEqual(event['metaData']['request']['url'],
                          'http://localhost/hello')
         assert 'environment' not in event['metaData']
+
+        breadcrumbs = payload['events'][0]['breadcrumbs']
+
+        assert len(breadcrumbs) == 1
+        assert breadcrumbs[0]['name'] == 'http request'
+        assert breadcrumbs[0]['metaData'] == {'to': '/hello'}
+        assert breadcrumbs[0]['type'] == BreadcrumbType.NAVIGATION.value
 
     def test_enable_environment(self):
         bugsnag.configure(send_environment=True)
@@ -281,3 +290,33 @@ class TestFlask(IntegrationTest):
         assert len(self.server.received) == 1
         payload = self.server.received[0]['json_body']
         assert payload['events'][0]['user']['id'] == 'foo'
+
+    def test_bugsnag_middleware_leaves_breadcrumb_with_referer(self):
+        app = Flask("bugsnag")
+
+        @app.route("/hello")
+        def hello():
+            raise SentinelError("oops")
+
+        handle_exceptions(app)
+        headers = {'referer': '/hi'}
+        app.test_client().get('/hello', headers=headers)
+
+        self.assertEqual(1, len(self.server.received))
+        payload = self.server.received[0]['json_body']
+        event = payload['events'][0]
+        self.assertEqual(event['exceptions'][0]['errorClass'],
+                         'test_flask.SentinelError')
+        self.assertEqual(event['metaData']['request']['url'],
+                         'http://localhost/hello')
+        assert 'environment' not in event['metaData']
+
+        breadcrumbs = payload['events'][0]['breadcrumbs']
+
+        assert len(breadcrumbs) == 1
+        assert breadcrumbs[0]['name'] == 'http request'
+        assert breadcrumbs[0]['metaData'] == {
+            'to': '/hello',
+            'from': '/hi'
+        }
+        assert breadcrumbs[0]['type'] == BreadcrumbType.NAVIGATION.value
