@@ -1,5 +1,7 @@
+import builtins
 import sys
 import threading
+import warnings
 
 from datetime import datetime, timezone
 from functools import wraps
@@ -225,6 +227,15 @@ class Client:
             # Coerce the "type" into a valid BreadcrumbType, this will default
             # to "MANUAL" if the given type is invalid
             type = BreadcrumbType.from_string(type)
+
+        if not isinstance(metadata, dict):
+            warning_message = 'breadcrumb metadata must be a dict, got {}'
+            warnings.warn(
+                warning_message.format(builtins.type(metadata).__name__),
+                RuntimeWarning
+            )
+
+            metadata = {}
 
         timestamp = to_rfc3339(datetime.now(timezone.utc))
         breadcrumb = Breadcrumb(message, type, metadata, timestamp)

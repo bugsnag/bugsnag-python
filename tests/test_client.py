@@ -736,3 +736,34 @@ class ClientTest(IntegrationTest):
         assert config.breadcrumbs[0].message == 'a bad breadcrumb'
         assert config.breadcrumbs[0].metadata == {'a': 1}
         assert config.breadcrumbs[0].type == BreadcrumbType.MANUAL
+
+
+@pytest.mark.parametrize("metadata,type", [
+    (1234, 'int'),
+    ('abc', 'str'),
+    ([1, 2, 3], 'list'),
+    (True, 'bool'),
+    (False, 'bool'),
+    (None, 'NoneType'),
+    (object(), 'object')
+])
+def test_breadcrumb_metadata_is_coerced_to_dict(metadata, type):
+    client = Client()
+    assert len(client.configuration.breadcrumbs) == 0
+
+    with pytest.warns(RuntimeWarning) as warnings:
+        client.leave_breadcrumb('abcxyz', metadata=metadata)
+
+    expected_message = 'breadcrumb metadata must be a dict, got ' + type
+
+    assert len(warnings) == 1
+    assert warnings[0].message.args[0] == expected_message
+
+    assert len(client.configuration.breadcrumbs) == 1
+
+    breadcrumb = client.configuration.breadcrumbs[0]
+
+    assert breadcrumb.message == 'abcxyz'
+    assert breadcrumb.metadata == {}
+    assert breadcrumb.type == BreadcrumbType.MANUAL
+    assert is_valid_timestamp(breadcrumb.timestamp)
