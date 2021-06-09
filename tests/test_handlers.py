@@ -460,7 +460,10 @@ class HandlersTest(IntegrationTest):
         logger.error('Everything is not fine')
 
         assert self.sent_report_count == 1
-        assert len(handler.client.configuration.breadcrumbs) == 1
+
+        # we expect 2 breadcrumbs - one from the 'info' log above and one from
+        # the notify caused by the 'error' log
+        assert len(handler.client.configuration.breadcrumbs) == 2
 
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
@@ -468,6 +471,16 @@ class HandlersTest(IntegrationTest):
 
         assert exception['errorClass'] == 'LogERROR'
         assert exception['message'] == 'Everything is not fine'
+
+        breadcrumb = handler.client.configuration.breadcrumbs[1]
+        assert breadcrumb.message == 'LogERROR'
+        assert breadcrumb.type == BreadcrumbType.ERROR
+        assert breadcrumb.metadata == {
+            'errorClass': 'LogERROR',
+            'message': 'Everything is not fine',
+            'severity': 'error',
+            'unhandled': False,
+        }
 
     @use_client_logger
     def test_log_filter_does_not_leave_breadcrumbs_for_logs_below_its_level(

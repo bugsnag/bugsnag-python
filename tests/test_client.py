@@ -296,6 +296,28 @@ class ClientTest(IntegrationTest):
 
         self.assertEqual(len(self.server.received), 0)
 
+    def test_exception_hook_leaves_a_breadcrumb(self):
+        assert len(self.server.received) == 0
+
+        try:
+            beep = boop  # noqa: F841, F821
+        except Exception:
+            self.client.excepthook(*sys.exc_info())
+
+        assert len(self.server.received) == 1
+        assert len(self.client.configuration.breadcrumbs) == 1
+
+        breadcrumb = self.client.configuration.breadcrumbs[0]
+        assert breadcrumb.message == 'NameError'
+        assert breadcrumb.metadata == {
+            'errorClass': 'NameError',
+            'message': "name 'boop' is not defined",
+            'unhandled': True,
+            'severity': 'error'
+        }
+        assert breadcrumb.type == BreadcrumbType.ERROR
+        assert is_valid_timestamp(breadcrumb.timestamp)
+
     def test_installed_except_hook(self):
         client = Client()
 
@@ -699,6 +721,48 @@ class ClientTest(IntegrationTest):
         assert breadcrumbs[2]['metaData'] == {'a': 1, 'b': 2}
         assert breadcrumbs[2]['type'] == BreadcrumbType.MANUAL.value
         assert is_valid_timestamp(breadcrumbs[2]['timestamp'])
+
+    def test_handled_notify_leaves_a_new_breadcrumbs(self):
+        assert len(self.server.received) == 0
+
+        self.client.notify(Exception('hello'))
+
+        assert len(self.server.received) == 1
+        assert len(self.client.configuration.breadcrumbs) == 1
+
+        breadcrumb = self.client.configuration.breadcrumbs[0]
+        assert breadcrumb.message == 'Exception'
+        assert breadcrumb.metadata == {
+            'errorClass': 'Exception',
+            'message': 'hello',
+            'unhandled': False,
+            'severity': 'warning'
+        }
+        assert breadcrumb.type == BreadcrumbType.ERROR
+        assert is_valid_timestamp(breadcrumb.timestamp)
+
+    def test_unhandled_notify_leaves_a_new_breadcrumbs(self):
+        assert len(self.server.received) == 0
+
+        self.client.notify(
+            IndexError('hello 123'),
+            unhandled=True,
+            severity='error'
+        )
+
+        assert len(self.server.received) == 1
+        assert len(self.client.configuration.breadcrumbs) == 1
+
+        breadcrumb = self.client.configuration.breadcrumbs[0]
+        assert breadcrumb.message == 'IndexError'
+        assert breadcrumb.metadata == {
+            'errorClass': 'IndexError',
+            'message': 'hello 123',
+            'unhandled': True,
+            'severity': 'error'
+        }
+        assert breadcrumb.type == BreadcrumbType.ERROR
+        assert is_valid_timestamp(breadcrumb.timestamp)
 
     def test_can_modify_breadcrumbs_in_before_notify_callbacks(self):
         assert len(self.server.received) == 0
