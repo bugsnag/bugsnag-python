@@ -1,5 +1,5 @@
 from enum import Enum, unique
-from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Union, Callable, TYPE_CHECKING
 from collections import deque
 
 from bugsnag.utils import FilterDict
@@ -20,7 +20,12 @@ except ImportError:
     _breadcrumbs = ThreadContextVar('bugsnag-breadcrumbs', default=None)  # type: ignore  # noqa: E501
 
 
-__all__ = ('BreadcrumbType', 'Breadcrumb', 'Breadcrumbs')
+__all__ = (
+    'BreadcrumbType',
+    'Breadcrumb',
+    'Breadcrumbs',
+    'OnBreadcrumbCallback'
+)
 
 
 @unique
@@ -117,3 +122,6 @@ class Breadcrumbs:
             _breadcrumbs.set(breadcrumbs)
 
         return breadcrumbs
+
+
+OnBreadcrumbCallback = Callable[[Breadcrumb], Union[None, bool]]
