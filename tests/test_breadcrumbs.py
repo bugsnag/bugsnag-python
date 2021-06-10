@@ -22,35 +22,6 @@ def test_breadcrumb_types():
     assert BreadcrumbType.MANUAL.value == 'manual'
 
 
-@pytest.mark.parametrize('string, expected', [
-    ('navigation', BreadcrumbType.NAVIGATION),
-    ('NAVIGATION', BreadcrumbType.NAVIGATION),
-    ('request', BreadcrumbType.REQUEST),
-    ('REQUEST', BreadcrumbType.REQUEST),
-    ('process', BreadcrumbType.PROCESS),
-    ('PROCESS', BreadcrumbType.PROCESS),
-    ('log', BreadcrumbType.LOG),
-    ('LOG', BreadcrumbType.LOG),
-    ('user', BreadcrumbType.USER),
-    ('USER', BreadcrumbType.USER),
-    ('state', BreadcrumbType.STATE),
-    ('STATE', BreadcrumbType.STATE),
-    ('error', BreadcrumbType.ERROR),
-    ('ERROR', BreadcrumbType.ERROR),
-    ('manual', BreadcrumbType.MANUAL),
-    ('MANUAL', BreadcrumbType.MANUAL),
-    ('mAnUaL', BreadcrumbType.MANUAL),
-    ('MaNuAl', BreadcrumbType.MANUAL),
-    # invalid strings should result in a manual breadcrumb type
-    ('not a breadcrumb type', BreadcrumbType.MANUAL),
-    ('NOPE', BreadcrumbType.MANUAL),
-    (12345, BreadcrumbType.MANUAL),
-    ([1, 2, 3], BreadcrumbType.MANUAL),
-])
-def test_breadcrumb_type_from_string(string, expected):
-    assert BreadcrumbType.from_string(string) == expected
-
-
 def test_breadcrumb_properties():
     breadcrumb = Breadcrumb(
         'This is a test breadcrumb',

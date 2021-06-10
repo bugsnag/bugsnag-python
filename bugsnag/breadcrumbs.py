@@ -39,16 +39,6 @@ class BreadcrumbType(Enum):
     ERROR = 'error'
     MANUAL = 'manual'
 
-    @staticmethod
-    def from_string(string: str) -> 'BreadcrumbType':
-        if not isinstance(string, str):
-            return BreadcrumbType.MANUAL
-
-        try:
-            return BreadcrumbType[string.upper()]
-        except KeyError:
-            return BreadcrumbType.MANUAL
-
 
 class Breadcrumb:
     def __init__(

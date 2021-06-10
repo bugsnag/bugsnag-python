@@ -1,4 +1,4 @@
-from typing import Dict, Any, Tuple, Type, Union
+from typing import Dict, Any, Tuple, Type
 import types
 import sys
 
@@ -133,7 +133,7 @@ def before_notify(callback):
 def leave_breadcrumb(
     message: str,
     metadata: Dict[str, Any] = {},
-    type: Union[BreadcrumbType, str] = BreadcrumbType.MANUAL
+    type: BreadcrumbType = BreadcrumbType.MANUAL
 ) -> None:
     default_client.leave_breadcrumb(message, metadata, type)
 

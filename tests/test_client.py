@@ -557,20 +557,6 @@ class ClientTest(IntegrationTest):
         assert breadcrumb.type == BreadcrumbType.MANUAL
         assert is_valid_timestamp(breadcrumb.timestamp)
 
-    def test_leave_breadcrumb_with_string_type(self):
-        client = Client()
-        assert len(client.configuration.breadcrumbs) == 0
-
-        client.leave_breadcrumb('abcxyz', type='log')
-        assert len(client.configuration.breadcrumbs) == 1
-
-        breadcrumb = client.configuration.breadcrumbs[0]
-
-        assert breadcrumb.message == 'abcxyz'
-        assert breadcrumb.metadata == {}
-        assert breadcrumb.type == BreadcrumbType.LOG
-        assert is_valid_timestamp(breadcrumb.timestamp)
-
     def test_leave_breadcrumb_does_nothing_when_max_breadcrumbs_is_0(self):
         client = Client()
         client.configuration.configure(max_breadcrumbs=0)

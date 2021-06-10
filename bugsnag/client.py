@@ -227,7 +227,7 @@ class Client:
         self,
         message: str,
         metadata: Dict[str, Any] = {},
-        type: Union[BreadcrumbType, str] = BreadcrumbType.MANUAL
+        type: BreadcrumbType = BreadcrumbType.MANUAL
     ) -> None:
         # Don't create breadcrumbs if the max_breadcrumbs is 0 as they would
         # be immediately discarded anyway
@@ -235,9 +235,7 @@ class Client:
             return
 
         if not isinstance(type, BreadcrumbType):
-            # Coerce the "type" into a valid BreadcrumbType, this will default
-            # to "MANUAL" if the given type is invalid
-            type = BreadcrumbType.from_string(type)
+            type = BreadcrumbType.MANUAL
 
         if not isinstance(metadata, dict):
             warning_message = 'breadcrumb metadata must be a dict, got {}'
@@ -274,10 +272,7 @@ class Client:
         metadata: Dict[str, Any],
         type: BreadcrumbType
     ) -> None:
-        if (
-            type in self.configuration.enabled_breadcrumb_types
-            or type.value in self.configuration.enabled_breadcrumb_types
-        ):
+        if type in self.configuration.enabled_breadcrumb_types:
             self.leave_breadcrumb(message, metadata, type)
 
     def _leave_breadcrumb_for_event(self, event: Event) -> None:
