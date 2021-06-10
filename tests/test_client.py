@@ -419,6 +419,28 @@ class ClientTest(IntegrationTest):
         client.remove_on_breadcrumb(lambda: None)
         assert client.configuration._on_breadcrumbs == []
 
+    def test_legacy_on_breadcrumb_callbacks_can_be_added_and_removed(self):
+        client = legacy.default_client
+        config = client.configuration
+        assert config._on_breadcrumbs == []
+
+        def on_breadcrumb():
+            pass
+
+        on_breadcrumb_2 = lambda: None  # noqa: E731
+
+        client.add_on_breadcrumb(on_breadcrumb)
+        assert config._on_breadcrumbs == [on_breadcrumb]
+
+        client.add_on_breadcrumb(on_breadcrumb_2)
+        assert config._on_breadcrumbs == [on_breadcrumb, on_breadcrumb_2]
+
+        client.remove_on_breadcrumb(on_breadcrumb)
+        assert config._on_breadcrumbs == [on_breadcrumb_2]
+
+        client.remove_on_breadcrumb(on_breadcrumb_2)
+        assert config._on_breadcrumbs == []
+
     def test_legacy_leave_breadcrumb_defaults(self):
         client = legacy.default_client
         assert len(client.configuration.breadcrumbs) == 0
