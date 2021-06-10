@@ -8,7 +8,12 @@ import warnings
 import logging
 from threading import Lock
 
-from bugsnag.breadcrumbs import BreadcrumbType, Breadcrumb, Breadcrumbs
+from bugsnag.breadcrumbs import (
+    BreadcrumbType,
+    Breadcrumb,
+    Breadcrumbs,
+    OnBreadcrumbCallback
+)
 from bugsnag.sessiontracker import SessionMiddleware
 from bugsnag.middleware import DefaultMiddleware, MiddlewareStack
 from bugsnag.utils import (fully_qualified_class_name, validate_str_setter,
@@ -478,11 +483,14 @@ class Configuration:
     def breadcrumbs(self) -> List[Breadcrumb]:
         return self._breadcrumbs.to_list()
 
-    def add_on_breadcrumb(self, on_breadcrumb) -> None:
+    def add_on_breadcrumb(self, on_breadcrumb: OnBreadcrumbCallback) -> None:
         with self._mutex:
             self._on_breadcrumbs.append(on_breadcrumb)
 
-    def remove_on_breadcrumb(self, on_breadcrumb) -> None:
+    def remove_on_breadcrumb(
+        self,
+        on_breadcrumb: OnBreadcrumbCallback
+    ) -> None:
         with self._mutex:
             try:
                 self._on_breadcrumbs.remove(on_breadcrumb)
