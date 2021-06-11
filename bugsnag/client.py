@@ -7,7 +7,11 @@ from datetime import datetime, timezone
 from functools import wraps
 from typing import Union, Tuple, Callable, Optional, List, Type, Dict, Any
 
-from bugsnag.breadcrumbs import Breadcrumb, BreadcrumbType
+from bugsnag.breadcrumbs import (
+    Breadcrumb,
+    BreadcrumbType,
+    OnBreadcrumbCallback
+)
 from bugsnag.configuration import Configuration, RequestConfiguration
 from bugsnag.event import Event
 from bugsnag.handlers import BugsnagHandler
@@ -210,10 +214,13 @@ class Client:
     def breadcrumbs(self) -> List[Breadcrumb]:
         return self.configuration.breadcrumbs
 
-    def add_on_breadcrumb(self, on_breadcrumb) -> None:
+    def add_on_breadcrumb(self, on_breadcrumb: OnBreadcrumbCallback) -> None:
         self.configuration.add_on_breadcrumb(on_breadcrumb)
 
-    def remove_on_breadcrumb(self, on_breadcrumb) -> None:
+    def remove_on_breadcrumb(
+        self,
+        on_breadcrumb: OnBreadcrumbCallback
+    ) -> None:
         self.configuration.remove_on_breadcrumb(on_breadcrumb)
 
     def leave_breadcrumb(
