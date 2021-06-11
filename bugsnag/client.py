@@ -12,7 +12,7 @@ from bugsnag.configuration import Configuration, RequestConfiguration
 from bugsnag.event import Event
 from bugsnag.handlers import BugsnagHandler
 from bugsnag.sessiontracker import SessionTracker
-from bugsnag.utils import to_rfc3339
+from bugsnag.utils import to_rfc3339, fully_qualified_class_name as class_name
 
 __all__ = ('Client',)
 
@@ -76,6 +76,8 @@ class Client:
 
         event = Event(exception, self.configuration,
                       RequestConfiguration.get_instance(), **options)
+
+        self._leave_breadcrumb_for_event(event)
         self.deliver(event, asynchronous=asynchronous)
 
     def notify_exc_info(self, exc_type, exc_value, traceback,
@@ -90,6 +92,8 @@ class Client:
         options['traceback'] = traceback
         event = Event(exception, self.configuration,
                       RequestConfiguration.get_instance(), **options)
+
+        self._leave_breadcrumb_for_event(event)
         self.deliver(event, asynchronous=asynchronous)
 
     def excepthook(self, exc_type, exc_value, traceback):
@@ -268,6 +272,20 @@ class Client:
             or type.value in self.configuration.enabled_breadcrumb_types
         ):
             self.leave_breadcrumb(message, metadata, type)
+
+    def _leave_breadcrumb_for_event(self, event: Event) -> None:
+        error_class = class_name(event.exception)
+
+        self.leave_breadcrumb(
+            error_class,
+            {
+                'errorClass': error_class,
+                'message': str(event.exception),
+                'unhandled': event.unhandled,
+                'severity': event.severity,
+            },
+            BreadcrumbType.ERROR
+        )
 
 
 class ClientContext:
