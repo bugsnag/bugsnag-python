@@ -2,7 +2,7 @@ from typing import Dict, Any, Tuple, Type, Union
 import types
 import sys
 
-from bugsnag.breadcrumbs import BreadcrumbType
+from bugsnag.breadcrumbs import BreadcrumbType, OnBreadcrumbCallback
 from bugsnag.configuration import RequestConfiguration
 from bugsnag.client import Client
 
@@ -136,6 +136,22 @@ def leave_breadcrumb(
     type: Union[BreadcrumbType, str] = BreadcrumbType.MANUAL
 ) -> None:
     default_client.leave_breadcrumb(message, metadata, type)
+
+
+def add_on_breadcrumb(on_breadcrumb: OnBreadcrumbCallback) -> None:
+    """
+    Add a callback to be called each time a breadcrumb is left
+
+    This can be used to alter the breadcrumb, or discard it by returning False
+    """
+    default_client.add_on_breadcrumb(on_breadcrumb)
+
+
+def remove_on_breadcrumb(on_breadcrumb: OnBreadcrumbCallback) -> None:
+    """
+    Remove an existing on_breadcrumb callback
+    """
+    default_client.remove_on_breadcrumb(on_breadcrumb)
 
 
 def _auto_leave_breadcrumb(
