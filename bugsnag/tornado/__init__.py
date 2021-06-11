@@ -74,6 +74,7 @@ class BugsnagRequestHandler(RequestHandler):
         middleware = bugsnag.configure().internal_middleware
         bugsnag.configure().runtime_versions['tornado'] = tornado.version
         middleware.before_notify(self.add_tornado_request_to_notification)
+        bugsnag.configure()._breadcrumbs.create_copy_for_context()
 
         if bugsnag.configuration.auto_capture_sessions:
             bugsnag.start_session()
