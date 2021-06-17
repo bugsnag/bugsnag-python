@@ -1,7 +1,9 @@
 from functools import wraps
+from contextlib import contextmanager
 import logging
 
 from bugsnag.handlers import BugsnagHandler
+from bugsnag.legacy import default_client
 from bugsnag import Client, BreadcrumbType
 import bugsnag
 
@@ -11,19 +13,32 @@ from tests.utils import IntegrationTest, ScaryException
 def use_client_logger(func):
     @wraps(func)
     def wrapped(obj):
-        client = Client(endpoint=obj.server.url,
-                        asynchronous=False)
+        client = Client(
+            api_key='abcdef',
+            endpoint=obj.server.url,
+            asynchronous=False
+        )
+
         handler = client.log_handler()
-        logger = logging.getLogger(__name__)
-        logger.setLevel(logging.INFO)
-        logger.addHandler(handler)
-        try:
+
+        with scoped_logger() as logger:
+            logger.setLevel(logging.INFO)
+            logger.addHandler(handler)
+
             func(obj, handler, logger)
-        finally:
-            logger.removeHandler(handler)
-            logger.filters = []
 
     return wrapped
+
+
+@contextmanager
+def scoped_logger():
+    logger = logging.getLogger(__name__)
+
+    try:
+        yield logger
+    finally:
+        logger.handlers = []
+        logger.filters = []
 
 
 class HandlersTest(IntegrationTest):
@@ -220,8 +235,12 @@ class HandlersTest(IntegrationTest):
         })
 
     def test_client_metadata_fields(self):
-        client = Client(endpoint=self.server.url,
-                        asynchronous=False)
+        client = Client(
+            api_key='abcdef',
+            endpoint=self.server.url,
+            asynchronous=False
+        )
+
         handler = client.log_handler(extra_fields={
             'fruit': ['grapes', 'pears']
         })
@@ -592,3 +611,49 @@ class HandlersTest(IntegrationTest):
         assert breadcrumb.message == 'Everything is fine'
         assert breadcrumb.type == BreadcrumbType.LOG
         assert breadcrumb.metadata == {'logLevel': 'INFO'}
+
+    def test_log_filter_leaves_breadcrumbs_when_manually_constructed(self):
+        default_client.configuration.max_breadcrumbs = 25
+
+        with scoped_logger() as logger:
+            handler = BugsnagHandler()
+            logger.addHandler(handler)
+            logger.addFilter(handler.leave_breadcrumbs)
+
+            logger.setLevel(logging.INFO)
+            handler.setLevel(logging.ERROR)
+
+            logger.info('Everything is fine')
+
+            assert self.sent_report_count == 0
+            assert len(default_client.configuration.breadcrumbs) == 1
+
+            breadcrumb = default_client.configuration.breadcrumbs[0]
+            assert breadcrumb.message == 'Everything is fine'
+            assert breadcrumb.type == BreadcrumbType.LOG
+            assert breadcrumb.metadata == {'logLevel': 'INFO'}
+
+            logger.error('Everything is not fine')
+
+            assert self.sent_report_count == 1
+
+            # we expect 2 breadcrumbs - one from the 'info' log above and one
+            # from the notify caused by the 'error' log
+            assert len(default_client.configuration.breadcrumbs) == 2
+
+            json_body = self.server.received[0]['json_body']
+            event = json_body['events'][0]
+            exception = event['exceptions'][0]
+
+            assert exception['errorClass'] == 'LogERROR'
+            assert exception['message'] == 'Everything is not fine'
+
+            breadcrumb = default_client.configuration.breadcrumbs[1]
+            assert breadcrumb.message == 'LogERROR'
+            assert breadcrumb.type == BreadcrumbType.ERROR
+            assert breadcrumb.metadata == {
+                'errorClass': 'LogERROR',
+                'message': 'Everything is not fine',
+                'severity': 'error',
+                'unhandled': False,
+            }

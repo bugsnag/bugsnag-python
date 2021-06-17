@@ -158,14 +158,16 @@ class BugsnagHandler(logging.Handler, object):
         handler's level
         """
 
+        client = self.client or bugsnag.legacy.default_client
+
         # Only leave a breadcrumb if we aren't going to notify this log record
         # and its "bugsnag_create_breadcrumb" attribute isn't False
         if (
-            record.levelno >= self.client.configuration.breadcrumb_log_level
+            record.levelno >= client.configuration.breadcrumb_log_level
             and record.levelno < self.level
             and getattr(record, 'bugsnag_create_breadcrumb', True)
         ):
-            self.client._auto_leave_breadcrumb(
+            client._auto_leave_breadcrumb(
                 record.getMessage(),
                 {"logLevel": record.levelname},
                 BreadcrumbType.LOG
