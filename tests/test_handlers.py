@@ -598,20 +598,6 @@ class HandlersTest(IntegrationTest):
         assert breadcrumb.type == BreadcrumbType.LOG
         assert breadcrumb.metadata == {'logLevel': 'INFO'}
 
-        handler.client.configuration.configure(
-            enabled_breadcrumb_types=['log']
-        )
-
-        logger.info('Everything is fine')
-
-        assert self.sent_report_count == 0
-        assert len(handler.client.configuration.breadcrumbs) == 2
-
-        breadcrumb = handler.client.configuration.breadcrumbs[1]
-        assert breadcrumb.message == 'Everything is fine'
-        assert breadcrumb.type == BreadcrumbType.LOG
-        assert breadcrumb.metadata == {'logLevel': 'INFO'}
-
     def test_log_filter_leaves_breadcrumbs_when_manually_constructed(self):
         default_client.configuration.max_breadcrumbs = 25
 
