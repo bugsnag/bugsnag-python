@@ -299,7 +299,7 @@ class TestFlask(IntegrationTest):
             raise SentinelError("oops")
 
         handle_exceptions(app)
-        headers = {'referer': '/hi'}
+        headers = {'referer': 'http://localhost/hi?password=hunter2'}
         app.test_client().get('/hello', headers=headers)
 
         self.assertEqual(1, len(self.server.received))
@@ -317,6 +317,6 @@ class TestFlask(IntegrationTest):
         assert breadcrumbs[0]['name'] == 'http request'
         assert breadcrumbs[0]['metaData'] == {
             'to': '/hello',
-            'from': '/hi'
+            'from': 'http://localhost/hi'
         }
         assert breadcrumbs[0]['type'] == BreadcrumbType.NAVIGATION.value

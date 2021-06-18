@@ -5,6 +5,7 @@ import bugsnag
 from bugsnag.wsgi import request_path
 from bugsnag.legacy import _auto_leave_breadcrumb
 from bugsnag.breadcrumbs import BreadcrumbType
+from bugsnag.utils import sanitize_url
 
 
 __all__ = ('handle_exceptions',)
@@ -65,9 +66,9 @@ def _on_request_started(sender, **extra):
 
 
 def _get_breadcrumb_metadata(request) -> Dict[str, str]:
-    metadata = {'to': request_path(flask.request.environ)}
+    metadata = {'to': request_path(request.environ)}
 
     if 'referer' in request.headers:
-        metadata['from'] = request.headers['referer']
+        metadata['from'] = sanitize_url(request.headers['referer'])
 
     return metadata

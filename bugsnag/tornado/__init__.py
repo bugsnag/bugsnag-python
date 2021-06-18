@@ -4,7 +4,7 @@ from tornado.wsgi import WSGIContainer
 from typing import Dict, Any
 from urllib.parse import parse_qs
 from bugsnag.breadcrumbs import BreadcrumbType
-from bugsnag.utils import is_json_content_type
+from bugsnag.utils import is_json_content_type, sanitize_url
 from bugsnag.legacy import _auto_leave_breadcrumb
 import bugsnag
 import json
@@ -94,7 +94,7 @@ class BugsnagRequestHandler(RequestHandler):
         metadata = {'to': self.request.path}
 
         if 'Referer' in self.request.headers:
-            metadata['from'] = self.request.headers['Referer']
+            metadata['from'] = sanitize_url(self.request.headers['Referer'])
 
         return metadata
 

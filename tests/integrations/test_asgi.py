@@ -231,7 +231,7 @@ class TestASGIMiddleware(IntegrationTest):
             return PlainTextResponse('pineapple')
 
         app = TestClient(BugsnagMiddleware(app))
-        headers = {'referer': 'https://example.com/abc/xyz'}
+        headers = {'referer': 'http://testserver/abc/xyz?password=hunter2'}
 
         self.assertRaises(
             ScaryException,
@@ -259,6 +259,6 @@ class TestASGIMiddleware(IntegrationTest):
         assert breadcrumbs[0]['name'] == 'http request'
         assert breadcrumbs[0]['metaData'] == {
             'to': '/',
-            'from': 'https://example.com/abc/xyz'
+            'from': 'http://testserver/abc/xyz'
         }
         assert breadcrumbs[0]['type'] == BreadcrumbType.NAVIGATION.value

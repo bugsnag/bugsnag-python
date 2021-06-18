@@ -392,7 +392,7 @@ def test_bugsnag_middleware_leaves_breadcrumb_with_referer(
 ):
     response = django_client.get(
         '/notes/handled-exception/?foo=strawberry',
-        HTTP_REFERER='/notes/top-10-dogs.txt'
+        HTTP_REFERER='http://testserver/notes/top-10-dogs.txt?password=hunter2'
     )
 
     assert response.status_code == 200
@@ -440,6 +440,6 @@ def test_bugsnag_middleware_leaves_breadcrumb_with_referer(
     assert breadcrumbs[0]['name'] == 'http request'
     assert breadcrumbs[0]['metaData'] == {
         'to': '/notes/handled-exception/',
-        'from': '/notes/top-10-dogs.txt'
+        'from': 'http://testserver/notes/top-10-dogs.txt'
     }
     assert breadcrumbs[0]['type'] == BreadcrumbType.NAVIGATION.value
