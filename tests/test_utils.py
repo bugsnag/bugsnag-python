@@ -10,7 +10,7 @@ from datetime import datetime, timedelta, timezone
 
 from bugsnag.utils import (SanitizingJSONEncoder, FilterDict,
                            is_json_content_type, parse_content_type,
-                           ThreadContextVar, to_rfc3339)
+                           ThreadContextVar, to_rfc3339, sanitize_url)
 
 logger = logging.getLogger(__name__)
 
@@ -449,3 +449,30 @@ minus_12_30 = timezone(timedelta(hours=-12, minutes=-30))
 ])
 def test_to_rfc3339(dt: datetime, expected: str):
     assert to_rfc3339(dt) == expected
+
+
+@pytest.mark.parametrize("url_to_sanitize, expected", [
+    ('https://example.com', 'https://example.com/'),
+    ('https://example.com/', 'https://example.com/'),
+    ('https://example.com/a/b/c', 'https://example.com/a/b/c'),
+    ('https://example.com/abc?xyz=123', 'https://example.com/abc'),
+    ('https://example.com/a/b/c', 'https://example.com/a/b/c'),
+    ('https://example.com/abc?xyz=123', 'https://example.com/abc'),
+    ('https://example.com/abc;x=1;y=2;z=3', 'https://example.com/abc'),
+    ('https://example.com:8000/abc?xyz=123', 'https://example.com:8000/abc'),
+
+    ('wss://example.com/abc?xyz=123', 'wss://example.com/abc'),
+    ('ftp://example.com/abc?xyz=123', 'ftp://example.com/abc'),
+
+    ('xyz', None),
+    ('///', None),
+    ('///', None),
+    ('/a/b/c', None),
+    ('/a/b/c', None),
+    ('example.com/<<<<', None),
+    ('->example.com<-', None),
+    ('', None),
+    ('', None),
+])
+def test_sanitize_url(url_to_sanitize, expected):
+    assert sanitize_url(url_to_sanitize) == expected
