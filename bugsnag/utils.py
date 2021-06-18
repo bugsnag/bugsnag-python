@@ -2,7 +2,7 @@ from functools import wraps, partial
 import inspect
 from json import JSONEncoder
 from threading import local as threadlocal
-from typing import Tuple, Optional, Union
+from typing import Tuple, Optional
 import warnings
 import copy
 import logging
@@ -320,7 +320,7 @@ class ThreadContextVar:
         setattr(ThreadContextVar.local_context(), self.name, new_value)
 
 
-def sanitize_url(url_to_sanitize: str) -> Union[str, None]:
+def sanitize_url(url_to_sanitize: str) -> Optional[str]:
     try:
         parsed = urlparse(url_to_sanitize)
     except Exception:
