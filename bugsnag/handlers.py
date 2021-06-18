@@ -162,9 +162,12 @@ class BugsnagHandler(logging.Handler, object):
 
         # Only leave a breadcrumb if we aren't going to notify this log record
         # and its "bugsnag_create_breadcrumb" attribute isn't False
+        # If the handler has no level (is NOTSET) then we will leave a
+        # breadcrumb because it's likely this means the handler has not been
+        # attached. Otherwise it would be notify-ing for every log call
         if (
             record.levelno >= client.configuration.breadcrumb_log_level
-            and record.levelno < self.level
+            and (record.levelno < self.level or self.level == logging.NOTSET)
             and getattr(record, 'bugsnag_create_breadcrumb', True)
         ):
             client._auto_leave_breadcrumb(
