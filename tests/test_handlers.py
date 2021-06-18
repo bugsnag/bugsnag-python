@@ -657,3 +657,31 @@ class HandlersTest(IntegrationTest):
                 'severity': 'error',
                 'unhandled': False,
             }
+
+    def test_log_filter_leaves_breadcrumbs_when_handler_has_no_level(self):
+        default_client.configuration.max_breadcrumbs = 25
+
+        with scoped_logger() as logger:
+            handler = BugsnagHandler()
+            logger.addFilter(handler.leave_breadcrumbs)
+            logger.setLevel(logging.DEBUG)
+
+            logger.info('Everything is fine')
+
+            assert self.sent_report_count == 0
+            assert len(default_client.configuration.breadcrumbs) == 1
+
+            breadcrumb = default_client.configuration.breadcrumbs[0]
+            assert breadcrumb.message == 'Everything is fine'
+            assert breadcrumb.type == BreadcrumbType.LOG
+            assert breadcrumb.metadata == {'logLevel': 'INFO'}
+
+            logger.error('Everything is not fine')
+
+            assert self.sent_report_count == 0
+            assert len(default_client.configuration.breadcrumbs) == 2
+
+            breadcrumb = default_client.configuration.breadcrumbs[1]
+            assert breadcrumb.message == 'Everything is not fine'
+            assert breadcrumb.type == BreadcrumbType.LOG
+            assert breadcrumb.metadata == {'logLevel': 'ERROR'}
