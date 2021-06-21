@@ -264,7 +264,11 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
         assert breadcrumbs[0]['type'] == BreadcrumbType.NAVIGATION.value
 
     def test_bugsnag_request_handler_leaves_breadcrumb_with_referer(self):
-        self.fetch('/crash', headers={'Referer': '/abc/xyz'})
+        referer = 'http://127.0.0.1:{}/abc/xyz?password=hunter2'.format(
+            self.get_http_port()
+        )
+
+        self.fetch('/crash', headers={'Referer': referer})
         assert len(self.server.received) == 1
 
         payload = self.server.received[0]['json_body']
@@ -274,6 +278,6 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
         assert breadcrumbs[0]['name'] == 'http request'
         assert breadcrumbs[0]['metaData'] == {
             'to': '/crash',
-            'from': '/abc/xyz'
+            'from': 'http://127.0.0.1:{}/abc/xyz'.format(self.get_http_port())
         }
         assert breadcrumbs[0]['type'] == BreadcrumbType.NAVIGATION.value

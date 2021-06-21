@@ -284,7 +284,7 @@ class TestWSGI(IntegrationTest):
                 raise SentinelError("oops")
 
         app = TestApp(BugsnagMiddleware(CrashOnStartApp))
-        headers = {'referer': '/toast'}
+        headers = {'referer': 'http://localhost/toast?password=hunter2'}
 
         self.assertRaises(
             SentinelError,
@@ -303,6 +303,6 @@ class TestWSGI(IntegrationTest):
         assert breadcrumbs[0]['name'] == 'http request'
         assert breadcrumbs[0]['metaData'] == {
             'to': '/beans',
-            'from': '/toast'
+            'from': 'http://localhost/toast'
         }
         assert breadcrumbs[0]['type'] == BreadcrumbType.NAVIGATION.value
