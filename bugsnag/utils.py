@@ -2,12 +2,12 @@ from functools import wraps, partial
 import inspect
 from json import JSONEncoder
 from threading import local as threadlocal
-from typing import Tuple, Optional
+from typing import AnyStr, Tuple, Optional
 import warnings
 import copy
 import logging
 from datetime import datetime, timedelta
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunsplit
 
 MAX_PAYLOAD_LENGTH = 128 * 1024
 MAX_STRING_LENGTH = 1024
@@ -320,22 +320,23 @@ class ThreadContextVar:
         setattr(ThreadContextVar.local_context(), self.name, new_value)
 
 
-def sanitize_url(url_to_sanitize: str) -> Optional[str]:
+def sanitize_url(url_to_sanitize: AnyStr) -> Optional[AnyStr]:
     try:
         parsed = urlparse(url_to_sanitize)
+
+        sanitized_url = urlunsplit(
+            # urlunsplit always requires 5 elements in this tuple
+            (parsed.scheme, parsed.netloc, parsed.path, None, None)
+        ).strip()
     except Exception:
         return None
 
-    # if the "netloc" is empty then the URL is malformed in some way - we
-    # always expect to be able to parse this from url_to_sanitize
-    if parsed.netloc == '':
+    # If the sanitized url is empty then it did not have any of the components
+    # we are interested in, so return None to indicate failure
+    if not sanitized_url:
         return None
 
-    return "{}://{}/{}".format(
-        parsed.scheme,
-        parsed.netloc,
-        parsed.path.lstrip('/')
-    )
+    return sanitized_url
 
 
 # to_rfc3339: format a datetime instance to match to_rfc3339/iso8601 with

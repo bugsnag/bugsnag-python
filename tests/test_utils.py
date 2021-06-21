@@ -452,7 +452,7 @@ def test_to_rfc3339(dt: datetime, expected: str):
 
 
 @pytest.mark.parametrize("url_to_sanitize, expected", [
-    ('https://example.com', 'https://example.com/'),
+    ('https://example.com', 'https://example.com'),
     ('https://example.com/', 'https://example.com/'),
     ('https://example.com/a/b/c', 'https://example.com/a/b/c'),
     ('https://example.com/abc?xyz=123', 'https://example.com/abc'),
@@ -460,19 +460,41 @@ def test_to_rfc3339(dt: datetime, expected: str):
     ('https://example.com/abc?xyz=123', 'https://example.com/abc'),
     ('https://example.com/abc;x=1;y=2;z=3', 'https://example.com/abc'),
     ('https://example.com:8000/abc?xyz=123', 'https://example.com:8000/abc'),
+    (b'https://example.com', b'https://example.com'),
+    (b'https://example.com/', b'https://example.com/'),
+    (b'https://example.com/a/b/c', b'https://example.com/a/b/c'),
+    (b'https://example.com/abc?xyz=123', b'https://example.com/abc'),
+    (b'https://example.com/a/b/c', b'https://example.com/a/b/c'),
+    (b'https://example.com/abc?xyz=123', b'https://example.com/abc'),
+    (b'https://example.com/abc;x=1;y=2;z=3', b'https://example.com/abc'),
+    (b'https://example.com:8000/abc?xyz=123', b'https://example.com:8000/abc'),
 
     ('wss://example.com/abc?xyz=123', 'wss://example.com/abc'),
     ('ftp://example.com/abc?xyz=123', 'ftp://example.com/abc'),
+    (b'wss://example.com/abc?xyz=123', b'wss://example.com/abc'),
+    (b'ftp://example.com/abc?xyz=123', b'ftp://example.com/abc'),
 
-    ('xyz', None),
-    ('///', None),
-    ('///', None),
-    ('/a/b/c', None),
-    ('/a/b/c', None),
-    ('example.com/<<<<', None),
-    ('->example.com<-', None),
+    ('xyz', 'xyz'),
+    ('///', '/'),
+    ('/a/b/c', '/a/b/c'),
+    ('example.com/<<<<', 'example.com/<<<<'),
+    ('->example.com<-', '->example.com<-'),
+    (b'xyz', b'xyz'),
+    (b'///', b'/'),
+    (b'/a/b/c', b'/a/b/c'),
+    (b'example.com/<<<<', b'example.com/<<<<'),
+    (b'->example.com<-', b'->example.com<-'),
+
     ('', None),
-    ('', None),
+    (b'', None),
+    ('  ', None),
+    (b'  ', None),
+    (None, None),
+    (123, None),
+    ([1, 2, 3], None),
+    ({'a': 1, b'b': 2, 'c': 3}, None),
+    (object(), None),
+    (lambda: 'example.com', None),
 ])
 def test_sanitize_url(url_to_sanitize, expected):
     assert sanitize_url(url_to_sanitize) == expected
