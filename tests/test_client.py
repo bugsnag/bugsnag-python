@@ -318,6 +318,32 @@ class ClientTest(IntegrationTest):
         assert breadcrumb.type == BreadcrumbType.ERROR
         assert is_valid_timestamp(breadcrumb.timestamp)
 
+    def test_exception_hook_does_not_leave_a_breadcrumb_if_errors_are_disabled(
+        self
+    ):
+        # enable all type except 'ERROR'
+        self.client.configuration.configure(
+            enabled_breadcrumb_types=[
+                BreadcrumbType.NAVIGATION,
+                BreadcrumbType.REQUEST,
+                BreadcrumbType.PROCESS,
+                BreadcrumbType.LOG,
+                BreadcrumbType.USER,
+                BreadcrumbType.STATE,
+                BreadcrumbType.MANUAL,
+            ]
+        )
+
+        assert len(self.server.received) == 0
+
+        try:
+            beep = boop  # noqa: F841, F821
+        except Exception:
+            self.client.excepthook(*sys.exc_info())
+
+        assert len(self.server.received) == 1
+        assert len(self.client.configuration.breadcrumbs) == 0
+
     def test_installed_except_hook(self):
         client = Client()
 
@@ -730,7 +756,7 @@ class ClientTest(IntegrationTest):
         assert breadcrumbs[2]['type'] == BreadcrumbType.MANUAL.value
         assert is_valid_timestamp(breadcrumbs[2]['timestamp'])
 
-    def test_handled_notify_leaves_a_new_breadcrumbs(self):
+    def test_handled_notify_leaves_a_new_breadcrumb(self):
         assert len(self.server.received) == 0
 
         self.client.notify(Exception('hello'))
@@ -749,7 +775,7 @@ class ClientTest(IntegrationTest):
         assert breadcrumb.type == BreadcrumbType.ERROR
         assert is_valid_timestamp(breadcrumb.timestamp)
 
-    def test_unhandled_notify_leaves_a_new_breadcrumbs(self):
+    def test_unhandled_notify_leaves_a_new_breadcrumb(self):
         assert len(self.server.received) == 0
 
         self.client.notify(
@@ -771,6 +797,27 @@ class ClientTest(IntegrationTest):
         }
         assert breadcrumb.type == BreadcrumbType.ERROR
         assert is_valid_timestamp(breadcrumb.timestamp)
+
+    def test_notify_does_not_leave_a_breadcrumb_if_errors_are_disabled(self):
+        # enable all type except 'ERROR'
+        self.client.configuration.configure(
+            enabled_breadcrumb_types=[
+                BreadcrumbType.NAVIGATION,
+                BreadcrumbType.REQUEST,
+                BreadcrumbType.PROCESS,
+                BreadcrumbType.LOG,
+                BreadcrumbType.USER,
+                BreadcrumbType.STATE,
+                BreadcrumbType.MANUAL,
+            ]
+        )
+
+        assert len(self.server.received) == 0
+
+        self.client.notify(Exception('hello'))
+
+        assert len(self.server.received) == 1
+        assert len(self.client.configuration.breadcrumbs) == 0
 
     def test_can_modify_breadcrumbs_in_before_notify_callbacks(self):
         assert len(self.server.received) == 0
