@@ -109,6 +109,7 @@ class BugsnagMiddleware:
         stack.before_notify(add_request_info)
 
     async def __call__(self, scope, receive, send):
+        bugsnag.configure()._breadcrumbs.create_copy_for_context()
         bugsnag.configure_request(asgi_scope=scope)
         try:
             if bugsnag.configuration.auto_capture_sessions:
