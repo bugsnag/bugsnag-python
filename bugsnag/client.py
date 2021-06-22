@@ -278,7 +278,7 @@ class Client:
     def _leave_breadcrumb_for_event(self, event: Event) -> None:
         error_class = class_name(event.exception)
 
-        self.leave_breadcrumb(
+        self._auto_leave_breadcrumb(
             error_class,
             {
                 'errorClass': error_class,
