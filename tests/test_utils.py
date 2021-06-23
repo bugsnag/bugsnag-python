@@ -36,7 +36,10 @@ class TestUtils(unittest.TestCase):
         object_key = object()
         data = FilterDict({"password": "456", object_key: True})
 
-        encoder = SanitizingJSONEncoder(keyword_filters=["password"])
+        encoder = SanitizingJSONEncoder(
+            logger,
+            keyword_filters=["password"]
+        )
 
         actual = json.loads(encoder.encode(data))
         expected = {"password": "[FILTERED]", str(object_key): True}
@@ -46,8 +49,11 @@ class TestUtils(unittest.TestCase):
     def test_encode_filters_bytes(self):
         data = FilterDict({b"credit_card": "123213213123", b"password": "456",
                            "cake": True})
-        encoder = SanitizingJSONEncoder(keyword_filters=["credit_card",
-                                                         "password"])
+        encoder = SanitizingJSONEncoder(
+            logger,
+            keyword_filters=["credit_card", "password"]
+        )
+
         sane_data = json.loads(encoder.encode(data))
         self.assertEqual(sane_data, {"credit_card": "[FILTERED]",
                                      "password": "[FILTERED]",
