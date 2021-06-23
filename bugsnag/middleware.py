@@ -1,6 +1,5 @@
 from typing import Callable, Optional, Type, List
 
-import bugsnag
 from bugsnag.event import Event
 
 
@@ -57,7 +56,7 @@ class DefaultMiddleware:
                 event.add_tab(name, dictionary)
 
         event.add_tab("request", config.get("request_data"))
-        if bugsnag.configure().send_environment:
+        if event.config.send_environment:
             event.add_tab("environment", config.get("environment_data"))
         event.add_tab("session", config.get("session_data"))
         event.add_tab("extraData", config.get("extra_data"))
@@ -158,6 +157,9 @@ class MiddlewareStack:
         try:
             to_call(event)
         except Exception:
-            bugsnag.logger.exception('Error in exception middleware')
+            event.config.logger.exception(
+                'Error in exception middleware'
+            )
+
             # still notify if middleware crashes before event
             finish(event)

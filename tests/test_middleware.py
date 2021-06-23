@@ -1,6 +1,8 @@
 import unittest
 
+import bugsnag
 from bugsnag.middleware import MiddlewareStack
+from bugsnag.configuration import RequestConfiguration
 
 
 class SampleMiddlewareClass(object):
@@ -39,6 +41,14 @@ class SampleMiddlewareReturning(object):
         return
 
 
+def create_event() -> bugsnag.Event:
+    return bugsnag.Event(
+        RuntimeError('oh no!'),
+        bugsnag.configure(),
+        RequestConfiguration.get_instance()
+    )
+
+
 class TestMiddleware(unittest.TestCase):
 
     def test_order_of_middleware(self):
@@ -53,7 +63,7 @@ class TestMiddleware(unittest.TestCase):
         m.after_notify(lambda _: a.append(4))
         m.after_notify(lambda _: a.append(3))
 
-        m.run(None, lambda: None)
+        m.run(create_event(), lambda: None)
 
         self.assertEqual(a, [1, 2, 3, 4])
 
@@ -66,7 +76,7 @@ class TestMiddleware(unittest.TestCase):
         m.before_notify(lambda _: False)
         m.before_notify(lambda _: a.append(1))
 
-        m.run(None, lambda: a.append(2))
+        m.run(create_event(), lambda: a.append(2))
 
         self.assertEqual(a, [])
 
@@ -76,7 +86,7 @@ class TestMiddleware(unittest.TestCase):
 
         m = MiddlewareStack()
         m.before_notify(lambda _: a.penned(1))
-        m.run(None, lambda: a.append(2))
+        m.run(create_event(), lambda: a.append(2))
 
         self.assertEqual(a, [2])
 
@@ -85,7 +95,7 @@ class TestMiddleware(unittest.TestCase):
 
         m = MiddlewareStack()
         m.after_notify(lambda _: a.penned(1))
-        m.run(None, lambda: a.append(2))
+        m.run(create_event(), lambda: a.append(2))
 
         self.assertEqual(a, [2])
 

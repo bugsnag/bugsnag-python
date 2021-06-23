@@ -2,19 +2,19 @@ from typing import Dict, Any, Tuple, Type
 import types
 import sys
 
+from bugsnag.breadcrumbs import BreadcrumbType, OnBreadcrumbCallback
 from bugsnag.configuration import RequestConfiguration
 from bugsnag.client import Client
 
-import bugsnag
-
 default_client = Client()
 configuration = default_client.configuration
+logger = configuration.logger
 ExcInfoType = Tuple[Type, Exception, types.TracebackType]
 
 
 __all__ = ('configure', 'configure_request', 'add_metadata_tab',
            'clear_request_config', 'notify', 'start_session', 'auto_notify',
-           'auto_notify_exc_info', 'before_notify')
+           'auto_notify_exc_info', 'before_notify', 'leave_breadcrumb')
 
 
 def configure(**options):
@@ -70,8 +70,10 @@ def notify(exception: BaseException, **options):
             except Exception:
                 value = '[BADENCODING]'
 
-            bugsnag.logger.warning('Coercing invalid notify()'
-                                   ' value to RuntimeError: %s' % value)
+            default_client.configuration.logger.warning(
+                'Coercing invalid notify() value to RuntimeError: %s' % value
+            )
+
             exception = RuntimeError(value)
 
         default_client.notify(exception, **options)
@@ -126,3 +128,35 @@ def before_notify(callback):
     This can be used to alter the event before sending it to Bugsnag.
     """
     configuration.middleware.before_notify(callback)
+
+
+def leave_breadcrumb(
+    message: str,
+    metadata: Dict[str, Any] = {},
+    type: BreadcrumbType = BreadcrumbType.MANUAL
+) -> None:
+    default_client.leave_breadcrumb(message, metadata, type)
+
+
+def add_on_breadcrumb(on_breadcrumb: OnBreadcrumbCallback) -> None:
+    """
+    Add a callback to be called each time a breadcrumb is left
+
+    This can be used to alter the breadcrumb, or discard it by returning False
+    """
+    default_client.add_on_breadcrumb(on_breadcrumb)
+
+
+def remove_on_breadcrumb(on_breadcrumb: OnBreadcrumbCallback) -> None:
+    """
+    Remove an existing on_breadcrumb callback
+    """
+    default_client.remove_on_breadcrumb(on_breadcrumb)
+
+
+def _auto_leave_breadcrumb(
+    message: str,
+    metadata: Dict[str, Any],
+    type: BreadcrumbType
+) -> None:
+    default_client._auto_leave_breadcrumb(message, metadata, type)

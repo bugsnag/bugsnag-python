@@ -2,11 +2,12 @@ from functools import wraps, partial
 import inspect
 from json import JSONEncoder
 from threading import local as threadlocal
-from typing import Tuple, Optional
+from typing import AnyStr, Tuple, Optional
 import warnings
 import copy
-
-import bugsnag
+import logging
+from datetime import datetime, timedelta
+from urllib.parse import urlparse, urlunsplit
 
 MAX_PAYLOAD_LENGTH = 128 * 1024
 MAX_STRING_LENGTH = 1024
@@ -20,8 +21,10 @@ class SanitizingJSONEncoder(JSONEncoder):
     A JSON encoder which handles filtering and conversion from JSON-
     incompatible types to strings.
 
+    >>> import logging
     >>> from json import loads
-    >>> encoder = SanitizingJSONEncoder(keyword_filters=['bananas'])
+    >>> logger = logging.getLogger(__name__)
+    >>> encoder = SanitizingJSONEncoder(logger, keyword_filters=['bananas'])
     >>> items = loads(encoder.encode(FilterDict({'carrots': 4, 'bananas': 5})))
     >>> items['bananas']
     '[FILTERED]'
@@ -33,8 +36,10 @@ class SanitizingJSONEncoder(JSONEncoder):
     recursive_value = '[RECURSIVE]'
     unencodeable_value = '[BADENCODING]'
 
-    def __init__(self, keyword_filters=None, **kwargs):
+    def __init__(self, logger: logging.Logger, keyword_filters=None, **kwargs):
+        self.logger = logger
         self.filters = list(map(str.lower, keyword_filters or []))
+        self.bytes_filters = [x.encode('utf-8') for x in self.filters]
         super(SanitizingJSONEncoder, self).__init__(**kwargs)
 
     def encode(self, obj):
@@ -70,8 +75,7 @@ class SanitizingJSONEncoder(JSONEncoder):
 
             clean_dict = {}
             for key, value in obj.items():
-                is_string = isinstance(key, str)
-                if is_string and any(f in key.lower() for f in self.filters):
+                if self._should_filter(key):
                     clean_dict[key] = self.filtered_value
                 else:
                     clean_dict[key] = self.filter_string_values(
@@ -93,7 +97,7 @@ class SanitizingJSONEncoder(JSONEncoder):
                 return str(obj)
 
         except Exception:
-            bugsnag.logger.exception('Could not add object to payload')
+            self.logger.exception('Could not add object to payload')
             return self.unencodeable_value
 
     def _sanitize(self, obj, trim_strings, ignored=None, seen=None):
@@ -141,7 +145,7 @@ class SanitizingJSONEncoder(JSONEncoder):
                 key = str(key, encoding='utf-8', errors='replace')
                 clean_dict[key] = clean_value
             except Exception:
-                bugsnag.logger.exception(
+                self.logger.exception(
                     'Could not add sanitize key for dictionary, '
                     'dropping value.')
         if isinstance(key, str):
@@ -150,7 +154,7 @@ class SanitizingJSONEncoder(JSONEncoder):
             try:
                 clean_dict[str(key)] = clean_value
             except Exception:
-                bugsnag.logger.exception(
+                self.logger.exception(
                     'Could not add sanitize key for dictionary, '
                     'dropping value.')
 
@@ -170,6 +174,17 @@ class SanitizingJSONEncoder(JSONEncoder):
             self._sanitize_dict_key_value(clean_dict, key, clean_value)
 
         return clean_dict
+
+    def _should_filter(self, key):
+        if isinstance(key, str):
+            key_lower = key.lower()
+            return any(f in key_lower for f in self.filters)
+
+        if isinstance(key, bytes):
+            key_lower = key.lower()
+            return any(f in key_lower for f in self.bytes_filters)
+
+        return False
 
 
 class FilterDict(dict):
@@ -273,6 +288,7 @@ validate_required_str_setter = partial(_validate_setter, (str,),
                                        should_error=True)
 validate_bool_setter = partial(_validate_setter, (bool,))
 validate_iterable_setter = partial(_validate_setter, (list, tuple))
+validate_int_setter = partial(_validate_setter, (int,))
 
 
 class ThreadContextVar:
@@ -313,3 +329,67 @@ class ThreadContextVar:
 
     def set(self, new_value):
         setattr(ThreadContextVar.local_context(), self.name, new_value)
+
+
+def sanitize_url(url_to_sanitize: AnyStr) -> Optional[AnyStr]:
+    try:
+        parsed = urlparse(url_to_sanitize)
+
+        sanitized_url = urlunsplit(
+            # urlunsplit always requires 5 elements in this tuple
+            (parsed.scheme, parsed.netloc, parsed.path, None, None)
+        ).strip()
+    except Exception:
+        return None
+
+    # If the sanitized url is empty then it did not have any of the components
+    # we are interested in, so return None to indicate failure
+    if not sanitized_url:
+        return None
+
+    return sanitized_url
+
+
+# to_rfc3339: format a datetime instance to match to_rfc3339/iso8601 with
+# milliseconds precision
+# Python can do this natively from version 3.6, but we need to include a
+# fallback implementation for Python 3.5
+try:
+    # this will raise if 'timespec' isn't supported
+    datetime.utcnow().isoformat(timespec='milliseconds')  # type: ignore
+
+    def to_rfc3339(dt: datetime) -> str:
+        return dt.isoformat(timespec='milliseconds')  # type: ignore
+
+except Exception:
+    def _get_timezone_offset(dt: datetime) -> str:
+        if dt.tzinfo is None:
+            return ''
+
+        utc_offset = dt.tzinfo.utcoffset(dt)
+
+        if utc_offset is None:
+            return ''
+
+        sign = '+'
+
+        if utc_offset.days < 0:
+            sign = '-'
+            utc_offset = -utc_offset
+
+        hours_offset, minutes = divmod(utc_offset, timedelta(hours=1))
+        minutes_offset, seconds = divmod(minutes, timedelta(minutes=1))
+
+        return '{:s}{:02d}:{:02d}'.format(sign, hours_offset, minutes_offset)
+
+    def to_rfc3339(dt: datetime) -> str:
+        return '{:04d}-{:02d}-{:02d}T{:02d}:{:02d}:{:02d}.{:03d}{:s}'.format(
+            dt.year,
+            dt.month,
+            dt.day,
+            dt.hour,
+            dt.minute,
+            dt.second,
+            int(dt.microsecond / 1000),
+            _get_timezone_offset(dt)
+        )
