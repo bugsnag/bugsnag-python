@@ -31,3 +31,5 @@ htmlcov
 #IDE files
 .vscode
 my_env
+venv
+.idea

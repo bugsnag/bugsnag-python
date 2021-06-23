@@ -1,6 +1,14 @@
 Changelog
 =========
 
+## TBD
+
+### Bug fixes
+
+* Apply filtering with `params_filters` to bytes, not just strings
+  [Matt Bachmann](https://github.com/Bachmann1234)
+  [#267](https://github.com/bugsnag/bugsnag-python/pull/267)
+
 ## 4.0.3 (2021-04-28)
 
 ### Bug fixes

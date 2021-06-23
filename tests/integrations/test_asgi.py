@@ -94,6 +94,31 @@ class TestASGIMiddleware(IntegrationTest):
         assert breadcrumbs[0]['metaData'] == {'to': '/'}
         assert breadcrumbs[0]['type'] == BreadcrumbType.NAVIGATION.value
 
+    def test_headers_are_filtered(self):
+        bugsnag.configure()
+        app = Starlette()
+
+        async def other_func():
+            raise ScaryException('fell winds!')
+
+        @app.route('/')
+        async def index(req):
+            await other_func()
+            return PlainTextResponse('pineapple')
+
+        app = TestClient(BugsnagMiddleware(app))
+
+        self.assertRaises(
+            ScaryException,
+            lambda: app.get('/', headers={'Authorization': 'yes'})
+        )
+        self.assertSentReportCount(1)
+
+        payload = self.server.received[0]['json_body']
+        headers = payload['events'][0]['metaData']['request']['headers']
+
+        self.assertEqual('[FILTERED]', headers['authorization'])
+
     def test_boot_crash(self):
         async def app(scope, recv, send):
             raise ScaryException('forgot the map')
