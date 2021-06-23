@@ -3,7 +3,7 @@ from logging import LogRecord
 from typing import Dict
 
 import bugsnag
-
+from bugsnag.breadcrumbs import BreadcrumbType
 
 __all__ = ('BugsnagHandler',)
 
@@ -41,13 +41,16 @@ class BugsnagHandler(logging.Handler, object):
             }
         }
 
+        client = self.client or bugsnag.legacy.default_client
+
         for callback in self.callbacks:
             try:
                 callback(record, options)
             except Exception as e:
-                bugsnag.logger.error('Failed to run handler callback %s', e)
-
-        client = self.client or bugsnag.legacy.default_client
+                client.configuration.logger.error(
+                    'Failed to run handler callback %s',
+                    e
+                )
 
         if 'exception' in options:
             exception = options.pop('exception')
@@ -147,3 +150,30 @@ class BugsnagHandler(logging.Handler, object):
             options['metadata'] = {}
 
         options['metadata']['extra data'] = extra_data
+
+    def leave_breadcrumbs(self, record):
+        """
+        A log filter that leaves breadcrumbs for log records with a level above
+        or equal to "configuration.breadcrumb_log_level" and below the
+        handler's level
+        """
+
+        client = self.client or bugsnag.legacy.default_client
+
+        # Only leave a breadcrumb if we aren't going to notify this log record
+        # and its "bugsnag_create_breadcrumb" attribute isn't False
+        # If the handler has no level (is NOTSET) then we will leave a
+        # breadcrumb because it's likely this means the handler has not been
+        # attached. Otherwise it would be notify-ing for every log call
+        if (
+            record.levelno >= client.configuration.breadcrumb_log_level
+            and (record.levelno < self.level or self.level == logging.NOTSET)
+            and getattr(record, 'bugsnag_create_breadcrumb', True)
+        ):
+            client._auto_leave_breadcrumb(
+                record.getMessage(),
+                {"logLevel": record.levelname},
+                BreadcrumbType.LOG
+            )
+
+        return True

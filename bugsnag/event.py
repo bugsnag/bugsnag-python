@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 import linecache
 import logging
 import os
@@ -6,9 +6,11 @@ import sys
 import traceback
 import inspect
 import warnings
+from copy import deepcopy
 
 import bugsnag
 
+from bugsnag.breadcrumbs import Breadcrumb
 from bugsnag.utils import fully_qualified_class_name as class_name
 from bugsnag.utils import FilterDict, package_version, SanitizingJSONEncoder
 
@@ -49,6 +51,9 @@ class Event:
         self.config = config
         self.request_config = request_config
         self.request = None  # type: Any
+        self._breadcrumbs = [
+            deepcopy(breadcrumb) for breadcrumb in config.breadcrumbs
+        ]
 
         def get_config(key):
             return options.pop(key, getattr(self.config, key))
@@ -101,6 +106,10 @@ class Event:
         warnings.warn('The Event "metadata" property has been replaced ' +
                       'with "meta_data".', DeprecationWarning)
         return self.metadata
+
+    @property
+    def breadcrumbs(self) -> List[Breadcrumb]:
+        return self._breadcrumbs.copy()
 
     def set_user(self, id=None, name=None, email=None):
         """
@@ -155,7 +164,7 @@ class Event:
                     module_file = module_file[:-1]
                 exclude_module_paths.append(module_file)
             except Exception:
-                bugsnag.logger.exception(
+                self.config.logger.exception(
                     'Could not exclude module: %s' % repr(exclude_module))
 
         lib_root = self.config.lib_root
@@ -238,9 +247,12 @@ class Event:
     def _payload(self):
         # Fetch the notifier version from the package
         notifier_version = package_version("bugsnag") or "unknown"
-        filters = self.config.params_filters
-        encoder = SanitizingJSONEncoder(separators=(',', ':'),
-                                        keyword_filters=filters)
+        encoder = SanitizingJSONEncoder(
+            self.config.logger,
+            separators=(',', ':'),
+            keyword_filters=self.config.params_filters
+        )
+
         # Construct the payload dictionary
         return encoder.encode({
             "apiKey": self.api_key,
@@ -273,6 +285,9 @@ class Event:
                 }),
                 "projectRoot": self.config.project_root,
                 "libRoot": self.config.lib_root,
-                "session": self.session
+                "session": self.session,
+                "breadcrumbs": [
+                    breadcrumb.to_dict() for breadcrumb in self._breadcrumbs
+                ]
             }]
         })

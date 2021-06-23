@@ -1,16 +1,22 @@
+import builtins
 import sys
 import threading
+import warnings
 
+from datetime import datetime, timezone
 from functools import wraps
-from typing import Union, Tuple, Callable, Optional, List, Type
+from typing import Union, Tuple, Callable, Optional, List, Type, Dict, Any
 
+from bugsnag.breadcrumbs import (
+    Breadcrumb,
+    BreadcrumbType,
+    OnBreadcrumbCallback
+)
 from bugsnag.configuration import Configuration, RequestConfiguration
 from bugsnag.event import Event
 from bugsnag.handlers import BugsnagHandler
 from bugsnag.sessiontracker import SessionTracker
-
-import bugsnag
-
+from bugsnag.utils import to_rfc3339, fully_qualified_class_name as class_name
 
 __all__ = ('Client',)
 
@@ -74,6 +80,8 @@ class Client:
 
         event = Event(exception, self.configuration,
                       RequestConfiguration.get_instance(), **options)
+
+        self._leave_breadcrumb_for_event(event)
         self.deliver(event, asynchronous=asynchronous)
 
     def notify_exc_info(self, exc_type, exc_value, traceback,
@@ -88,6 +96,8 @@ class Client:
         options['traceback'] = traceback
         event = Event(exception, self.configuration,
                       RequestConfiguration.get_instance(), **options)
+
+        self._leave_breadcrumb_for_event(event)
         self.deliver(event, asynchronous=asynchronous)
 
     def excepthook(self, exc_type, exc_value, traceback):
@@ -157,9 +167,12 @@ class Client:
                     options = {'asynchronous': asynchronous}
 
                 if event.api_key is None:
-                    bugsnag.logger.warning(
-                        "No API key configured, couldn't notify")
+                    self.configuration.logger.warning(
+                        "No API key configured, couldn't notify"
+                    )
+
                     return
+
                 if initial_severity != event.severity:
                     event.severity_reason = {
                         'type': 'userCallbackSetSeverity'
@@ -171,7 +184,11 @@ class Client:
                     self.configuration.delivery.deliver(self.configuration,
                                                         payload, options)
                 except Exception as e:
-                    bugsnag.logger.exception('Notifying Bugsnag failed %s', e)
+                    self.configuration.logger.exception(
+                        'Notifying Bugsnag failed %s',
+                        e
+                    )
+
                 # Trigger session delivery
                 self.session_tracker.send_sessions()
 
@@ -192,6 +209,85 @@ class Client:
 
     def log_handler(self, extra_fields: List[str] = None) -> BugsnagHandler:
         return BugsnagHandler(client=self, extra_fields=extra_fields)
+
+    @property
+    def breadcrumbs(self) -> List[Breadcrumb]:
+        return self.configuration.breadcrumbs
+
+    def add_on_breadcrumb(self, on_breadcrumb: OnBreadcrumbCallback) -> None:
+        self.configuration.add_on_breadcrumb(on_breadcrumb)
+
+    def remove_on_breadcrumb(
+        self,
+        on_breadcrumb: OnBreadcrumbCallback
+    ) -> None:
+        self.configuration.remove_on_breadcrumb(on_breadcrumb)
+
+    def leave_breadcrumb(
+        self,
+        message: str,
+        metadata: Dict[str, Any] = {},
+        type: BreadcrumbType = BreadcrumbType.MANUAL
+    ) -> None:
+        # Don't create breadcrumbs if the max_breadcrumbs is 0 as they would
+        # be immediately discarded anyway
+        if self.configuration.max_breadcrumbs == 0:
+            return
+
+        if not isinstance(type, BreadcrumbType):
+            type = BreadcrumbType.MANUAL
+
+        if not isinstance(metadata, dict):
+            warning_message = 'breadcrumb metadata must be a dict, got {}'
+            warnings.warn(
+                warning_message.format(builtins.type(metadata).__name__),
+                RuntimeWarning
+            )
+
+            metadata = {}
+
+        timestamp = to_rfc3339(datetime.now(timezone.utc))
+        breadcrumb = Breadcrumb(message, type, metadata, timestamp)
+
+        for callback in self.configuration._on_breadcrumbs:
+            try:
+                should_continue = callback(breadcrumb)
+
+                if should_continue is False:
+                    self.configuration.logger.info(
+                        'Breadcrumb not attached due to on_breadcrumb callback'
+                    )
+
+                    return
+            except Exception:
+                self.configuration.logger.exception(
+                    'Exception raised in on_breadcrumb callback'
+                )
+
+        self.configuration._breadcrumbs.append(breadcrumb)
+
+    def _auto_leave_breadcrumb(
+        self,
+        message: str,
+        metadata: Dict[str, Any],
+        type: BreadcrumbType
+    ) -> None:
+        if type in self.configuration.enabled_breadcrumb_types:
+            self.leave_breadcrumb(message, metadata, type)
+
+    def _leave_breadcrumb_for_event(self, event: Event) -> None:
+        error_class = class_name(event.exception)
+
+        self._auto_leave_breadcrumb(
+            error_class,
+            {
+                'errorClass': error_class,
+                'message': str(event.exception),
+                'unhandled': event.unhandled,
+                'severity': event.severity,
+            },
+            BreadcrumbType.ERROR
+        )
 
 
 class ClientContext:

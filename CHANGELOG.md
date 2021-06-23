@@ -3,6 +3,11 @@ Changelog
 
 ## TBD
 
+### Enhancements
+
+* Add support for breadcrumbs. These are short log statements that are attached to error reports to help diagnose what events led to the error. [See the docs for more information](https://docs.bugsnag.com//platforms/python/other/customizing-breadcrumbs/).
+  [#290](https://github.com/bugsnag/bugsnag-python/pull/290)
+
 ### Bug fixes
 
 * Apply filtering with `params_filters` to bytes, not just strings

@@ -6,6 +6,7 @@ import sys
 import unittest
 
 import pytest
+from bugsnag.breadcrumbs import Breadcrumb, BreadcrumbType
 from bugsnag.configuration import Configuration
 from bugsnag.event import Event
 from tests import fixtures
@@ -205,3 +206,89 @@ class TestEvent(unittest.TestCase):
                                                'argument has been replaced ' +
                                                'with "metadata"')
             assert event.metadata['nuts']['almonds']
+
+    def test_breadcrumbs_are_read_from_configuration(self):
+        breadcrumb = Breadcrumb('example', BreadcrumbType.LOG, {'a': 1}, 'now')
+
+        config = Configuration()
+        config._breadcrumbs.append(breadcrumb)
+
+        event = self.event_class(Exception('oops'), config, {})
+
+        assert len(event.breadcrumbs) == 1
+        assert event.breadcrumbs[0].to_dict() == breadcrumb.to_dict()
+
+    def test_adding_new_breadcrumbs_does_not_change_past_events(self):
+        breadcrumb1 = Breadcrumb('1', BreadcrumbType.LOG, {'a': 1}, 'now')
+
+        config = Configuration()
+        config._breadcrumbs.append(breadcrumb1)
+
+        event1 = self.event_class(Exception('oops'), config, {})
+
+        breadcrumb2 = Breadcrumb('2', BreadcrumbType.USER, {'b': 2}, 'then')
+        config._breadcrumbs.append(breadcrumb2)
+
+        event2 = self.event_class(Exception('oh no'), config, {})
+
+        breadcrumb3 = Breadcrumb('3', BreadcrumbType.USER, {'c': 3}, 'then')
+        config._breadcrumbs.append(breadcrumb3)
+
+        event3 = self.event_class(Exception('oh dear'), config, {})
+
+        assert len(event1.breadcrumbs) == 1
+        assert len(event2.breadcrumbs) == 2
+        assert len(event3.breadcrumbs) == 3
+
+        assert event1.breadcrumbs[0].to_dict() == breadcrumb1.to_dict()
+
+        assert event2.breadcrumbs[0].to_dict() == breadcrumb1.to_dict()
+        assert event2.breadcrumbs[1].to_dict() == breadcrumb2.to_dict()
+
+        assert event3.breadcrumbs[0].to_dict() == breadcrumb1.to_dict()
+        assert event3.breadcrumbs[1].to_dict() == breadcrumb2.to_dict()
+        assert event3.breadcrumbs[2].to_dict() == breadcrumb3.to_dict()
+
+    def test_mutating_breadcrumb_list_does_not_mutate_event(self):
+        breadcrumb = Breadcrumb('example', BreadcrumbType.LOG, {'a': 1}, 'now')
+
+        config = Configuration()
+        config._breadcrumbs.append(breadcrumb)
+
+        event = self.event_class(Exception('oops'), config, {})
+
+        assert len(event.breadcrumbs) == 1
+        assert event.breadcrumbs[0].to_dict() == breadcrumb.to_dict()
+
+        event.breadcrumbs.append('haha')
+
+        assert len(event.breadcrumbs) == 1
+        assert event.breadcrumbs[0].to_dict() == breadcrumb.to_dict()
+
+    def test_breadcrumbs_are_included_in_payload(self):
+        breadcrumb1 = Breadcrumb('one', BreadcrumbType.LOG, {'a': 1}, 'now')
+        breadcrumb2 = Breadcrumb('two', BreadcrumbType.USER, {'b': 2}, 'now')
+
+        config = Configuration()
+        config._breadcrumbs.append(breadcrumb1)
+        config._breadcrumbs.append(breadcrumb2)
+
+        event = self.event_class(Exception('oops'), config, {})
+
+        payload = json.loads(event._payload())
+
+        assert len(payload['events'][0]['breadcrumbs']) == 2
+
+        payload_breadcrumb1 = payload['events'][0]['breadcrumbs'][0]
+        payload_breadcrumb2 = payload['events'][0]['breadcrumbs'][1]
+
+        assert breadcrumb1.to_dict() == payload_breadcrumb1
+        assert breadcrumb2.to_dict() == payload_breadcrumb2
+
+    def test_breadcrumb_array_is_always_in_payload(self):
+        config = Configuration()
+        event = self.event_class(Exception('oops'), config, {})
+
+        payload = json.loads(event._payload())
+
+        assert payload['events'][0]['breadcrumbs'] == []

@@ -44,7 +44,7 @@ def add_django_request_to_notification(event):
                 username = str(request.user.get_username())
                 event.set_user(id=username, email=email, name=name)
             except Exception:
-                bugsnag.logger.exception('Could not get user data')
+                event.config.logger.exception('Could not get user data')
     else:
         event.set_user(id=request.META['REMOTE_ADDR'])
 
@@ -72,21 +72,28 @@ def add_django_request_to_notification(event):
 
 
 def configure():
+    config = bugsnag.configure()
+
     # default to development if in DEBUG mode
     if getattr(settings, 'DEBUG'):
-        bugsnag.configure(release_stage='development')
-
-    request_started.connect(__track_session)
-    got_request_exception.connect(__handle_request_exception)
+        config.configure(release_stage='development')
 
     # Import Bugsnag settings from settings.py
     django_bugsnag_settings = getattr(settings, 'BUGSNAG', {})
-    bugsnag.configure(**django_bugsnag_settings)
+    config.configure(**django_bugsnag_settings)
 
-    middleware = bugsnag.configure().internal_middleware
+    middleware = config.internal_middleware
     middleware.before_notify(add_django_request_to_notification)
 
-    bugsnag.configure().runtime_versions['django'] = django.__version__
+    config.runtime_versions['django'] = django.__version__
+
+    request_started.connect(__track_session)
+    got_request_exception.connect(
+        __handle_request_exception(config.logger),
+        weak=False
+    )
+
+    return config
 
 
 def __track_session(sender, **extra):
@@ -94,14 +101,19 @@ def __track_session(sender, **extra):
         bugsnag.start_session()
 
 
-def __handle_request_exception(sender, **kwargs):
-    request = kwargs.get('request', None)
-    if request is not None:
-        bugsnag.configure_request(django_request=request)
-    try:
-        bugsnag.auto_notify_exc_info(severity_reason={
-            "type": "unhandledExceptionMiddleware",
-            "attributes": {"framework": "Django"}
-        })
-    except Exception:
-        bugsnag.logger.exception("Error in exception middleware")
+def __handle_request_exception(logger):
+    def inner(sender, **kwargs):
+        request = kwargs.get('request', None)
+
+        if request is not None:
+            bugsnag.configure_request(django_request=request)
+
+        try:
+            bugsnag.auto_notify_exc_info(severity_reason={
+                "type": "unhandledExceptionMiddleware",
+                "attributes": {"framework": "Django"}
+            })
+        except Exception:
+            logger.exception("Error in exception middleware")
+
+    return inner

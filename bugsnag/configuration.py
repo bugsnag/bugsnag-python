@@ -1,15 +1,24 @@
 import os
 import platform
 import socket
+import sys
 import sysconfig
-from typing import List, Any, Tuple, Union
+from typing import List, Any, Tuple, Union, Optional
 import warnings
+import logging
+from threading import Lock
 
+from bugsnag.breadcrumbs import (
+    BreadcrumbType,
+    Breadcrumb,
+    Breadcrumbs,
+    OnBreadcrumbCallback
+)
 from bugsnag.sessiontracker import SessionMiddleware
 from bugsnag.middleware import DefaultMiddleware, MiddlewareStack
 from bugsnag.utils import (fully_qualified_class_name, validate_str_setter,
                            validate_bool_setter, validate_iterable_setter,
-                           validate_required_str_setter)
+                           validate_required_str_setter, validate_int_setter)
 from bugsnag.delivery import (create_default_delivery, DEFAULT_ENDPOINT,
                               DEFAULT_SESSIONS_ENDPOINT)
 from bugsnag.uwsgi import warn_if_running_uwsgi_without_threads
@@ -23,13 +32,17 @@ except ImportError:
 
 
 __all__ = ('Configuration', 'RequestConfiguration')
+_sentinel = object()
 
 
 class Configuration:
     """
     Global app-level Bugsnag configuration settings.
     """
-    def __init__(self):
+
+    def __init__(self, logger=_sentinel):
+        self._mutex = Lock()
+
         self.api_key = os.environ.get('BUGSNAG_API_KEY', None)
         self.release_stage = os.environ.get("BUGSNAG_RELEASE_STAGE",
                                             "production")
@@ -70,6 +83,14 @@ class Configuration:
 
         self.runtime_versions = {"python": platform.python_version()}
 
+        self.logger = logger
+
+        self._max_breadcrumbs = 25
+        self.breadcrumb_log_level = logging.INFO
+        self.enabled_breadcrumb_types = list(BreadcrumbType)
+        self._breadcrumbs = Breadcrumbs(self.max_breadcrumbs)
+        self._on_breadcrumbs = []
+
     def configure(self, api_key=None, app_type=None, app_version=None,
                   asynchronous=None, auto_notify=None,
                   auto_capture_sessions=None, delivery=None, endpoint=None,
@@ -77,7 +98,9 @@ class Configuration:
                   notify_release_stages=None, params_filters=None,
                   project_root=None, proxy_host=None, release_stage=None,
                   send_code=None, send_environment=None, session_endpoint=None,
-                  traceback_exclude_modules=None):
+                  traceback_exclude_modules=None, logger=_sentinel,
+                  breadcrumb_log_level=None, enabled_breadcrumb_types=None,
+                  max_breadcrumbs=None):
         """
         Validate and set configuration options. Will warn if an option is of an
         incorrect type.
@@ -122,6 +145,15 @@ class Configuration:
             self.session_endpoint = session_endpoint
         if traceback_exclude_modules is not None:
             self.traceback_exclude_modules = traceback_exclude_modules
+        if logger is not _sentinel:
+            self.logger = logger
+        if breadcrumb_log_level is not None:
+            self.breadcrumb_log_level = breadcrumb_log_level
+        if enabled_breadcrumb_types is not None:
+            self.enabled_breadcrumb_types = enabled_breadcrumb_types
+        if max_breadcrumbs is not None:
+            self.max_breadcrumbs = max_breadcrumbs
+
         return self
 
     def get(self, name):
@@ -407,6 +439,65 @@ class Configuration:
     def traceback_exclude_modules(self, value: List[str]):
         self._traceback_exclude_modules = value
 
+    @property
+    def logger(self) -> logging.Logger:
+        """
+        Logger for use internally
+        """
+        return self._logger
+
+    @logger.setter  # type: ignore
+    def logger(self, logger: Optional[logging.Logger]) -> None:
+        if logger is _sentinel:
+            logger = self._create_default_logger()
+        elif logger is None:
+            logger = self._create_null_logger()
+
+        if not isinstance(logger, logging.Logger):
+            actual = type(logger).__name__
+            message = 'logger should be logging.Logger, got ' + actual
+            warnings.warn(message, RuntimeWarning)
+
+            logger = self._create_default_logger()
+
+        self._logger = logger
+
+    @property
+    def max_breadcrumbs(self) -> int:
+        return self._max_breadcrumbs
+
+    @max_breadcrumbs.setter  # type: ignore
+    @validate_int_setter
+    def max_breadcrumbs(self, new_max: int) -> None:
+        if 0 <= new_max <= 100:
+            self._breadcrumbs.resize(new_max)
+            self._max_breadcrumbs = new_max
+        else:
+            message = (
+                'max_breadcrumbs should be an int between 0 and 100, got "{}"'
+            ).format(new_max)
+
+            warnings.warn(message, RuntimeWarning)
+
+    @property
+    def breadcrumbs(self) -> List[Breadcrumb]:
+        return self._breadcrumbs.to_list()
+
+    def add_on_breadcrumb(self, on_breadcrumb: OnBreadcrumbCallback) -> None:
+        with self._mutex:
+            self._on_breadcrumbs.append(on_breadcrumb)
+
+    def remove_on_breadcrumb(
+        self,
+        on_breadcrumb: OnBreadcrumbCallback
+    ) -> None:
+        with self._mutex:
+            try:
+                self._on_breadcrumbs.remove(on_breadcrumb)
+            except ValueError:
+                # ignore exception if "on_breadcrumb" is not in the list
+                pass
+
     def should_notify(self) -> bool:
         return self.notify_release_stages is None or \
             (isinstance(self.notify_release_stages, (tuple, list)) and
@@ -415,6 +506,28 @@ class Configuration:
     def should_ignore(self, exception: BaseException) -> bool:
         return self.ignore_classes is not None and \
             fully_qualified_class_name(exception) in self.ignore_classes
+
+    def _create_default_logger(self) -> logging.Logger:
+        logger = logging.getLogger('bugsnag')
+        logger.setLevel(logging.WARNING)
+
+        format = '%(asctime)s - [%(name)s] %(levelname)s - %(message)s'
+        formatter = logging.Formatter(format)
+
+        handler = logging.StreamHandler(sys.stderr)
+        handler.setFormatter(formatter)
+
+        logger.addHandler(handler)
+
+        return logger
+
+    def _create_null_logger(self) -> logging.Logger:
+        logger = logging.getLogger('bugsnag')
+        logger.handlers = []
+
+        logger.addHandler(logging.NullHandler())
+
+        return logger
 
 
 class RequestConfiguration:
