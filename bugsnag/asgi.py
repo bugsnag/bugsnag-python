@@ -87,8 +87,11 @@ class BugsnagMiddleware:
             scope = event.request_config.asgi_scope
             request = dict()
             server = []
-            if 'client' in scope and len(scope['client']) > 0:
+
+            client = scope.get('client')
+            if client is not None and len(client) > 0:
                 request['clientIp'] = scope['client'][0]
+
             if 'server' in scope and type(scope['server']) in [list, tuple]:
                 server = scope['server']
             if 'headers' in scope:
