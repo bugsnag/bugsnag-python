@@ -1,6 +1,13 @@
 Changelog
 =========
 
+## TBD
+
+### Bug fixes
+
+* Fix error in ASGI middleware if the ASGI `client` is None
+  [#296](https://github.com/bugsnag/bugsnag-python/pull/296)
+
 ## 4.1.0 (2021-06-23)
 
 ### Enhancements

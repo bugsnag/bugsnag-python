@@ -55,6 +55,42 @@ class TestASGIMiddleware(AsyncIntegrationTest):
         self.assertEqual('other_func', exception['stacktrace'][0]['method'])
         self.assertEqual('app', exception['stacktrace'][1]['method'])
 
+    # ensure BugsnagMiddleware can handle the ASGI scope 'client' being None
+    # see https://github.com/bugsnag/bugsnag-python/issues/295
+    async def test_routing_crash_with_none_client(self):
+        async def other_func():
+            raise CustomException('fell winds!')
+
+        async def app(scope, recv, send):
+            await other_func()
+            await send({
+                'type': 'http.request',
+                'body': b'pineapple',
+            })
+
+        app = ASGITestClient(BugsnagMiddleware(app))
+
+        try:
+            await app.request('/', client=None)
+            assert 0, 'An exception should have been raised'
+        except CustomException:
+            pass
+
+        payload = await self.last_event_request()
+
+        request = payload['events'][0]['metaData']['request']
+        self.assertEqual('/', request['path'])
+        self.assertEqual('GET', request['httpMethod'])
+        self.assertEqual('http', request['type'])
+        self.assertEqual('http://testserver/', request['url'])
+
+        exception = payload['events'][0]['exceptions'][0]
+        self.assertEqual('test_async_asgi.CustomException',
+                         exception['errorClass'])
+        self.assertEqual('fell winds!', exception['message'])
+        self.assertEqual('other_func', exception['stacktrace'][0]['method'])
+        self.assertEqual('app', exception['stacktrace'][1]['method'])
+
     async def test_boot_crash(self):
         async def app(scope, recv, send):
             raise CustomException('forgot the map')
