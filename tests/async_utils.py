@@ -52,9 +52,9 @@ class ASGITestClient:
         await self.app(scope, receive, send)
         return received
 
-    async def request(self, path: str, query: str = '', method: str = 'GET'):
+    async def request(self, path: str, query: str = '', **kwargs):
         return await self.invoke({
-            'method': method,
+            'method': 'GET',
             'path': path,
             'query_string': query.encode(),
             'scheme': 'http',
@@ -64,6 +64,7 @@ class ASGITestClient:
             'headers': [
                 [b'user-agent', b'testclient'],
             ],
+            **kwargs
         })
 
     async def websocket_request(self, path: str):
