@@ -1,4 +1,5 @@
 from typing import Any, Dict, Optional, List
+from types import TracebackType
 import linecache
 import logging
 import os
@@ -80,7 +81,7 @@ class Event:
         if "user_id" in options:
             self.user["id"] = options.pop("user_id")
 
-        self.stacktrace = self._generate_stacktrace(
+        self.exceptions = self._generate_exceptions(
             self.options.pop("traceback", sys.exc_info()[2]),
             self.options.pop("source_func", None))
         self.grouping_hash = options.pop("grouping_hash", None)
@@ -143,6 +144,40 @@ class Event:
             self.metadata[name] = {}
 
         self.metadata[name].update(dictionary)
+
+    def _generate_exceptions(
+        self,
+        trace_back: TracebackType,
+        source_func: Optional[Any] = None,
+    ) -> List[Dict[str, Any]]:
+        trace_exceptions = [
+            {
+                "errorClass": class_name(self.exception),
+                "message": self.exception,
+                "stacktrace": self._generate_stacktrace(
+                    trace_back, source_func=source_func
+                ),
+            }
+        ]
+        while True:
+            _exception = getattr(
+                self.exception, "__cause__", None
+            ) or getattr(self.exception, "__context__", None)
+            if not _exception:
+                break
+
+            self.exception = _exception
+            trace_exceptions.append(
+                {
+                    "errorClass": class_name(self.exception),
+                    "message": self.exception,
+                    "stacktrace": self._generate_stacktrace(
+                        getattr(self.exception, "__traceback__", None),
+                    ),
+                }
+            )
+
+        return trace_exceptions
 
     def _generate_stacktrace(self, tb, source_func=None):
         """
@@ -272,11 +307,7 @@ class Event:
                 },
                 "context": self.context,
                 "groupingHash": self.grouping_hash,
-                "exceptions": [{
-                    "errorClass": class_name(self.exception),
-                    "message": self.exception,
-                    "stacktrace": self.stacktrace,
-                }],
+                "exceptions": self.exceptions,
                 "metaData": FilterDict(self.metadata),
                 "user": FilterDict(self.user),
                 "device": FilterDict({
