@@ -80,7 +80,17 @@ class Delivery:
 
     def queue_request(self, request: Callable, config, options: Dict):
         if config.asynchronous and options.pop('asynchronous', True):
-            Thread(target=request).start()
+            # if an exception escapes the thread, our threading.excepthook
+            # will catch it and attempt to deliver it
+            # this will cause an infinite loop if delivery can never succeed,
+            # e.g. because the URL is unreachable
+            def safe_request():
+                try:
+                    request()
+                except Exception as e:
+                    config.logger.exception('Notifying Bugsnag failed %s', e)
+
+            Thread(target=safe_request).start()
         else:
             request()
 

@@ -4,7 +4,7 @@ import sys
 import pytest
 import logging
 from datetime import datetime, timedelta, timezone
-from unittest.mock import Mock
+from unittest.mock import Mock, ANY
 
 from bugsnag import (
     Client,
@@ -855,6 +855,50 @@ class ClientTest(IntegrationTest):
         assert config.breadcrumbs[0].message == 'a bad breadcrumb'
         assert config.breadcrumbs[0].metadata == {'a': 1}
         assert config.breadcrumbs[0].type == BreadcrumbType.MANUAL
+
+    def test_synchronous_delivery_failures_are_logged(self):
+        assert len(self.server.received) == 0
+
+        logger = Mock(logging.Logger)
+
+        self.client.configuration.logger = logger
+        self.client.configuration.endpoint = 'https://localhost:4'
+
+        self.client.notify(
+            IndexError('hello 123'),
+            unhandled=True,
+            severity='error',
+            asynchronous=False,
+        )
+
+        assert len(self.server.received) == 0
+
+        logger.exception.assert_called_once_with(
+            'Notifying Bugsnag failed %s',
+            ANY
+        )
+
+    def test_asynchronous_delivery_failures_are_logged(self):
+        assert len(self.server.received) == 0
+
+        logger = Mock(logging.Logger)
+
+        self.client.configuration.logger = logger
+        self.client.configuration.endpoint = 'https://localhost:4'
+
+        self.client.notify(
+            IndexError('hello 123'),
+            unhandled=True,
+            severity='error',
+            asynchronous=True,
+        )
+
+        assert len(self.server.received) == 0
+
+        logger.exception.assert_called_once_with(
+            'Notifying Bugsnag failed %s',
+            ANY
+        )
 
 
 @pytest.mark.parametrize("metadata,type", [
