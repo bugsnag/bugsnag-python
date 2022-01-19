@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import pytest
+import inspect
 import logging
 from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock, ANY
@@ -177,7 +178,6 @@ class ClientTest(IntegrationTest):
         self.assertEqual(len(self.server.received), 0)
 
     def test_capture_decorator(self):
-
         @self.client.capture
         def foo():
             raise Exception('Testing Capture Function')
@@ -187,10 +187,31 @@ class ClientTest(IntegrationTest):
         except Exception:
             pass
 
-        self.assertSentReportCount(1)
+        assert self.sent_report_count == 1
+
+        payload = self.server.received[0]['json_body']
+        stacktrace = payload['events'][0]['exceptions'][0]['stacktrace']
+
+        assert len(stacktrace) == 2
+
+        line = inspect.getsourcelines(foo)[1]
+
+        assert stacktrace[0]['file'] == "test_client.py"
+        assert stacktrace[0]['method'] == "foo"
+        assert stacktrace[0]['inProject']
+
+        # the first frame is the 'raise Exception(...)' line
+        assert stacktrace[0]['lineNumber'] == line + 2
+
+        assert stacktrace[1]['file'] == "test_client.py"
+        assert stacktrace[1]['method'] == "foo"
+        assert stacktrace[1]['inProject']
+
+        # the second frame is the function 'foo' itself, which is added by our
+        # capture decorator
+        assert stacktrace[1]['lineNumber'] == line
 
     def test_capture_decorator_mismatch(self):
-
         @self.client.capture
         def foo():
             pass
@@ -199,9 +220,16 @@ class ClientTest(IntegrationTest):
         self.assertSentReportCount(1)
 
         payload = self.server.received[0]['json_body']
-        file = payload['events'][0]['exceptions'][0]['stacktrace'][0]['file']
+        stacktrace = payload['events'][0]['exceptions'][0]['stacktrace']
 
-        self.assertEqual(file, "test_client.py")
+        assert len(stacktrace) == 1
+
+        frame = stacktrace[0]
+
+        assert frame['file'] == "test_client.py"
+        assert frame['method'] == "foo"
+        assert frame['inProject']
+        assert frame['lineNumber'] == inspect.getsourcelines(foo)[1]
 
     def test_capture_decorator_returns_value(self):
 

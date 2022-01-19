@@ -56,6 +56,53 @@ class TestEvent(unittest.TestCase):
                          lvl + "payload = json.loads(event._payload())")
         self.assertEqual(code[str(line + 3)], "")
 
+    def test_a_source_function_can_be_provided(self):
+        def some_function():
+            print("hello")
+            print("world")
+
+        config = Configuration()
+        event = self.event_class(
+            Exception("oops"),
+            config,
+            {},
+            source_func=some_function
+        )
+
+        payload = json.loads(event._payload())
+
+        stacktrace = payload['events'][0]['exceptions'][0]['stacktrace']
+        frame = stacktrace[-1]
+
+        assert frame['file'] == 'tests/test_event.py'
+        assert frame['lineNumber'] == inspect.getsourcelines(some_function)[1]
+        assert frame['method'] == 'some_function'
+        assert frame['inProject']
+
+    def test_source_function_is_ignored_when_invalid(self):
+        not_actually_a_function = 12345
+
+        config = Configuration()
+        event = self.event_class(
+            Exception("oops"),
+            config,
+            {},
+            source_func=not_actually_a_function
+        )
+
+        payload = json.loads(event._payload())
+
+        stacktrace = payload['events'][0]['exceptions'][0]['stacktrace']
+
+        # the first frame should be this test method
+        assert stacktrace[0]['file'] == 'tests/test_event.py'
+        assert stacktrace[0]['method'] == inspect.currentframe().f_code.co_name
+
+        # the rest of the trace shouldn't be in this file
+        for frame in stacktrace[1:]:
+            assert frame['file'] != 'tests/test_event.py'
+            assert frame['method'] != 'not_actually_a_function'
+
     def test_code_at_start_of_file(self):
 
         config = Configuration()
