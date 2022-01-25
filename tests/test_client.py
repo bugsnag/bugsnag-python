@@ -6,6 +6,7 @@ import inspect
 import logging
 from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock, ANY
+from tests import fixtures
 
 from bugsnag import (
     Client,
@@ -927,6 +928,190 @@ class ClientTest(IntegrationTest):
             'Notifying Bugsnag failed %s',
             ANY
         )
+
+    def test_chained_exceptions_with_explicit_cause(self):
+        self.client.notify(fixtures.exception_with_explicit_cause)
+
+        assert self.sent_report_count == 1
+
+        payload = self.server.received[0]['json_body']
+        exceptions = payload['events'][0]['exceptions']
+
+        assert len(exceptions) == 3
+
+        assert exceptions[0]['message'] == 'a'
+        assert exceptions[0]['errorClass'] == 'NameError'
+
+        # TODO: this stacktrace is generated using 'sys.exc_info()', so starts
+        #       where we construct the Event
+        #       switching to 'exception.__traceback__' should improve this as
+        #       it will use the traceback from 'exception_with_explicit_cause'
+        assert exceptions[0]['stacktrace'][0]['file'] == 'test_client.py'
+        assert exceptions[0]['stacktrace'][0]['inProject']
+        assert exceptions[0]['stacktrace'][0]['method'] == \
+            'test_chained_exceptions_with_explicit_cause'
+
+        assert exceptions[1]['message'] == 'b'
+        assert exceptions[1]['errorClass'] == 'ArithmeticError'
+        assert exceptions[1]['stacktrace'] == [
+            {
+                'file': 'fixtures/caused_by.py',
+                'lineNumber': 12,
+                'method': 'b',
+                'inProject': True,
+                'code': {
+                    '9': '    try:',
+                    '10': '        c()',
+                    '11': '    except Exception as cause:',
+                    '12': '        raise ArithmeticError(\'b\') from cause',
+                    '13': '',
+                    '14': '',
+                    '15': 'def c():'
+                }
+            },
+            {
+                'file': 'fixtures/caused_by.py',
+                'lineNumber': 3,
+                'method': 'a',
+                'inProject': True,
+                'code': {
+                    '1': 'def a():',
+                    '2': '    try:',
+                    '3': '        b()',
+                    '4': '    except Exception as cause:',
+                    '5': '        raise NameError(\'a\') from cause',
+                    '6': '',
+                    '7': ''
+                }
+            }
+        ]
+
+        assert exceptions[2]['message'] == 'c'
+        assert exceptions[2]['errorClass'] == 'Exception'
+        assert exceptions[2]['stacktrace'] == [
+            {
+                'file': 'fixtures/caused_by.py',
+                'lineNumber': 16,
+                'method': 'c',
+                'inProject': True,
+                'code': {
+                    '13': '',
+                    '14': '',
+                    '15': 'def c():',
+                    '16': '    raise Exception(\'c\')',
+                    '17': '',
+                    '18': '',
+                    '19': 'try:'
+                }
+            },
+            {
+                'file': 'fixtures/caused_by.py',
+                'lineNumber': 10,
+                'method': 'b',
+                'inProject': True,
+                'code': {
+                    '7': '',
+                    '8': 'def b():',
+                    '9': '    try:',
+                    '10': '        c()',
+                    '11': '    except Exception as cause:',
+                    '12': '        raise ArithmeticError(\'b\') from cause',
+                    '13': ''
+                }
+            }
+        ]
+
+    def test_chained_exceptions_with_implicit_cause(self):
+        self.client.notify(fixtures.exception_with_implicit_cause)
+
+        assert self.sent_report_count == 1
+
+        payload = self.server.received[0]['json_body']
+        exceptions = payload['events'][0]['exceptions']
+
+        assert len(exceptions) == 3
+
+        assert exceptions[0]['message'] == 'x'
+        assert exceptions[0]['errorClass'] == 'NameError'
+
+        # TODO: this stacktrace is generated using 'sys.exc_info()', so starts
+        #       where we construct the Event
+        #       switching to 'exception.__traceback__' should improve this as
+        #       it will use the traceback from 'exception_with_explicit_cause'
+        assert exceptions[0]['stacktrace'][0]['file'] == 'test_client.py'
+        assert exceptions[0]['stacktrace'][0]['inProject']
+        assert exceptions[0]['stacktrace'][0]['method'] == \
+            'test_chained_exceptions_with_implicit_cause'
+
+        assert exceptions[1]['message'] == 'y'
+        assert exceptions[1]['errorClass'] == 'ArithmeticError'
+        assert exceptions[1]['stacktrace'] == [
+            {
+                'file': 'fixtures/caused_by.py',
+                'lineNumber': 36,
+                'method': 'y',
+                'inProject': True,
+                'code': {
+                    '33': '    try:',
+                    '34': '        z()',
+                    '35': '    except Exception:',
+                    '36': '        raise ArithmeticError(\'y\')',
+                    '37': '',
+                    '38': '',
+                    '39': 'def z():'
+                }
+            },
+            {
+                'file': 'fixtures/caused_by.py',
+                'lineNumber': 27,
+                'method': 'x',
+                'inProject': True,
+                'code': {
+                    '24': '',
+                    '25': 'def x():',
+                    '26': '    try:',
+                    '27': '        y()',
+                    '28': '    except Exception:',
+                    '29': '        raise NameError(\'x\')',
+                    '30': ''
+                }
+            }
+        ]
+
+        assert exceptions[2]['message'] == 'z'
+        assert exceptions[2]['errorClass'] == 'Exception'
+        assert exceptions[2]['stacktrace'] == [
+            {
+                'file': 'fixtures/caused_by.py',
+                'lineNumber': 40,
+                'method': 'z',
+                'inProject': True,
+                'code': {
+                    '37': '',
+                    '38': '',
+                    '39': 'def z():',
+                    '40': '    raise Exception(\'z\')',
+                    '41': '',
+                    '42': '',
+                    '43': 'try:'
+                }
+            },
+            {
+                'file': 'fixtures/caused_by.py',
+                'lineNumber': 34,
+                'method': 'y',
+                'inProject': True,
+                'code': {
+                    '31': '',
+                    '32': 'def y():',
+                    '33': '    try:',
+                    '34': '        z()',
+                    '35': '    except Exception:',
+                    '36': '        raise ArithmeticError(\'y\')',
+                    '37': ''
+                }
+            }
+        ]
 
 
 @pytest.mark.parametrize("metadata,type", [
