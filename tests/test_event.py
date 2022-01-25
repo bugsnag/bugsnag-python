@@ -103,6 +103,41 @@ class TestEvent(unittest.TestCase):
             assert frame['file'] != 'tests/test_event.py'
             assert frame['method'] != 'not_actually_a_function'
 
+    def test_a_traceback_can_be_provided(self):
+        def get_traceback():
+            try:
+                raise Exception('abc')
+            except Exception as exception:
+                return exception.__traceback__
+
+        traceback = get_traceback()
+
+        config = Configuration()
+        event = self.event_class(
+            Exception("oops"),
+            config,
+            {},
+            traceback=traceback
+        )
+
+        payload = json.loads(event._payload())
+
+        stacktrace = payload['events'][0]['exceptions'][0]['stacktrace']
+
+        # there's only one frame in 'traceback' - the call to 'get_traceback'
+        assert len(stacktrace) == 1
+
+        frame = stacktrace[0]
+
+        # the expected line number is the 'raise', which is the second line of
+        # the 'get_traceback' function - hence '+ 2'
+        line = inspect.getsourcelines(get_traceback)[1] + 2
+
+        assert frame['file'] == 'tests/test_event.py'
+        assert frame['lineNumber'] == line
+        assert frame['method'] == 'get_traceback'
+        assert frame['inProject']
+
     def test_code_at_start_of_file(self):
 
         config = Configuration()
