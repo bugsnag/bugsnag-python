@@ -162,6 +162,9 @@ class Event:
 
         exception = self.exception
 
+        if not isinstance(exception, BaseException):
+            return trace_exceptions
+
         while True:
             if exception.__cause__:
                 exception = exception.__cause__
