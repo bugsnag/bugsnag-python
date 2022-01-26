@@ -44,3 +44,27 @@ try:
     x()
 except Exception as exception:
     exception_with_implicit_cause = exception
+
+
+def one():
+    try:
+        two()
+    except Exception:
+        raise NameError('one') from None
+
+
+def two():
+    try:
+        three()
+    except Exception:
+        raise ArithmeticError('two')
+
+
+def three():
+    raise Exception('three')
+
+
+try:
+    one()
+except Exception as exception:
+    exception_with_no_cause = exception
