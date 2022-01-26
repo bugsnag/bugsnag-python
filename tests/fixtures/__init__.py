@@ -8,4 +8,5 @@ from .start_and_end_of_file import (
 from .caused_by import (
     exception_with_explicit_cause,
     exception_with_implicit_cause,
+    exception_with_no_cause,
 )

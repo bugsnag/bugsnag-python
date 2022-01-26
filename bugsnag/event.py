@@ -159,20 +159,26 @@ class Event:
                 ),
             }
         ]
+
+        exception = self.exception
+
+        if not isinstance(exception, BaseException):
+            return trace_exceptions
+
         while True:
-            _exception = getattr(
-                self.exception, "__cause__", None
-            ) or getattr(self.exception, "__context__", None)
-            if not _exception:
+            if exception.__cause__:
+                exception = exception.__cause__
+            elif exception.__context__ and not exception.__suppress_context__:
+                exception = exception.__context__
+            else:
                 break
 
-            self.exception = _exception
             trace_exceptions.append(
                 {
-                    "errorClass": class_name(self.exception),
-                    "message": self.exception,
+                    "errorClass": class_name(exception),
+                    "message": exception,
                     "stacktrace": self._generate_stacktrace(
-                        getattr(self.exception, "__traceback__", None),
+                        exception.__traceback__
                     ),
                 }
             )

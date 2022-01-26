@@ -1113,6 +1113,51 @@ class ClientTest(IntegrationTest):
             }
         ]
 
+    def test_chained_exceptions_with_no_cause(self):
+        self.client.notify(fixtures.exception_with_no_cause)
+
+        assert self.sent_report_count == 1
+
+        payload = self.server.received[0]['json_body']
+        exceptions = payload['events'][0]['exceptions']
+
+        assert len(exceptions) == 1
+
+        assert exceptions[0]['message'] == 'one'
+        assert exceptions[0]['errorClass'] == 'NameError'
+
+        # TODO: this stacktrace is generated using 'sys.exc_info()', so starts
+        #       where we construct the Event
+        #       switching to 'exception.__traceback__' should improve this as
+        #       it will use the traceback from 'exception_with_no_cause'
+        assert exceptions[0]['stacktrace'][0]['file'] == 'test_client.py'
+        assert exceptions[0]['stacktrace'][0]['inProject']
+        assert exceptions[0]['stacktrace'][0]['method'] == \
+            'test_chained_exceptions_with_no_cause'
+
+    def test_notify_with_string(self):
+        """
+        Ensure passing a string to 'notify' doesn't crash
+        This isn't an intended use-case but, as it works, it's important to
+        test so we can preserve BC
+        """
+        self.client.notify('not an exception!')
+
+        assert self.sent_report_count == 1
+
+        payload = self.server.received[0]['json_body']
+        exceptions = payload['events'][0]['exceptions']
+
+        assert len(exceptions) == 1
+
+        assert exceptions[0]['message'] == 'not an exception!'
+        assert exceptions[0]['errorClass'] == 'str'
+
+        assert exceptions[0]['stacktrace'][0]['file'] == 'test_client.py'
+        assert exceptions[0]['stacktrace'][0]['inProject']
+        assert exceptions[0]['stacktrace'][0]['method'] == \
+            'test_notify_with_string'
+
 
 @pytest.mark.parametrize("metadata,type", [
     (1234, 'int'),
