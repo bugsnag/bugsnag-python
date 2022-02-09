@@ -132,19 +132,53 @@ class Event:
 
     @property
     def stacktrace(self) -> List[Dict[str, Any]]:
+        warnings.warn(
+            (
+                'The Event "stacktrace" property has been deprecated in favour'
+                ' of accessing the stacktrace of an error, for example '
+                '"errors[0].stacktrace"'
+            ),
+            DeprecationWarning
+        )
+
         return self._stacktrace
 
     @stacktrace.setter
     def stacktrace(self, value: List[Dict[str, Any]]) -> None:
+        warnings.warn(
+            (
+                'The Event "stacktrace" property has been deprecated in favour'
+                ' of accessing the stacktrace of an error, for example '
+                '"errors[0].stacktrace"'
+            ),
+            DeprecationWarning
+        )
+
         self._stacktrace = value
         self._errors[0].stacktrace = value
 
     @property
     def exception(self) -> BaseException:
+        warnings.warn(
+            (
+                'The Event "exception" property has been replaced with '
+                '"original_error"'
+            ),
+            DeprecationWarning
+        )
+
         return self._exception
 
     @exception.setter
     def exception(self, value: BaseException) -> None:
+        warnings.warn(
+            (
+                'Setting the Event "exception" property has been deprecated, '
+                'update the "errors" list instead'
+            ),
+            DeprecationWarning
+        )
+
         self._exception = value
         self._errors[0] = Error(
             class_name(value),
