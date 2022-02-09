@@ -84,7 +84,16 @@ class ClientTest(IntegrationTest):
 
     def test_invalid_delivery(self):
         c = Configuration()
-        c.configure(delivery=44, api_key='abc')
+
+        with pytest.warns(RuntimeWarning) as records:
+            c.configure(delivery=44, api_key='abc')
+
+            assert len(records) == 1
+            assert str(records[0].message) == (
+                'delivery should implement Delivery interface, got int. This '
+                'will be an error in a future release.'
+            )
+
         client = Client(c)
         client.notify(Exception('Oh no'))
 
