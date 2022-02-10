@@ -1033,6 +1033,73 @@ class ClientTest(IntegrationTest):
             }
         ]
 
+    def test_chained_exceptions_with_explicit_cause_using_capture_cm(self):
+        try:
+            with self.client.capture():
+                fixtures.raise_exception_with_explicit_cause()
+        except Exception:
+            pass
+
+        assert self.sent_report_count == 1
+
+        payload = self.server.received[0]['json_body']
+        exceptions = payload['events'][0]['exceptions']
+
+        assert len(exceptions) == 3
+
+        assert exceptions[0]['message'] == 'a'
+        assert exceptions[0]['errorClass'] == 'NameError'
+        assert exceptions[0]['type'] == 'python'
+
+        assert exceptions[0]['stacktrace'][0]['file'] == \
+            'fixtures/caused_by.py'
+        assert exceptions[0]['stacktrace'][0]['inProject']
+        assert exceptions[0]['stacktrace'][0]['method'] == \
+            'raise_exception_with_explicit_cause'
+
+        assert exceptions[1]['message'] == 'b'
+        assert exceptions[1]['errorClass'] == 'ArithmeticError'
+        assert exceptions[1]['type'] == 'python'
+
+        assert exceptions[2]['message'] == 'c'
+        assert exceptions[2]['errorClass'] == 'Exception'
+        assert exceptions[2]['type'] == 'python'
+
+    def test_chained_exceptions_explicit_cause_and_capture_decorator(self):
+        @self.client.capture
+        def foo():
+            fixtures.raise_exception_with_explicit_cause()
+
+        try:
+            foo()
+        except Exception:
+            pass
+
+        assert self.sent_report_count == 1
+
+        payload = self.server.received[0]['json_body']
+        exceptions = payload['events'][0]['exceptions']
+
+        assert len(exceptions) == 3
+
+        assert exceptions[0]['message'] == 'a'
+        assert exceptions[0]['errorClass'] == 'NameError'
+        assert exceptions[0]['type'] == 'python'
+
+        assert exceptions[0]['stacktrace'][0]['file'] == \
+            'fixtures/caused_by.py'
+        assert exceptions[0]['stacktrace'][0]['inProject']
+        assert exceptions[0]['stacktrace'][0]['method'] == \
+            'raise_exception_with_explicit_cause'
+
+        assert exceptions[1]['message'] == 'b'
+        assert exceptions[1]['errorClass'] == 'ArithmeticError'
+        assert exceptions[1]['type'] == 'python'
+
+        assert exceptions[2]['message'] == 'c'
+        assert exceptions[2]['errorClass'] == 'Exception'
+        assert exceptions[2]['type'] == 'python'
+
     def test_chained_exceptions_with_implicit_cause(self):
         self.client.notify(fixtures.exception_with_implicit_cause)
 
@@ -1128,6 +1195,73 @@ class ClientTest(IntegrationTest):
             }
         ]
 
+    def test_chained_exceptions_with_implicit_cause_using_capture_cm(self):
+        try:
+            with self.client.capture():
+                fixtures.raise_exception_with_implicit_cause()
+        except Exception:
+            pass
+
+        assert self.sent_report_count == 1
+
+        payload = self.server.received[0]['json_body']
+        exceptions = payload['events'][0]['exceptions']
+
+        assert len(exceptions) == 3
+
+        assert exceptions[0]['message'] == 'x'
+        assert exceptions[0]['errorClass'] == 'NameError'
+        assert exceptions[0]['type'] == 'python'
+
+        assert exceptions[0]['stacktrace'][0]['file'] == \
+            'fixtures/caused_by.py'
+        assert exceptions[0]['stacktrace'][0]['inProject']
+        assert exceptions[0]['stacktrace'][0]['method'] == \
+            'raise_exception_with_implicit_cause'
+
+        assert exceptions[1]['message'] == 'y'
+        assert exceptions[1]['errorClass'] == 'ArithmeticError'
+        assert exceptions[1]['type'] == 'python'
+
+        assert exceptions[2]['message'] == 'z'
+        assert exceptions[2]['errorClass'] == 'Exception'
+        assert exceptions[2]['type'] == 'python'
+
+    def test_chained_exceptions_implicit_cause_and_capture_decorator(self):
+        @self.client.capture
+        def foo():
+            fixtures.raise_exception_with_implicit_cause()
+
+        try:
+            foo()
+        except Exception:
+            pass
+
+        assert self.sent_report_count == 1
+
+        payload = self.server.received[0]['json_body']
+        exceptions = payload['events'][0]['exceptions']
+
+        assert len(exceptions) == 3
+
+        assert exceptions[0]['message'] == 'x'
+        assert exceptions[0]['errorClass'] == 'NameError'
+        assert exceptions[0]['type'] == 'python'
+
+        assert exceptions[0]['stacktrace'][0]['file'] == \
+            'fixtures/caused_by.py'
+        assert exceptions[0]['stacktrace'][0]['inProject']
+        assert exceptions[0]['stacktrace'][0]['method'] == \
+            'raise_exception_with_implicit_cause'
+
+        assert exceptions[1]['message'] == 'y'
+        assert exceptions[1]['errorClass'] == 'ArithmeticError'
+        assert exceptions[1]['type'] == 'python'
+
+        assert exceptions[2]['message'] == 'z'
+        assert exceptions[2]['errorClass'] == 'Exception'
+        assert exceptions[2]['type'] == 'python'
+
     def test_chained_exceptions_with_no_cause(self):
         self.client.notify(fixtures.exception_with_no_cause)
 
@@ -1150,6 +1284,57 @@ class ClientTest(IntegrationTest):
         assert exceptions[0]['stacktrace'][0]['inProject']
         assert exceptions[0]['stacktrace'][0]['method'] == \
             'test_chained_exceptions_with_no_cause'
+
+    def test_chained_exceptions_with_no_cause_using_capture_decorator(self):
+        @self.client.capture
+        def foo():
+            fixtures.raise_exception_with_no_cause()
+
+        try:
+            foo()
+        except Exception:
+            pass
+
+        assert self.sent_report_count == 1
+
+        payload = self.server.received[0]['json_body']
+        exceptions = payload['events'][0]['exceptions']
+
+        assert len(exceptions) == 1
+
+        assert exceptions[0]['message'] == 'one'
+        assert exceptions[0]['errorClass'] == 'NameError'
+        assert exceptions[0]['type'] == 'python'
+
+        assert exceptions[0]['stacktrace'][0]['file'] == \
+            'fixtures/caused_by.py'
+        assert exceptions[0]['stacktrace'][0]['inProject']
+        assert exceptions[0]['stacktrace'][0]['method'] == \
+            'raise_exception_with_no_cause'
+
+    def test_chained_exceptions_with_no_cause_using_capture_cm(self):
+        try:
+            with self.client.capture():
+                fixtures.raise_exception_with_no_cause()
+        except Exception:
+            pass
+
+        assert self.sent_report_count == 1
+
+        payload = self.server.received[0]['json_body']
+        exceptions = payload['events'][0]['exceptions']
+
+        assert len(exceptions) == 1
+
+        assert exceptions[0]['message'] == 'one'
+        assert exceptions[0]['errorClass'] == 'NameError'
+        assert exceptions[0]['type'] == 'python'
+
+        assert exceptions[0]['stacktrace'][0]['file'] == \
+            'fixtures/caused_by.py'
+        assert exceptions[0]['stacktrace'][0]['inProject']
+        assert exceptions[0]['stacktrace'][0]['method'] == \
+            'raise_exception_with_no_cause'
 
     def test_notify_with_string(self):
         """
