@@ -983,10 +983,10 @@ class ClientTest(IntegrationTest):
             {
                 'file': 'fixtures/caused_by.py',
                 'lineNumber': 3,
-                'method': 'a',
+                'method': 'raise_exception_with_explicit_cause',
                 'inProject': True,
                 'code': {
-                    '1': 'def a():',
+                    '1': 'def raise_exception_with_explicit_cause():',
                     '2': '    try:',
                     '3': '        b()',
                     '4': '    except Exception as cause:',
@@ -1078,11 +1078,11 @@ class ClientTest(IntegrationTest):
             {
                 'file': 'fixtures/caused_by.py',
                 'lineNumber': 27,
-                'method': 'x',
+                'method': 'raise_exception_with_implicit_cause',
                 'inProject': True,
                 'code': {
                     '24': '',
-                    '25': 'def x():',
+                    '25': 'def raise_exception_with_implicit_cause():',
                     '26': '    try:',
                     '27': '        y()',
                     '28': '    except Exception:',
