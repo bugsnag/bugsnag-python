@@ -13,6 +13,7 @@ import bugsnag
 from bugsnag.breadcrumbs import Breadcrumb
 from bugsnag.utils import fully_qualified_class_name as class_name
 from bugsnag.utils import FilterDict, package_version, SanitizingJSONEncoder
+from bugsnag.error import Error
 
 __all__ = ('Event',)
 
@@ -46,6 +47,7 @@ class Event:
         All other keys will be sent as metadata to Bugsnag.
         """
         self._exception = exception
+        self._original_error = exception
 
         self.options = options
         self.config = config
@@ -80,13 +82,17 @@ class Event:
         if "user_id" in options:
             self.user["id"] = options.pop("user_id")
 
+        # for backwards compatibility we generate the first error's stacktrace
+        # here and use it as 'self.stacktrace' and 'self.errors[0].stacktrace'
+        # this allows mutations 'self.stacktrace' to be reflected in the errors
+        # list, which is used to generate the JSON payload
         stacktrace = self._generate_stacktrace(
             self.options.pop("traceback", sys.exc_info()[2]),
             self.options.pop("source_func", None)
         )
 
         self._stacktrace = stacktrace
-        self._exceptions = self._generate_exceptions(exception, stacktrace)
+        self._errors = self._generate_error_list(exception, stacktrace)
 
         self.grouping_hash = options.pop("grouping_hash", None)
         self.api_key = options.pop("api_key", get_config("api_key"))
@@ -117,26 +123,68 @@ class Event:
         return self._breadcrumbs.copy()
 
     @property
+    def errors(self) -> List[Error]:
+        return self._errors.copy()
+
+    @property
+    def original_error(self) -> BaseException:
+        return self._original_error
+
+    @property
     def stacktrace(self) -> List[Dict[str, Any]]:
+        warnings.warn(
+            (
+                'The Event "stacktrace" property has been deprecated in favour'
+                ' of accessing the stacktrace of an error, for example '
+                '"errors[0].stacktrace"'
+            ),
+            DeprecationWarning
+        )
+
         return self._stacktrace
 
     @stacktrace.setter
     def stacktrace(self, value: List[Dict[str, Any]]) -> None:
+        warnings.warn(
+            (
+                'The Event "stacktrace" property has been deprecated in favour'
+                ' of accessing the stacktrace of an error, for example '
+                '"errors[0].stacktrace"'
+            ),
+            DeprecationWarning
+        )
+
         self._stacktrace = value
-        self._exceptions[0]["stacktrace"] = value
+        self._errors[0].stacktrace = value
 
     @property
     def exception(self) -> BaseException:
+        warnings.warn(
+            (
+                'The Event "exception" property has been replaced with '
+                '"original_error"'
+            ),
+            DeprecationWarning
+        )
+
         return self._exception
 
     @exception.setter
     def exception(self, value: BaseException) -> None:
+        warnings.warn(
+            (
+                'Setting the Event "exception" property has been deprecated, '
+                'update the "errors" list instead'
+            ),
+            DeprecationWarning
+        )
+
         self._exception = value
-        self._exceptions[0] = {
-            "errorClass": class_name(value),
-            "message": value,
-            "stacktrace": self._stacktrace
-        }
+        self._errors[0] = Error(
+            class_name(value),
+            str(value),
+            self._stacktrace
+        )
 
     def set_user(self, id=None, name=None, email=None):
         """
@@ -171,21 +219,21 @@ class Event:
 
         self.metadata[name].update(dictionary)
 
-    def _generate_exceptions(
+    def _generate_error_list(
         self,
         exception: BaseException,
         first_error_stacktrace: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
-        trace_exceptions = [
-            {
-                "errorClass": class_name(exception),
-                "message": exception,
-                "stacktrace": first_error_stacktrace
-            }
+    ) -> List[Error]:
+        error_list = [
+            Error(
+                class_name(exception),
+                str(exception),
+                first_error_stacktrace
+            )
         ]
 
         if not isinstance(exception, BaseException):
-            return trace_exceptions
+            return error_list
 
         while True:
             if exception.__cause__:
@@ -195,17 +243,15 @@ class Event:
             else:
                 break
 
-            trace_exceptions.append(
-                {
-                    "errorClass": class_name(exception),
-                    "message": exception,
-                    "stacktrace": self._generate_stacktrace(
-                        exception.__traceback__
-                    )
-                }
+            error_list.append(
+                Error(
+                    class_name(exception),
+                    str(exception),
+                    self._generate_stacktrace(exception.__traceback__)
+                )
             )
 
-        return trace_exceptions
+        return error_list
 
     def _generate_stacktrace(
         self,
@@ -344,7 +390,9 @@ class Event:
                 },
                 "context": self.context,
                 "groupingHash": self.grouping_hash,
-                "exceptions": self._exceptions,
+                "exceptions": [
+                    error.to_dict() for error in self.errors
+                ],
                 "metaData": FilterDict(self.metadata),
                 "user": FilterDict(self.user),
                 "device": FilterDict({

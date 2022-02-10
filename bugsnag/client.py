@@ -16,7 +16,7 @@ from bugsnag.configuration import Configuration, RequestConfiguration
 from bugsnag.event import Event
 from bugsnag.handlers import BugsnagHandler
 from bugsnag.sessiontracker import SessionTracker
-from bugsnag.utils import to_rfc3339, fully_qualified_class_name as class_name
+from bugsnag.utils import to_rfc3339
 
 __all__ = ('Client',)
 
@@ -202,7 +202,7 @@ class Client:
             return False
 
         # Return early if we should ignore exceptions of this type
-        if self.configuration.should_ignore(event.exception):
+        if self.configuration.should_ignore(event.original_error):
             return False
 
         return True
@@ -276,13 +276,13 @@ class Client:
             self.leave_breadcrumb(message, metadata, type)
 
     def _leave_breadcrumb_for_event(self, event: Event) -> None:
-        error_class = class_name(event.exception)
+        error_class = event.errors[0].error_class
 
         self._auto_leave_breadcrumb(
             error_class,
             {
                 'errorClass': error_class,
-                'message': str(event.exception),
+                'message': event.errors[0].error_message,
                 'unhandled': event.unhandled,
                 'severity': event.severity,
             },

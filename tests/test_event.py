@@ -253,7 +253,15 @@ class TestEvent(unittest.TestCase):
             }
         ]
 
-        event.stacktrace = expected_stacktrace
+        with pytest.warns(DeprecationWarning) as records:
+            event.stacktrace = expected_stacktrace
+
+            assert len(records) == 1
+            assert str(records[0].message) == (
+                'The Event "stacktrace" property has been deprecated in favour'
+                ' of accessing the stacktrace of an error, for example '
+                '"errors[0].stacktrace"'
+            )
 
         payload = json.loads(event._payload())
         actual_stacktrace = payload['events'][0]['exceptions'][0]['stacktrace']
@@ -264,7 +272,15 @@ class TestEvent(unittest.TestCase):
         config = Configuration()
         event = self.event_class(Exception('oops'), config, {})
 
-        event.stacktrace[0]['file'] = '/abc/xyz.py'
+        with pytest.warns(DeprecationWarning) as records:
+            event.stacktrace[0]['file'] = '/abc/xyz.py'
+
+            assert len(records) == 1
+            assert str(records[0].message) == (
+                'The Event "stacktrace" property has been deprecated in favour'
+                ' of accessing the stacktrace of an error, for example '
+                '"errors[0].stacktrace"'
+            )
 
         payload = json.loads(event._payload())
         stacktrace = payload['events'][0]['exceptions'][0]['stacktrace']
@@ -275,7 +291,14 @@ class TestEvent(unittest.TestCase):
         config = Configuration()
         event = self.event_class(Exception('oops'), config, {})
 
-        event.exception = KeyError('ahhh')
+        with pytest.warns(DeprecationWarning) as records:
+            event.exception = KeyError('ahhh')
+
+            assert len(records) == 1
+            assert str(records[0].message) == (
+                'Setting the Event "exception" property has been deprecated, '
+                'update the "errors" list instead'
+            )
 
         payload = json.loads(event._payload())
         exception = payload['events'][0]['exceptions'][0]

@@ -84,7 +84,16 @@ class ClientTest(IntegrationTest):
 
     def test_invalid_delivery(self):
         c = Configuration()
-        c.configure(delivery=44, api_key='abc')
+
+        with pytest.warns(RuntimeWarning) as records:
+            c.configure(delivery=44, api_key='abc')
+
+            assert len(records) == 1
+            assert str(records[0].message) == (
+                'delivery should implement Delivery interface, got int. This '
+                'will be an error in a future release.'
+            )
+
         client = Client(c)
         client.notify(Exception('Oh no'))
 
@@ -941,6 +950,7 @@ class ClientTest(IntegrationTest):
 
         assert exceptions[0]['message'] == 'a'
         assert exceptions[0]['errorClass'] == 'NameError'
+        assert exceptions[0]['type'] == 'python'
 
         # TODO: this stacktrace is generated using 'sys.exc_info()', so starts
         #       where we construct the Event
@@ -953,6 +963,7 @@ class ClientTest(IntegrationTest):
 
         assert exceptions[1]['message'] == 'b'
         assert exceptions[1]['errorClass'] == 'ArithmeticError'
+        assert exceptions[1]['type'] == 'python'
         assert exceptions[1]['stacktrace'] == [
             {
                 'file': 'fixtures/caused_by.py',
@@ -988,6 +999,7 @@ class ClientTest(IntegrationTest):
 
         assert exceptions[2]['message'] == 'c'
         assert exceptions[2]['errorClass'] == 'Exception'
+        assert exceptions[2]['type'] == 'python'
         assert exceptions[2]['stacktrace'] == [
             {
                 'file': 'fixtures/caused_by.py',
@@ -1040,11 +1052,13 @@ class ClientTest(IntegrationTest):
         #       it will use the traceback from 'exception_with_explicit_cause'
         assert exceptions[0]['stacktrace'][0]['file'] == 'test_client.py'
         assert exceptions[0]['stacktrace'][0]['inProject']
+        assert exceptions[0]['type'] == 'python'
         assert exceptions[0]['stacktrace'][0]['method'] == \
             'test_chained_exceptions_with_implicit_cause'
 
         assert exceptions[1]['message'] == 'y'
         assert exceptions[1]['errorClass'] == 'ArithmeticError'
+        assert exceptions[1]['type'] == 'python'
         assert exceptions[1]['stacktrace'] == [
             {
                 'file': 'fixtures/caused_by.py',
@@ -1080,6 +1094,7 @@ class ClientTest(IntegrationTest):
 
         assert exceptions[2]['message'] == 'z'
         assert exceptions[2]['errorClass'] == 'Exception'
+        assert exceptions[2]['type'] == 'python'
         assert exceptions[2]['stacktrace'] == [
             {
                 'file': 'fixtures/caused_by.py',
@@ -1125,6 +1140,7 @@ class ClientTest(IntegrationTest):
 
         assert exceptions[0]['message'] == 'one'
         assert exceptions[0]['errorClass'] == 'NameError'
+        assert exceptions[0]['type'] == 'python'
 
         # TODO: this stacktrace is generated using 'sys.exc_info()', so starts
         #       where we construct the Event
