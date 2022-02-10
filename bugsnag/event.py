@@ -1,5 +1,4 @@
 from typing import Any, Dict, Optional, List
-from types import TracebackType
 import linecache
 import logging
 import os
@@ -14,7 +13,6 @@ import bugsnag
 from bugsnag.breadcrumbs import Breadcrumb
 from bugsnag.utils import fully_qualified_class_name as class_name
 from bugsnag.utils import FilterDict, package_version, SanitizingJSONEncoder
-
 
 __all__ = ('Event',)
 
@@ -47,7 +45,8 @@ class Event:
             "traceback"
         All other keys will be sent as metadata to Bugsnag.
         """
-        self.exception = exception
+        self._exception = exception
+
         self.options = options
         self.config = config
         self.request_config = request_config
@@ -81,9 +80,14 @@ class Event:
         if "user_id" in options:
             self.user["id"] = options.pop("user_id")
 
-        self.exceptions = self._generate_exceptions(
+        stacktrace = self._generate_stacktrace(
             self.options.pop("traceback", sys.exc_info()[2]),
-            self.options.pop("source_func", None))
+            self.options.pop("source_func", None)
+        )
+
+        self._stacktrace = stacktrace
+        self._exceptions = self._generate_exceptions(exception, stacktrace)
+
         self.grouping_hash = options.pop("grouping_hash", None)
         self.api_key = options.pop("api_key", get_config("api_key"))
 
@@ -111,6 +115,28 @@ class Event:
     @property
     def breadcrumbs(self) -> List[Breadcrumb]:
         return self._breadcrumbs.copy()
+
+    @property
+    def stacktrace(self) -> List[Dict[str, Any]]:
+        return self._stacktrace
+
+    @stacktrace.setter
+    def stacktrace(self, value: List[Dict[str, Any]]) -> None:
+        self._stacktrace = value
+        self._exceptions[0]["stacktrace"] = value
+
+    @property
+    def exception(self) -> BaseException:
+        return self._exception
+
+    @exception.setter
+    def exception(self, value: BaseException) -> None:
+        self._exception = value
+        self._exceptions[0] = {
+            "errorClass": class_name(value),
+            "message": value,
+            "stacktrace": self._stacktrace
+        }
 
     def set_user(self, id=None, name=None, email=None):
         """
@@ -147,20 +173,16 @@ class Event:
 
     def _generate_exceptions(
         self,
-        trace_back: TracebackType,
-        source_func: Optional[Any] = None,
+        exception: BaseException,
+        first_error_stacktrace: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
         trace_exceptions = [
             {
-                "errorClass": class_name(self.exception),
-                "message": self.exception,
-                "stacktrace": self._generate_stacktrace(
-                    trace_back, source_func=source_func
-                ),
+                "errorClass": class_name(exception),
+                "message": exception,
+                "stacktrace": first_error_stacktrace
             }
         ]
-
-        exception = self.exception
 
         if not isinstance(exception, BaseException):
             return trace_exceptions
@@ -179,13 +201,17 @@ class Event:
                     "message": exception,
                     "stacktrace": self._generate_stacktrace(
                         exception.__traceback__
-                    ),
+                    )
                 }
             )
 
         return trace_exceptions
 
-    def _generate_stacktrace(self, tb, source_func=None):
+    def _generate_stacktrace(
+        self,
+        tb,
+        source_func=None
+    ) -> List[Dict[str, Any]]:
         """
         Build the stacktrace
         """
@@ -224,12 +250,16 @@ class Event:
                 line = 0
                 if lines is not None and len(lines) > 1:
                     line = lines[1]
-                trace.insert(0, [source, line, source_func.__name__])
+
+                trace.insert(
+                    0,
+                    [source, line, source_func.__name__]  # type: ignore
+                )
             except (IOError, TypeError):
                 pass
 
-        for line in trace:
-            file_name = os.path.abspath(str(line[0]))
+        for frame in trace:
+            file_name = os.path.abspath(str(frame[0]))
             in_project = False
 
             skip_module = False
@@ -242,7 +272,7 @@ class Event:
 
             # Fetch the code before (potentially) removing the project root
             # from the file path
-            code = self._code_for(file_name, int(str(line[1])))
+            code = self._code_for(file_name, int(str(frame[1])))
 
             if lib_root and file_name.startswith(lib_root):
                 file_name = file_name[len(lib_root):]
@@ -252,13 +282,14 @@ class Event:
 
             stacktrace.append({
                 "file": file_name,
-                "lineNumber": int(str(line[1])),
-                "method": str(line[2]),
+                "lineNumber": int(str(frame[1])),
+                "method": str(frame[2]),
                 "inProject": in_project,
                 "code": code
             })
 
         stacktrace.reverse()
+
         return stacktrace
 
     def _code_for(self, file_name, line, window_size=7):
@@ -313,7 +344,7 @@ class Event:
                 },
                 "context": self.context,
                 "groupingHash": self.grouping_hash,
-                "exceptions": self.exceptions,
+                "exceptions": self._exceptions,
                 "metaData": FilterDict(self.metadata),
                 "user": FilterDict(self.user),
                 "device": FilterDict({

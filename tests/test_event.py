@@ -232,6 +232,57 @@ class TestEvent(unittest.TestCase):
         first_traceback = exception['stacktrace'][0]
         self.assertEqual(first_traceback['file'], 'test_event.py')
 
+    def test_stacktrace_can_be_reassigned(self):
+        config = Configuration()
+        event = self.event_class(Exception("oops"), config, {})
+
+        expected_stacktrace = [
+            {
+                'file': '/a/b/c/one.py',
+                'lineNumber': 1234,
+                'method': 'do_stuff',
+                'inProject': True,
+                'code': {'1234': 'def do_stuff():'},
+            },
+            {
+                'file': '/a/b/c/two.py',
+                'lineNumber': 9876,
+                'method': 'do_other_stuff',
+                'inProject': False,
+                'code': {'9876': 'def do_other_stuff():'},
+            }
+        ]
+
+        event.stacktrace = expected_stacktrace
+
+        payload = json.loads(event._payload())
+        actual_stacktrace = payload['events'][0]['exceptions'][0]['stacktrace']
+
+        assert actual_stacktrace == expected_stacktrace
+
+    def test_stacktrace_can_be_mutated(self):
+        config = Configuration()
+        event = self.event_class(Exception('oops'), config, {})
+
+        event.stacktrace[0]['file'] = '/abc/xyz.py'
+
+        payload = json.loads(event._payload())
+        stacktrace = payload['events'][0]['exceptions'][0]['stacktrace']
+
+        assert stacktrace[0]['file'] == '/abc/xyz.py'
+
+    def test_original_exception_can_be_reassigned(self):
+        config = Configuration()
+        event = self.event_class(Exception('oops'), config, {})
+
+        event.exception = KeyError('ahhh')
+
+        payload = json.loads(event._payload())
+        exception = payload['events'][0]['exceptions'][0]
+
+        assert exception['message'] == "'ahhh'"
+        assert exception['errorClass'] == 'KeyError'
+
     def test_device_data(self):
         """
             It should include device data
