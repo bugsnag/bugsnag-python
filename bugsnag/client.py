@@ -201,8 +201,8 @@ class Client:
         if not self.configuration.should_notify():
             return False
 
-        # Return early if we should ignore exceptions of this type
-        if self.configuration.should_ignore(event.original_error):
+        # Return early if we should ignore these errors
+        if self.configuration.should_ignore(event.errors):
             return False
 
         return True

@@ -1174,6 +1174,34 @@ class ClientTest(IntegrationTest):
         assert exceptions[0]['stacktrace'][0]['method'] == \
             'test_notify_with_string'
 
+    def test_ignore_classes_checks_exception_chain_with_explicit_cause(self):
+        self.client.configuration.ignore_classes = ['ArithmeticError']
+        self.client.notify(fixtures.exception_with_explicit_cause)
+
+        assert self.sent_report_count == 0
+
+        self.client.configuration.ignore_classes = []
+        self.client.notify(fixtures.exception_with_explicit_cause)
+
+        assert self.sent_report_count == 1
+
+    def test_ignore_classes_checks_exception_chain_with_implicit_cause(self):
+        self.client.configuration.ignore_classes = ['ArithmeticError']
+        self.client.notify(fixtures.exception_with_implicit_cause)
+
+        assert self.sent_report_count == 0
+
+        self.client.configuration.ignore_classes = []
+        self.client.notify(fixtures.exception_with_implicit_cause)
+
+        assert self.sent_report_count == 1
+
+    def test_ignore_classes_has_no_exception_chain_with_no_cause(self):
+        self.client.configuration.ignore_classes = ['ArithmeticError']
+        self.client.notify(fixtures.exception_with_no_cause)
+
+        assert self.sent_report_count == 1
+
 
 @pytest.mark.parametrize("metadata,type", [
     (1234, 'int'),

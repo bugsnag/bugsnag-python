@@ -22,6 +22,7 @@ from bugsnag.utils import (fully_qualified_class_name, validate_str_setter,
 from bugsnag.delivery import (create_default_delivery, DEFAULT_ENDPOINT,
                               DEFAULT_SESSIONS_ENDPOINT)
 from bugsnag.uwsgi import warn_if_running_uwsgi_without_threads
+from bugsnag.error import Error
 
 try:
     from contextvars import ContextVar
@@ -503,9 +504,19 @@ class Configuration:
             (isinstance(self.notify_release_stages, (tuple, list)) and
              self.release_stage in self.notify_release_stages)
 
-    def should_ignore(self, exception: BaseException) -> bool:
-        return self.ignore_classes is not None and \
-            fully_qualified_class_name(exception) in self.ignore_classes
+    def should_ignore(
+        self,
+        exception: Union[BaseException, List[Error]]
+    ) -> bool:
+        if self.ignore_classes is None:
+            return False
+
+        # if this is a list of Error instances, check if any of the error
+        # classes are ignored
+        if isinstance(exception, list):
+            return any(e.error_class in self.ignore_classes for e in exception)
+
+        return fully_qualified_class_name(exception) in self.ignore_classes
 
     def _create_default_logger(self) -> logging.Logger:
         logger = logging.getLogger('bugsnag')
