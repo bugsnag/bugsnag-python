@@ -26,5 +26,6 @@ class Error:
         return {
             'errorClass': self.error_class,
             'message': self.error_message,
-            'stacktrace': self.stacktrace
+            'stacktrace': self.stacktrace,
+            'type': self.type,
         }
