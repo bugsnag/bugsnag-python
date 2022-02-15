@@ -87,7 +87,10 @@ class Event:
         # this allows mutations 'self.stacktrace' to be reflected in the errors
         # list, which is used to generate the JSON payload
         stacktrace = self._generate_stacktrace(
-            self.options.pop("traceback", sys.exc_info()[2]),
+            self.options.pop(
+                "traceback",
+                getattr(exception, '__traceback__', sys.exc_info()[2])
+            ),
             self.options.pop("source_func", None)
         )
 
