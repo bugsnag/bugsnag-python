@@ -10,6 +10,7 @@ from threading import Thread
 
 from bugsnag.breadcrumbs import BreadcrumbType
 from bugsnag.configuration import Configuration
+from bugsnag.error import Error
 from bugsnag.middleware import DefaultMiddleware
 from bugsnag.sessiontracker import SessionMiddleware
 
@@ -42,8 +43,8 @@ class TestConfiguration(unittest.TestCase):
         c.release_stage = "custom"
         self.assertTrue(c.should_notify())
 
-    def test_ignore_classes(self):
-        # Test ignoring a class works
+    def test_ignore_classes_with_a_single_exception(self):
+        # Test ignoring a class works with a single Exception
         c = Configuration()
         c.ignore_classes.append("SystemError")
         self.assertTrue(c.should_ignore(SystemError("Example")))
@@ -51,6 +52,23 @@ class TestConfiguration(unittest.TestCase):
         c = Configuration()
         c.ignore_classes.append("SystemError")
         self.assertFalse(c.should_ignore(Exception("Example")))
+
+    def test_ignore_classes_works_with_list_of_errors(self):
+        # Test ignoring a class works with a list of Errors
+        c = Configuration()
+        c.ignore_classes.append("SystemError")
+
+        error1 = Error('SystemError', 'ahh', [])
+        error2 = Error('AnotherError', 'ahh', [])
+        error3 = Error('SomeOtherError', 'ahh', [])
+        error4 = Error('Exception', 'ahh', [])
+
+        assert c.should_ignore([error1, error2, error3, error4])
+        assert c.should_ignore([error4, error3, error2, error1])
+        assert c.should_ignore([error1])
+
+        assert not c.should_ignore([error2, error3, error4])
+        assert not c.should_ignore([error4, error3, error2])
 
     def test_hostname(self):
         c = Configuration()
