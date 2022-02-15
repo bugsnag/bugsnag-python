@@ -184,3 +184,41 @@ def test_shared_task_failure(celery_worker, bugsnag_server):
     assert event['device']['runtimeVersions']['celery'] == celery.__version__
     assert exception['errorClass'] == 'ZeroDivisionError'
     assert exception['stacktrace'][0]['method'] == 'divide'
+
+
+def test_task_failure_with_chained_exceptions(
+    celery_app,
+    celery_worker,
+    bugsnag_server
+):
+    @celery_app.task
+    def oh_no():
+        try:
+            try:
+                raise Exception('A')
+            except Exception as exception:
+                raise RuntimeError('B') from exception
+        except RuntimeError:
+            raise ArithmeticError('C')
+
+    celery_worker.reload()
+
+    with celery_failure_handler():
+        oh_no.delay()
+        bugsnag_server.wait_for_request()
+
+    assert len(bugsnag_server.received) == 1
+
+    payload = bugsnag_server.received[0]['json_body']
+    event = payload['events'][0]
+
+    assert len(event['exceptions']) == 3
+
+    assert event['exceptions'][0]['errorClass'] == 'ArithmeticError'
+    assert event['exceptions'][0]['message'] == 'C'
+
+    assert event['exceptions'][1]['errorClass'] == 'RuntimeError'
+    assert event['exceptions'][1]['message'] == 'B'
+
+    assert event['exceptions'][2]['errorClass'] == 'Exception'
+    assert event['exceptions'][2]['message'] == 'A'
