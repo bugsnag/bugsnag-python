@@ -1,4 +1,4 @@
-def a():
+def raise_exception_with_explicit_cause():
     try:
         b()
     except Exception as cause:
@@ -17,12 +17,12 @@ def c():
 
 
 try:
-    a()
+    raise_exception_with_explicit_cause()
 except Exception as exception:
     exception_with_explicit_cause = exception
 
 
-def x():
+def raise_exception_with_implicit_cause():
     try:
         y()
     except Exception:
@@ -41,12 +41,12 @@ def z():
 
 
 try:
-    x()
+    raise_exception_with_implicit_cause()
 except Exception as exception:
     exception_with_implicit_cause = exception
 
 
-def one():
+def raise_exception_with_no_cause():
     try:
         two()
     except Exception:
@@ -65,6 +65,6 @@ def three():
 
 
 try:
-    one()
+    raise_exception_with_no_cause()
 except Exception as exception:
     exception_with_no_cause = exception
