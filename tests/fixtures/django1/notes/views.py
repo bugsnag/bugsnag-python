@@ -63,3 +63,10 @@ def handle_crash_callback(request):
 
 def terrible_event():
     raise RuntimeError('I did something wrong')
+
+
+def unhandled_crash_chain(request):
+    try:
+        unhandled_crash(request)
+    except RuntimeError as e:
+        raise Exception('corrupt timeline detected') from e
