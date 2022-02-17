@@ -8,6 +8,10 @@ Changelog
 * Improve stacktraces for handled errors
   Note: this will change error grouping for some handled errors
   [#313](https://github.com/bugsnag/bugsnag-python/pull/313)
+* Bugsnag will now report the entire exception chain by traversing the `__cause__` and `__context__` of exceptions. This provides greater context into the cause of exceptions
+  [#299](https://github.com/bugsnag/bugsnag-python/pull/299)
+  [Diego Restrepo Mesa](https://github.com/drestrepom)
+  [#314](https://github.com/bugsnag/bugsnag-python/pull/314)
 
 ## 4.1.1 (2021-10-04)
 
