@@ -5,13 +5,15 @@ Changelog
 
 ### Enhancements
 
-* Improve stacktraces for handled errors
-  Note: this will change error grouping for some handled errors
-  [#313](https://github.com/bugsnag/bugsnag-python/pull/313)
-* Bugsnag will now report the entire exception chain by traversing the `__cause__` and `__context__` of exceptions. This provides greater context into the cause of exceptions
+* Report the entire exception chain by traversing the `__cause__` and `__context__` of exceptions to provides greater context into the cause of exceptions
   [#299](https://github.com/bugsnag/bugsnag-python/pull/299)
   [Diego Restrepo Mesa](https://github.com/drestrepom)
   [#314](https://github.com/bugsnag/bugsnag-python/pull/314)
+* Use the `__traceback__` attribute in Python 3 exception objects to improve stacktraces for handled errors
+  [#313](https://github.com/bugsnag/bugsnag-python/pull/313)
+
+**Note:** The use of `__traceback__` for the  stacktraces of handled events means that the grouping of these errors on your Bugsnag dashboard will be affected when this attribute is available: it will now show the location of the exception and not the call to `notify`.
+
 
 ## 4.1.1 (2021-10-04)
 
