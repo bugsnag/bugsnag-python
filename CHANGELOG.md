@@ -1,6 +1,14 @@
 Changelog
 =========
 
+## TBD
+
+### Enhancements
+
+* Improve stacktraces for handled errors
+  Note: this will change error grouping for some handled errors
+  [#313](https://github.com/bugsnag/bugsnag-python/pull/313)
+
 ## 4.1.1 (2021-10-04)
 
 ### Bug fixes

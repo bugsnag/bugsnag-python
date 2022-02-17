@@ -951,15 +951,38 @@ class ClientTest(IntegrationTest):
         assert exceptions[0]['message'] == 'a'
         assert exceptions[0]['errorClass'] == 'NameError'
         assert exceptions[0]['type'] == 'python'
-
-        # TODO: this stacktrace is generated using 'sys.exc_info()', so starts
-        #       where we construct the Event
-        #       switching to 'exception.__traceback__' should improve this as
-        #       it will use the traceback from 'exception_with_explicit_cause'
-        assert exceptions[0]['stacktrace'][0]['file'] == 'test_client.py'
-        assert exceptions[0]['stacktrace'][0]['inProject']
-        assert exceptions[0]['stacktrace'][0]['method'] == \
-            'test_chained_exceptions_with_explicit_cause'
+        assert exceptions[0]['stacktrace'] == [
+            {
+                'file': 'fixtures/caused_by.py',
+                'lineNumber': 5,
+                'method': 'raise_exception_with_explicit_cause',
+                'inProject': True,
+                'code': {
+                    '2': '    try:',
+                    '3': '        b()',
+                    '4': '    except Exception as cause:',
+                    '5': "        raise NameError('a') from cause",
+                    '6': '',
+                    '7': '',
+                    '8': 'def b():'
+                }
+            },
+            {
+                'file': 'fixtures/caused_by.py',
+                'lineNumber': 20,
+                'method': '<module>',
+                'inProject': True,
+                'code': {
+                    '17': '',
+                    '18': '',
+                    '19': 'try:',
+                    '20': '    raise_exception_with_explicit_cause()',
+                    '21': 'except Exception as exception:',
+                    '22': '    exception_with_explicit_cause = exception',
+                    '23': ''
+                }
+            }
+        ]
 
         assert exceptions[1]['message'] == 'b'
         assert exceptions[1]['errorClass'] == 'ArithmeticError'
@@ -1112,16 +1135,39 @@ class ClientTest(IntegrationTest):
 
         assert exceptions[0]['message'] == 'x'
         assert exceptions[0]['errorClass'] == 'NameError'
-
-        # TODO: this stacktrace is generated using 'sys.exc_info()', so starts
-        #       where we construct the Event
-        #       switching to 'exception.__traceback__' should improve this as
-        #       it will use the traceback from 'exception_with_explicit_cause'
-        assert exceptions[0]['stacktrace'][0]['file'] == 'test_client.py'
-        assert exceptions[0]['stacktrace'][0]['inProject']
         assert exceptions[0]['type'] == 'python'
-        assert exceptions[0]['stacktrace'][0]['method'] == \
-            'test_chained_exceptions_with_implicit_cause'
+        assert exceptions[0]['stacktrace'] == [
+            {
+                'file': 'fixtures/caused_by.py',
+                'lineNumber': 29,
+                'method': 'raise_exception_with_implicit_cause',
+                'inProject': True,
+                'code': {
+                    '26': '    try:',
+                    '27': '        y()',
+                    '28': '    except Exception:',
+                    '29': "        raise NameError('x')",
+                    '30': '',
+                    '31': '',
+                    '32': 'def y():'
+                }
+            },
+            {
+                'file': 'fixtures/caused_by.py',
+                'lineNumber': 44,
+                'method': '<module>',
+                'inProject': True,
+                'code': {
+                    '41': '',
+                    '42': '',
+                    '43': 'try:',
+                    '44': '    raise_exception_with_implicit_cause()',
+                    '45': 'except Exception as exception:',
+                    '46': '    exception_with_implicit_cause = exception',
+                    '47': ''
+                }
+            }
+        ]
 
         assert exceptions[1]['message'] == 'y'
         assert exceptions[1]['errorClass'] == 'ArithmeticError'
@@ -1275,15 +1321,38 @@ class ClientTest(IntegrationTest):
         assert exceptions[0]['message'] == 'one'
         assert exceptions[0]['errorClass'] == 'NameError'
         assert exceptions[0]['type'] == 'python'
-
-        # TODO: this stacktrace is generated using 'sys.exc_info()', so starts
-        #       where we construct the Event
-        #       switching to 'exception.__traceback__' should improve this as
-        #       it will use the traceback from 'exception_with_no_cause'
-        assert exceptions[0]['stacktrace'][0]['file'] == 'test_client.py'
-        assert exceptions[0]['stacktrace'][0]['inProject']
-        assert exceptions[0]['stacktrace'][0]['method'] == \
-            'test_chained_exceptions_with_no_cause'
+        assert exceptions[0]['stacktrace'] == [
+            {
+                'file': 'fixtures/caused_by.py',
+                'lineNumber': 53,
+                'method': 'raise_exception_with_no_cause',
+                'inProject': True,
+                'code': {
+                    '50': '    try:',
+                    '51': '        two()',
+                    '52': '    except Exception:',
+                    '53': "        raise NameError('one') from None",
+                    '54': '',
+                    '55': '',
+                    '56': 'def two():'
+                }
+            },
+            {
+                'file': 'fixtures/caused_by.py',
+                'lineNumber': 68,
+                'method': '<module>',
+                'inProject': True,
+                'code': {
+                    '64': "    raise Exception('three')",
+                    '65': '',
+                    '66': '',
+                    '67': 'try:',
+                    '68': '    raise_exception_with_no_cause()',
+                    '69': 'except Exception as exception:',
+                    '70': '    exception_with_no_cause = exception'
+                }
+            }
+        ]
 
     def test_chained_exceptions_with_no_cause_using_capture_decorator(self):
         @self.client.capture
