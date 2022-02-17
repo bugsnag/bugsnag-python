@@ -320,3 +320,32 @@ class TestFlask(IntegrationTest):
             'from': 'http://localhost/hi'
         }
         assert breadcrumbs[0]['type'] == BreadcrumbType.NAVIGATION.value
+
+    def test_chained_exceptions(self):
+        app = Flask("bugsnag")
+
+        @app.route("/hello")
+        def hello():
+            try:
+                raise SentinelError("oops")
+            except SentinelError:
+                1 / 0
+
+        handle_exceptions(app)
+        app.test_client().get('/hello')
+
+        assert self.sent_report_count == 1
+
+        payload = self.server.received[0]['json_body']
+        event = payload['events'][0]
+
+        assert len(event['exceptions']) == 2
+
+        exception1 = event['exceptions'][0]
+        exception2 = event['exceptions'][1]
+
+        assert exception1['errorClass'] == 'ZeroDivisionError'
+        assert exception1['message'] == 'division by zero'
+
+        assert exception2['errorClass'] == 'test_flask.SentinelError'
+        assert exception2['message'] == 'oops'

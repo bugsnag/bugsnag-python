@@ -519,7 +519,7 @@ class HandlersTest(IntegrationTest):
         assert self.sent_report_count == 0
         assert len(handler.client.configuration.breadcrumbs) == 0
 
-        logger.warn('Everything might be fine')
+        logger.warning('Everything might be fine')
 
         assert self.sent_report_count == 0
         assert len(handler.client.configuration.breadcrumbs) == 1
