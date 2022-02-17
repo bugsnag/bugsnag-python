@@ -1,7 +1,7 @@
 Changelog
 =========
 
-## TBD
+## v4.2.0 (2022-02-18)
 
 ### Enhancements
 
