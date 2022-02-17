@@ -14,6 +14,10 @@ Changelog
 
 **Note:** The use of `__traceback__` for the  stacktraces of handled events means that the grouping of these errors on your Bugsnag dashboard will be affected when this attribute is available: it will now show the location of the exception and not the call to `notify`.
 
+### Bug fixes
+
+* Prevent async delivery errors from escaping their thread
+  [#303](https://github.com/bugsnag/bugsnag-python/pull/303)
 
 ## 4.1.1 (2021-10-04)
 
