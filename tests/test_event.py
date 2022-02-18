@@ -56,6 +56,88 @@ class TestEvent(unittest.TestCase):
                          lvl + "payload = json.loads(event._payload())")
         self.assertEqual(code[str(line + 3)], "")
 
+    def test_a_source_function_can_be_provided(self):
+        def some_function():
+            print("hello")
+            print("world")
+
+        config = Configuration()
+        event = self.event_class(
+            Exception("oops"),
+            config,
+            {},
+            source_func=some_function
+        )
+
+        payload = json.loads(event._payload())
+
+        stacktrace = payload['events'][0]['exceptions'][0]['stacktrace']
+        frame = stacktrace[-1]
+
+        assert frame['file'] == 'tests/test_event.py'
+        assert frame['lineNumber'] == inspect.getsourcelines(some_function)[1]
+        assert frame['method'] == 'some_function'
+        assert frame['inProject']
+
+    def test_source_function_is_ignored_when_invalid(self):
+        not_actually_a_function = 12345
+
+        config = Configuration()
+        event = self.event_class(
+            Exception("oops"),
+            config,
+            {},
+            source_func=not_actually_a_function
+        )
+
+        payload = json.loads(event._payload())
+
+        stacktrace = payload['events'][0]['exceptions'][0]['stacktrace']
+
+        # the first frame should be this test method
+        assert stacktrace[0]['file'] == 'tests/test_event.py'
+        assert stacktrace[0]['method'] == inspect.currentframe().f_code.co_name
+
+        # the rest of the trace shouldn't be in this file
+        for frame in stacktrace[1:]:
+            assert frame['file'] != 'tests/test_event.py'
+            assert frame['method'] != 'not_actually_a_function'
+
+    def test_a_traceback_can_be_provided(self):
+        def get_traceback():
+            try:
+                raise Exception('abc')
+            except Exception as exception:
+                return exception.__traceback__
+
+        traceback = get_traceback()
+
+        config = Configuration()
+        event = self.event_class(
+            Exception("oops"),
+            config,
+            {},
+            traceback=traceback
+        )
+
+        payload = json.loads(event._payload())
+
+        stacktrace = payload['events'][0]['exceptions'][0]['stacktrace']
+
+        # there's only one frame in 'traceback' - the call to 'get_traceback'
+        assert len(stacktrace) == 1
+
+        frame = stacktrace[0]
+
+        # the expected line number is the 'raise', which is the second line of
+        # the 'get_traceback' function - hence '+ 2'
+        line = inspect.getsourcelines(get_traceback)[1] + 2
+
+        assert frame['file'] == 'tests/test_event.py'
+        assert frame['lineNumber'] == line
+        assert frame['method'] == 'get_traceback'
+        assert frame['inProject']
+
     def test_code_at_start_of_file(self):
 
         config = Configuration()
@@ -149,6 +231,80 @@ class TestEvent(unittest.TestCase):
         exception = payload['events'][0]['exceptions'][0]
         first_traceback = exception['stacktrace'][0]
         self.assertEqual(first_traceback['file'], 'test_event.py')
+
+    def test_stacktrace_can_be_reassigned(self):
+        config = Configuration()
+        event = self.event_class(Exception("oops"), config, {})
+
+        expected_stacktrace = [
+            {
+                'file': '/a/b/c/one.py',
+                'lineNumber': 1234,
+                'method': 'do_stuff',
+                'inProject': True,
+                'code': {'1234': 'def do_stuff():'},
+            },
+            {
+                'file': '/a/b/c/two.py',
+                'lineNumber': 9876,
+                'method': 'do_other_stuff',
+                'inProject': False,
+                'code': {'9876': 'def do_other_stuff():'},
+            }
+        ]
+
+        with pytest.warns(DeprecationWarning) as records:
+            event.stacktrace = expected_stacktrace
+
+            assert len(records) == 1
+            assert str(records[0].message) == (
+                'The Event "stacktrace" property has been deprecated in favour'
+                ' of accessing the stacktrace of an error, for example '
+                '"errors[0].stacktrace"'
+            )
+
+        payload = json.loads(event._payload())
+        actual_stacktrace = payload['events'][0]['exceptions'][0]['stacktrace']
+
+        assert actual_stacktrace == expected_stacktrace
+
+    def test_stacktrace_can_be_mutated(self):
+        config = Configuration()
+        event = self.event_class(Exception('oops'), config, {})
+
+        with pytest.warns(DeprecationWarning) as records:
+            event.stacktrace[0]['file'] = '/abc/xyz.py'
+
+            assert len(records) == 1
+            assert str(records[0].message) == (
+                'The Event "stacktrace" property has been deprecated in favour'
+                ' of accessing the stacktrace of an error, for example '
+                '"errors[0].stacktrace"'
+            )
+
+        payload = json.loads(event._payload())
+        stacktrace = payload['events'][0]['exceptions'][0]['stacktrace']
+
+        assert stacktrace[0]['file'] == '/abc/xyz.py'
+
+    def test_original_exception_can_be_reassigned(self):
+        config = Configuration()
+        event = self.event_class(Exception('oops'), config, {})
+
+        with pytest.warns(DeprecationWarning) as records:
+            event.exception = KeyError('ahhh')
+
+            assert len(records) == 1
+            assert str(records[0].message) == (
+                'Setting the Event "exception" property has been deprecated, '
+                'update the "errors" list instead'
+            )
+
+        payload = json.loads(event._payload())
+        exception = payload['events'][0]['exceptions'][0]
+
+        assert exception['message'] == "'ahhh'"
+        assert exception['errorClass'] == 'KeyError'
 
     def test_device_data(self):
         """

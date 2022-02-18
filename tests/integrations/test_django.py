@@ -203,6 +203,51 @@ def test_unhandled_exception(bugsnag_server, django_client):
     assert exception['stacktrace'][1]['inProject'] is False
 
 
+def test_unhandled_exception_chain(bugsnag_server, django_client):
+    with pytest.raises(Exception):
+        django_client.get('/notes/unhandled-crash-chain/')
+
+    bugsnag_server.wait_for_request()
+    payload = bugsnag_server.received[0]['json_body']
+    event = payload['events'][0]
+    exception = event['exceptions'][0]
+
+    assert payload['apiKey'] == 'a05afff2bd2ffaf0ab0f52715bbdcffd'
+    assert event['context'] == 'notes.views.unhandled_crash_chain'
+    assert event['severityReason'] == {
+        'type': 'unhandledExceptionMiddleware',
+        'attributes':  {'framework': 'Django'}
+    }
+    assert event['device']['runtimeVersions']['django'] == django.__version__
+    assert event['metaData']['request'] == {
+        'method': 'GET',
+        'url': 'http://testserver/notes/unhandled-crash-chain/',
+        'path': '/notes/unhandled-crash-chain/',
+        'POST': {},
+        'encoding': None,
+        'GET': {}
+    }
+    assert event['user'] == {}
+    assert exception['errorClass'] == 'Exception'
+    assert exception['message'] == 'corrupt timeline detected'
+    assert exception['stacktrace'][0] == {
+        'method': 'unhandled_crash_chain',
+        'file': 'notes/views.py',
+        'lineNumber': 72,
+        'inProject': True,
+        'code': {
+            '66': '',
+            '67': '',
+            '68': 'def unhandled_crash_chain(request):',
+            '69': '    try:',
+            '70': '        unhandled_crash(request)',
+            '71': '    except RuntimeError as e:',
+            '72': "        raise Exception('corrupt timeline detected') from e"
+        },
+    }
+    assert exception['stacktrace'][1]['inProject'] is False
+
+
 def test_unhandled_exception_in_template(bugsnag_server, django_client):
     with pytest.raises(TemplateSyntaxError):
         django_client.get('/notes/unhandled-template-crash/')

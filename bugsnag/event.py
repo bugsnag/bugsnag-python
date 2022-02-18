@@ -13,7 +13,7 @@ import bugsnag
 from bugsnag.breadcrumbs import Breadcrumb
 from bugsnag.utils import fully_qualified_class_name as class_name
 from bugsnag.utils import FilterDict, package_version, SanitizingJSONEncoder
-
+from bugsnag.error import Error
 
 __all__ = ('Event',)
 
@@ -46,7 +46,9 @@ class Event:
             "traceback"
         All other keys will be sent as metadata to Bugsnag.
         """
-        self.exception = exception
+        self._exception = exception
+        self._original_error = exception
+
         self.options = options
         self.config = config
         self.request_config = request_config
@@ -80,9 +82,21 @@ class Event:
         if "user_id" in options:
             self.user["id"] = options.pop("user_id")
 
-        self.stacktrace = self._generate_stacktrace(
-            self.options.pop("traceback", sys.exc_info()[2]),
-            self.options.pop("source_func", None))
+        # for backwards compatibility we generate the first error's stacktrace
+        # here and use it as 'self.stacktrace' and 'self.errors[0].stacktrace'
+        # this allows mutations 'self.stacktrace' to be reflected in the errors
+        # list, which is used to generate the JSON payload
+        stacktrace = self._generate_stacktrace(
+            self.options.pop(
+                "traceback",
+                getattr(exception, '__traceback__', sys.exc_info()[2])
+            ),
+            self.options.pop("source_func", None)
+        )
+
+        self._stacktrace = stacktrace
+        self._errors = self._generate_error_list(exception, stacktrace)
+
         self.grouping_hash = options.pop("grouping_hash", None)
         self.api_key = options.pop("api_key", get_config("api_key"))
 
@@ -110,6 +124,70 @@ class Event:
     @property
     def breadcrumbs(self) -> List[Breadcrumb]:
         return self._breadcrumbs.copy()
+
+    @property
+    def errors(self) -> List[Error]:
+        return self._errors.copy()
+
+    @property
+    def original_error(self) -> BaseException:
+        return self._original_error
+
+    @property
+    def stacktrace(self) -> List[Dict[str, Any]]:
+        warnings.warn(
+            (
+                'The Event "stacktrace" property has been deprecated in favour'
+                ' of accessing the stacktrace of an error, for example '
+                '"errors[0].stacktrace"'
+            ),
+            DeprecationWarning
+        )
+
+        return self._stacktrace
+
+    @stacktrace.setter
+    def stacktrace(self, value: List[Dict[str, Any]]) -> None:
+        warnings.warn(
+            (
+                'The Event "stacktrace" property has been deprecated in favour'
+                ' of accessing the stacktrace of an error, for example '
+                '"errors[0].stacktrace"'
+            ),
+            DeprecationWarning
+        )
+
+        self._stacktrace = value
+        self._errors[0].stacktrace = value
+
+    @property
+    def exception(self) -> BaseException:
+        warnings.warn(
+            (
+                'The Event "exception" property has been replaced with '
+                '"original_error"'
+            ),
+            DeprecationWarning
+        )
+
+        return self._exception
+
+    @exception.setter
+    def exception(self, value: BaseException) -> None:
+        warnings.warn(
+            (
+                'Setting the Event "exception" property has been deprecated, '
+                'update the "errors" list instead'
+            ),
+            DeprecationWarning
+        )
+
+        self._exception = value
+        self._errors[0] = Error(
+            class_name(value),
+            str(value),
+            self._stacktrace
+        )
 
     def set_user(self, id=None, name=None, email=None):
         """
@@ -144,7 +222,45 @@ class Event:
 
         self.metadata[name].update(dictionary)
 
-    def _generate_stacktrace(self, tb, source_func=None):
+    def _generate_error_list(
+        self,
+        exception: BaseException,
+        first_error_stacktrace: List[Dict[str, Any]]
+    ) -> List[Error]:
+        error_list = [
+            Error(
+                class_name(exception),
+                str(exception),
+                first_error_stacktrace
+            )
+        ]
+
+        if not isinstance(exception, BaseException):
+            return error_list
+
+        while True:
+            if exception.__cause__:
+                exception = exception.__cause__
+            elif exception.__context__ and not exception.__suppress_context__:
+                exception = exception.__context__
+            else:
+                break
+
+            error_list.append(
+                Error(
+                    class_name(exception),
+                    str(exception),
+                    self._generate_stacktrace(exception.__traceback__)
+                )
+            )
+
+        return error_list
+
+    def _generate_stacktrace(
+        self,
+        tb,
+        source_func=None
+    ) -> List[Dict[str, Any]]:
         """
         Build the stacktrace
         """
@@ -183,12 +299,16 @@ class Event:
                 line = 0
                 if lines is not None and len(lines) > 1:
                     line = lines[1]
-                trace.insert(0, [source, line, source_func.__name__])
+
+                trace.insert(
+                    0,
+                    [source, line, source_func.__name__]  # type: ignore
+                )
             except (IOError, TypeError):
                 pass
 
-        for line in trace:
-            file_name = os.path.abspath(str(line[0]))
+        for frame in trace:
+            file_name = os.path.abspath(str(frame[0]))
             in_project = False
 
             skip_module = False
@@ -201,7 +321,7 @@ class Event:
 
             # Fetch the code before (potentially) removing the project root
             # from the file path
-            code = self._code_for(file_name, int(str(line[1])))
+            code = self._code_for(file_name, int(str(frame[1])))
 
             if lib_root and file_name.startswith(lib_root):
                 file_name = file_name[len(lib_root):]
@@ -211,13 +331,14 @@ class Event:
 
             stacktrace.append({
                 "file": file_name,
-                "lineNumber": int(str(line[1])),
-                "method": str(line[2]),
+                "lineNumber": int(str(frame[1])),
+                "method": str(frame[2]),
                 "inProject": in_project,
                 "code": code
             })
 
         stacktrace.reverse()
+
         return stacktrace
 
     def _code_for(self, file_name, line, window_size=7):
@@ -272,11 +393,9 @@ class Event:
                 },
                 "context": self.context,
                 "groupingHash": self.grouping_hash,
-                "exceptions": [{
-                    "errorClass": class_name(self.exception),
-                    "message": self.exception,
-                    "stacktrace": self.stacktrace,
-                }],
+                "exceptions": [
+                    error.to_dict() for error in self.errors
+                ],
                 "metaData": FilterDict(self.metadata),
                 "user": FilterDict(self.user),
                 "device": FilterDict({

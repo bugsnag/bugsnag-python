@@ -8,6 +8,8 @@ from bugsnag.asgi import BugsnagMiddleware
 from bugsnag.breadcrumbs import BreadcrumbType
 from tests.utils import IntegrationTest, ScaryException
 
+import pytest
+
 
 class TestASGIMiddleware(IntegrationTest):
     def setUp(self):
@@ -287,3 +289,41 @@ class TestASGIMiddleware(IntegrationTest):
             'from': 'http://testserver/abc/xyz'
         }
         assert breadcrumbs[0]['type'] == BreadcrumbType.NAVIGATION.value
+
+    def test_chained_exceptions(self):
+        app = Starlette()
+
+        async def other_func():
+            raise ScaryException('fell winds!')
+
+        @app.route('/')
+        async def index(req):
+            try:
+                await other_func()
+            except ScaryException as scary:
+                raise Exception('disconcerting breeze.') from scary
+
+        app = TestClient(BugsnagMiddleware(app))
+
+        with pytest.raises(Exception):
+            app.get('/')
+
+        assert self.sent_report_count == 1
+
+        payload = self.server.received[0]['json_body']
+
+        print(payload)
+        assert len(payload['events'][0]['exceptions']) == 2
+
+        exception1 = payload['events'][0]['exceptions'][0]
+        exception2 = payload['events'][0]['exceptions'][1]
+
+        assert 'Exception' == exception1['errorClass']
+        assert 'disconcerting breeze.' == exception1['message']
+        assert 'index' == exception1['stacktrace'][0]['method']
+
+        assert 'tests.utils.ScaryException' == exception2['errorClass']
+        assert 'fell winds!' == exception2['message']
+        assert len(exception2['stacktrace']) == 2
+        assert 'other_func' == exception2['stacktrace'][0]['method']
+        assert 'index' == exception2['stacktrace'][1]['method']

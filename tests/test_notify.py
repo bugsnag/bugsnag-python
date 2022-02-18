@@ -5,6 +5,7 @@ import time
 
 import pytest
 import bugsnag
+from tests import fixtures
 from tests.utils import ScaryException, IntegrationTest
 from tests.fixtures import samples
 
@@ -174,12 +175,40 @@ class TestBugsnag(IntegrationTest):
 
         self.assertEqual(4, event['metaData']['custom']['foo'])
         self.assertEqual('[FILTERED]', event['metaData']['custom']['bar'])
-        self.assertEqual(169, exception['stacktrace'][0]['lineNumber'])
+        self.assertEqual(170, exception['stacktrace'][0]['lineNumber'])
 
     def test_notify_ignore_class(self):
         bugsnag.configure(ignore_classes=['tests.utils.ScaryException'])
         bugsnag.notify(ScaryException('unexpected failover'))
         self.assertEqual(0, len(self.server.received))
+
+    def test_ignore_classes_checks_exception_chain_with_explicit_cause(self):
+        bugsnag.configure(ignore_classes=['ArithmeticError'])
+        bugsnag.notify(fixtures.exception_with_explicit_cause)
+
+        assert self.sent_report_count == 0
+
+        bugsnag.configure(ignore_classes=[])
+        bugsnag.notify(fixtures.exception_with_explicit_cause)
+
+        assert self.sent_report_count == 1
+
+    def test_ignore_classes_checks_exception_chain_with_implicit_cause(self):
+        bugsnag.configure(ignore_classes=['ArithmeticError'])
+        bugsnag.notify(fixtures.exception_with_implicit_cause)
+
+        assert self.sent_report_count == 0
+
+        bugsnag.configure(ignore_classes=[])
+        bugsnag.notify(fixtures.exception_with_implicit_cause)
+
+        assert self.sent_report_count == 1
+
+    def test_ignore_classes_has_no_exception_chain_with_no_cause(self):
+        bugsnag.configure(ignore_classes=['ArithmeticError'])
+        bugsnag.notify(fixtures.exception_with_no_cause)
+
+        assert self.sent_report_count == 1
 
     def test_notify_configured_invalid_api_key(self):
         config = bugsnag.configure()
