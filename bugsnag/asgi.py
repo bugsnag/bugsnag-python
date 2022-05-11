@@ -4,7 +4,7 @@ from typing import Any, List, Dict, Union, Optional
 import bugsnag
 from bugsnag.breadcrumbs import BreadcrumbType
 from bugsnag.legacy import _auto_leave_breadcrumb
-from bugsnag.utils import sanitize_url
+from bugsnag.utils import remove_query_from_url
 
 __all__ = ('BugsnagMiddleware',)
 
@@ -137,7 +137,7 @@ def _get_breadcrumb_metadata(scope) -> Dict[str, str]:
     referer = _get_referer_header(scope)
 
     if referer:
-        metadata['from'] = sanitize_url(referer)
+        metadata['from'] = remove_query_from_url(referer)
 
     return metadata
 

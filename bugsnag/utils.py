@@ -331,23 +331,23 @@ class ThreadContextVar:
         setattr(ThreadContextVar.local_context(), self.name, new_value)
 
 
-def sanitize_url(url_to_sanitize: AnyStr) -> Optional[AnyStr]:
+def remove_query_from_url(url: AnyStr) -> Optional[AnyStr]:
     try:
-        parsed = urlparse(url_to_sanitize)
+        parsed = urlparse(url)
 
-        sanitized_url = urlunsplit(
+        url_without_query = urlunsplit(
             # urlunsplit always requires 5 elements in this tuple
             (parsed.scheme, parsed.netloc, parsed.path, None, None)
         ).strip()
     except Exception:
         return None
 
-    # If the sanitized url is empty then it did not have any of the components
+    # If the returned url is empty then it did not have any of the components
     # we are interested in, so return None to indicate failure
-    if not sanitized_url:
+    if not url_without_query:
         return None
 
-    return sanitized_url
+    return url_without_query
 
 
 # to_rfc3339: format a datetime instance to match to_rfc3339/iso8601 with

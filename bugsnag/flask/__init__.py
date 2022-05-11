@@ -5,7 +5,7 @@ import bugsnag
 from bugsnag.wsgi import request_path
 from bugsnag.legacy import _auto_leave_breadcrumb
 from bugsnag.breadcrumbs import BreadcrumbType
-from bugsnag.utils import sanitize_url
+from bugsnag.utils import remove_query_from_url
 
 
 __all__ = ('handle_exceptions',)
@@ -69,6 +69,6 @@ def _get_breadcrumb_metadata(request) -> Dict[str, str]:
     metadata = {'to': request_path(request.environ)}
 
     if 'referer' in request.headers:
-        metadata['from'] = sanitize_url(request.headers['referer'])
+        metadata['from'] = remove_query_from_url(request.headers['referer'])
 
     return metadata
