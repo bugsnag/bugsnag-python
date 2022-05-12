@@ -43,7 +43,12 @@ def django_client():
 
 
 def test_notify(bugsnag_server, django_client):
-    response = django_client.get('/notes/handled-exception/?foo=strawberry')
+    bugsnag.configure(params_filters=['bar'])
+
+    response = django_client.get(
+        '/notes/handled-exception/?bar=apple'
+    )
+
     assert response.status_code == 200
 
     bugsnag_server.wait_for_request()
@@ -58,11 +63,11 @@ def test_notify(bugsnag_server, django_client):
     assert 'environment' not in payload['events'][0]['metaData']
     assert event['metaData']['request'] == {
         'method': 'GET',
-        'url': 'http://testserver/notes/handled-exception/?foo=strawberry',
+        'url': 'http://testserver/notes/handled-exception/?bar=[FILTERED]',
         'path': '/notes/handled-exception/',
         'POST': {},
         'encoding': None,
-        'GET': {'foo': ['strawberry']}
+        'GET': {'bar': '[FILTERED]'}
     }
     assert event['user'] == {}
     assert exception['errorClass'] == 'KeyError'

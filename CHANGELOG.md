@@ -1,6 +1,13 @@
 Changelog
 =========
 
+## TBD
+
+### Bug fixes
+
+* Apply `params_filters` to URLs in request metadata
+  [#318](https://github.com/bugsnag/bugsnag-python/pull/318)
+
 ## v4.2.0 (2022-02-18)
 
 ### Enhancements

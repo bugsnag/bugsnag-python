@@ -7,7 +7,7 @@ import warnings
 import copy
 import logging
 from datetime import datetime, timedelta
-from urllib.parse import urlparse, urlunsplit
+from urllib.parse import urlparse, urlunsplit, parse_qs
 
 MAX_PAYLOAD_LENGTH = 128 * 1024
 MAX_STRING_LENGTH = 1024
@@ -329,6 +329,47 @@ class ThreadContextVar:
 
     def set(self, new_value):
         setattr(ThreadContextVar.local_context(), self.name, new_value)
+
+
+def sanitize_url(url: AnyStr, config) -> Optional[str]:
+    try:
+        if isinstance(url, str):
+            url_str = url
+        else:
+            url_str = str(url, encoding='utf-8', errors='replace')
+
+        parsed = urlparse(url_str)
+
+        # if there's no query string there's nothing to redact
+        if not parsed.query:
+            return url_str
+
+        url_without_query = urlunsplit(
+            # urlunsplit always requires 5 elements in this tuple
+            (parsed.scheme, parsed.netloc, parsed.path, None, None)
+        ).strip()
+
+        query_parameters = parse_qs(parsed.query)
+    except Exception:
+        # if we can't parse the url or query string then we can't know if
+        # there's anything to redact, so have to omit the URL entirely
+        return None
+
+    encoder = SanitizingJSONEncoder(config.logger, config.params_filters)
+    redacted_parameter_dict = encoder.filter_string_values(query_parameters)
+
+    filtered_value = SanitizingJSONEncoder.filtered_value
+    redacted_parameters = []
+
+    for key, values in redacted_parameter_dict.items():
+        # if "values" has been redacted it's a string, otherwise it's a list
+        if values == filtered_value:
+            redacted_parameters.append(key + "=" + values)
+        else:
+            for value in values:
+                redacted_parameters.append(key + "=" + value)
+
+    return url_without_query + "?" + "&".join(redacted_parameters)
 
 
 def remove_query_from_url(url: AnyStr) -> Optional[AnyStr]:

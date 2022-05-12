@@ -44,13 +44,21 @@ class TestWSGI(IntegrationTest):
 
         app = TestApp(BugsnagMiddleware(CrashOnStartApp))
 
-        self.assertRaises(SentinelError, lambda: app.get('/beans'))
+        self.assertRaises(
+            SentinelError,
+            lambda: app.get('/beans?password=drowssap')
+        )
 
         self.assertEqual(1, len(self.server.received))
         payload = self.server.received[0]['json_body']
         event = payload['events'][0]
         self.assertEqual(event['context'], 'GET /beans')
         assert 'environment' not in event['metaData']
+
+        assert event['metaData']['request']['url'] == 'http://localhost/beans'
+        assert event['metaData']['request']['params'] == {
+            'password': '[FILTERED]'
+        }
 
         breadcrumbs = payload['events'][0]['breadcrumbs']
 

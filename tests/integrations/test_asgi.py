@@ -232,12 +232,18 @@ class TestASGIMiddleware(IntegrationTest):
 
         app = TestClient(BugsnagMiddleware(app))
 
-        self.assertRaises(ScaryException, lambda: app.get('/path?page=6#top'))
+        self.assertRaises(
+            ScaryException,
+            lambda: app.get('/path?password=secret#top')
+        )
         self.assertSentReportCount(1)
 
         payload = self.server.received[0]['json_body']
         request = payload['events'][0]['metaData']['request']
-        self.assertEqual('http://testserver/path?page=6', request['url'])
+        self.assertEqual(
+            'http://testserver/path?password=[FILTERED]',
+            request['url']
+        )
 
         breadcrumbs = payload['events'][0]['breadcrumbs']
 
