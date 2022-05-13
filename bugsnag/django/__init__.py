@@ -8,8 +8,8 @@ except ImportError:
     from django.urls import resolve, Resolver404
 
 import bugsnag
-from bugsnag.utils import is_json_content_type
 import json
+from bugsnag.utils import is_json_content_type, sanitize_url
 
 
 def add_django_request_to_notification(event):
@@ -50,14 +50,16 @@ def add_django_request_to_notification(event):
 
     if getattr(request, "session", None):
         event.add_tab("session", dict(request.session))
+
     request_tab = {
         'method': request.method,
         'path': request.path,
         'encoding': request.encoding,
         'GET': dict(request.GET),
         'POST': dict(request.POST),
-        'url': request.build_absolute_uri(),
+        'url': sanitize_url(request.build_absolute_uri(), event.config)
     }
+
     try:
         is_json = is_json_content_type(request.META.get('CONTENT_TYPE', ''))
         if is_json and request_tab["method"] == "POST":

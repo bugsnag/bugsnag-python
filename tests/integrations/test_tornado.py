@@ -43,20 +43,22 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
         assert breadcrumbs[0]['type'] == BreadcrumbType.NAVIGATION.value
 
     def test_notify_get(self):
-        response = self.fetch('/notify?test=get', method="GET")
+        response = self.fetch('/notify?password=asdf', method="GET")
         self.assertEqual(response.code, 200)
         self.assertEqual(len(self.server.received), 1)
 
         payload = self.server.received[0]['json_body']
         event = payload['events'][0]
         p = self.get_http_port()
-        expectedUrl = 'http://127.0.0.1:{}/notify?test=get'.format(p)
+        expectedUrl = \
+            'http://127.0.0.1:{}/notify?password=[FILTERED]'.format(p)
+
         self.assertEqual(event['metaData']['request'], {
             'method': 'GET',
             'url': expectedUrl,
             'path': '/notify',
             'POST': {},
-            'GET': {'test': ['get']}
+            'GET': {'password': '[FILTERED]'}
         })
 
         breadcrumbs = event['breadcrumbs']

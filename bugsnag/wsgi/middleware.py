@@ -6,7 +6,7 @@ import bugsnag
 from bugsnag.wsgi import request_path
 from bugsnag.breadcrumbs import BreadcrumbType
 from bugsnag.legacy import _auto_leave_breadcrumb
-from bugsnag.utils import sanitize_url
+from bugsnag.utils import remove_query_from_url
 
 # Attempt to import bottle for runtime version report, but only if already
 # in use in app
@@ -110,7 +110,7 @@ def _get_breadcrumb_metadata(environ) -> Dict[str, str]:
         metadata['to'] = environ['PATH_INFO']
 
     if 'HTTP_REFERER' in environ:
-        metadata['from'] = sanitize_url(environ['HTTP_REFERER'])
+        metadata['from'] = remove_query_from_url(environ['HTTP_REFERER'])
 
     return metadata
 

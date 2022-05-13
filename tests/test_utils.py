@@ -10,7 +10,7 @@ from datetime import datetime, timedelta, timezone
 
 from bugsnag.utils import (SanitizingJSONEncoder, FilterDict,
                            is_json_content_type, parse_content_type,
-                           ThreadContextVar, to_rfc3339, sanitize_url)
+                           ThreadContextVar, to_rfc3339, remove_query_from_url)
 
 logger = logging.getLogger(__name__)
 
@@ -478,7 +478,7 @@ def test_to_rfc3339(dt: datetime, expected: str):
     assert to_rfc3339(dt) == expected
 
 
-@pytest.mark.parametrize("url_to_sanitize, expected", [
+@pytest.mark.parametrize("url, expected", [
     ('https://example.com', 'https://example.com'),
     ('https://example.com/', 'https://example.com/'),
     ('https://example.com/a/b/c', 'https://example.com/a/b/c'),
@@ -523,5 +523,5 @@ def test_to_rfc3339(dt: datetime, expected: str):
     (object(), None),
     (lambda: 'example.com', None),
 ])
-def test_sanitize_url(url_to_sanitize, expected):
-    assert sanitize_url(url_to_sanitize) == expected
+def test_remove_query_from_url(url, expected):
+    assert remove_query_from_url(url) == expected

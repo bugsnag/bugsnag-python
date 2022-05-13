@@ -25,7 +25,7 @@ class TestBottle(IntegrationTest):
         app.catchall = False
         app = TestApp(BugsnagMiddleware(app))
 
-        self.assertRaises(Exception, lambda: app.get('/beans'))
+        self.assertRaises(Exception, lambda: app.get('/beans?password=123'))
         self.assertEqual(1, len(self.server.received))
         payload = self.server.received[0]['json_body']
         event = payload['events'][0]
@@ -36,6 +36,11 @@ class TestBottle(IntegrationTest):
         runtime_versions = event['device']['runtimeVersions']
         self.assertEqual(runtime_versions['bottle'], '0.12.18')
         assert 'environment' not in event['metaData']
+
+        assert event['metaData']['request']['url'] == 'http://localhost/beans'
+        assert event['metaData']['request']['params'] == {
+            'password': '[FILTERED]'
+        }
 
     def test_enable_environment(self):
         bugsnag.configure(send_environment=True)

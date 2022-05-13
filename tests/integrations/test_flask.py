@@ -44,15 +44,15 @@ class TestFlask(IntegrationTest):
             raise SentinelError("oops")
 
         handle_exceptions(app)
-        app.test_client().get('/hello')
+        app.test_client().get('/hello?password=secret')
 
         self.assertEqual(1, len(self.server.received))
         payload = self.server.received[0]['json_body']
         event = payload['events'][0]
         self.assertEqual(event['exceptions'][0]['errorClass'],
                          'test_flask.SentinelError')
-        self.assertEqual(event['metaData']['request']['url'],
-                         'http://localhost/hello')
+        assert event['metaData']['request']['url'] == 'http://localhost/hello'
+        assert event['metaData']['request']['params'] == {}
         assert 'environment' not in event['metaData']
 
         breadcrumbs = payload['events'][0]['breadcrumbs']
