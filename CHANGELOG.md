@@ -1,7 +1,7 @@
 Changelog
 =========
 
-## TBD
+## v4.2.1 (2022-05-16)
 
 ### Bug fixes
 
