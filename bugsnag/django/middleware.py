@@ -9,7 +9,7 @@ import bugsnag
 import bugsnag.django
 from bugsnag.legacy import _auto_leave_breadcrumb
 from bugsnag.breadcrumbs import BreadcrumbType
-from bugsnag.utils import sanitize_url
+from bugsnag.utils import remove_query_from_url
 
 
 class BugsnagMiddleware(MiddlewareMixin):
@@ -59,6 +59,8 @@ class BugsnagMiddleware(MiddlewareMixin):
         metadata = {'to': request.path}
 
         if 'HTTP_REFERER' in request.META:
-            metadata['from'] = sanitize_url(request.META['HTTP_REFERER'])
+            metadata['from'] = remove_query_from_url(
+                request.META['HTTP_REFERER']
+            )
 
         return metadata
