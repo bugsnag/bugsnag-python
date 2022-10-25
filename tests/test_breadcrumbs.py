@@ -369,4 +369,4 @@ def test_the_breadcrumb_list_can_be_cleared():
 
     breadcrumbs.clear()
 
-    assert(len(breadcrumbs.to_list())) == 0
+    assert len(breadcrumbs.to_list()) == 0
