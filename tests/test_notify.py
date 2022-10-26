@@ -537,11 +537,18 @@ class TestBugsnag(IntegrationTest):
                          event['metaData']['payload']['src_name'])
         self.assertEqual('☘☘☘éééé@me.com',
                          event['metaData']['payload']['accénted'])
-        self.assertEqual('test_notify_unicode_metadata (%s)' % self_class,
-                         event['metaData']['payload']['self'])
         self.assertEqual(bins, event['metaData']['payload']['var'])
         self.assertEqual("<class 'tests.test_notify.TestBugsnag'>",
                          event['metaData']['payload']['class'])
+
+        if sys.version_info < (3, 11):
+            assert event['metaData']['payload']['self'] == \
+                'test_notify_unicode_metadata (%s)' % self_class
+        else:
+            method = 'test_notify_unicode_metadata'
+
+            assert event['metaData']['payload']['self'] == \
+                'test_notify_unicode_metadata (%s.%s)' % (self_class, method)
 
     def test_notify_stacktrace(self):
         samples.call_bugsnag_nested()
