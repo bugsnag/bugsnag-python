@@ -34,7 +34,7 @@ class TestBottle(IntegrationTest):
         self.assertEqual(event['exceptions'][0]['errorClass'], 'Exception')
         self.assertEqual(event['exceptions'][0]['message'], 'oh no!')
         runtime_versions = event['device']['runtimeVersions']
-        self.assertEqual(runtime_versions['bottle'], '0.12.18')
+        assert runtime_versions['bottle'] == bottle.__version__
         assert 'environment' not in event['metaData']
 
         assert event['metaData']['request']['url'] == 'http://localhost/beans'
