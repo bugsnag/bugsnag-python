@@ -64,6 +64,15 @@ class DefaultMiddleware:
         self.bugsnag(event)
 
 
+def skip_bugsnag_middleware(event: Event):
+    """
+    A callback-based middleware that prevents notifying an event where the
+    'original_error' has a 'skip_bugsnag' attr set to 'True'.
+    """
+    if getattr(event.original_error, 'skip_bugsnag', False) is True:
+        return False
+
+
 class MiddlewareStack:
     """
     Manages a stack of Bugsnag middleware.

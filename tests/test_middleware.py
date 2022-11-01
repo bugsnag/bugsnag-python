@@ -1,7 +1,7 @@
 import unittest
 
 import bugsnag
-from bugsnag.middleware import MiddlewareStack
+from bugsnag.middleware import MiddlewareStack, skip_bugsnag_middleware
 from bugsnag.configuration import RequestConfiguration
 
 
@@ -41,9 +41,9 @@ class SampleMiddlewareReturning(object):
         return
 
 
-def create_event() -> bugsnag.Event:
+def create_event(exception=None) -> bugsnag.Event:
     return bugsnag.Event(
-        RuntimeError('oh no!'),
+        exception or RuntimeError('oh no!'),
         bugsnag.configure(),
         RequestConfiguration.get_instance()
     )
@@ -153,3 +153,17 @@ class TestMiddleware(unittest.TestCase):
         m.run(a, lambda: a.append('Callback'))
 
         self.assertEqual(a, ['A'])
+
+    def test_skip_bugsnag_middleware_returns_false_when_attr_is_present(self):
+        exception = Exception('oh no')
+        exception.skip_bugsnag = True
+
+        event = create_event(exception)
+
+        assert skip_bugsnag_middleware(event) is False
+
+    def test_skip_bugsnag_middleware_returns_none_when_attr_is_missing(self):
+        exception = Exception('oh no')
+        event = create_event(exception)
+
+        assert skip_bugsnag_middleware(event) is None
