@@ -1,6 +1,13 @@
 Changelog
 =========
 
+## TBD
+
+### Enhancements
+
+* Allow preventing an exception from being reported to Bugsnag by setting the `skip_bugsnag` attr to `True`
+  [#325](https://github.com/bugsnag/bugsnag-python/pull/325)
+
 ## v4.2.1 (2022-05-16)
 
 ### Bug fixes
