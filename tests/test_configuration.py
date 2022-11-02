@@ -11,7 +11,7 @@ from threading import Thread
 from bugsnag.breadcrumbs import BreadcrumbType
 from bugsnag.configuration import Configuration
 from bugsnag.error import Error
-from bugsnag.middleware import DefaultMiddleware
+from bugsnag.middleware import DefaultMiddleware, SimpleMiddleware
 from bugsnag.sessiontracker import SessionMiddleware
 
 import pytest
@@ -85,9 +85,13 @@ class TestConfiguration(unittest.TestCase):
 
     def test_default_middleware_location(self):
         c = Configuration()
-        self.assertEqual(c.internal_middleware.stack,
-                         [DefaultMiddleware, SessionMiddleware])
-        self.assertEqual(len(c.middleware.stack), 0)
+
+        assert len(c.internal_middleware.stack) == 3
+        assert isinstance(c.internal_middleware.stack[0], SimpleMiddleware)
+        assert c.internal_middleware.stack[1] is DefaultMiddleware
+        assert c.internal_middleware.stack[2] is SessionMiddleware
+
+        assert len(c.middleware.stack) == 0
 
     def test_validate_api_key(self):
         c = Configuration()
