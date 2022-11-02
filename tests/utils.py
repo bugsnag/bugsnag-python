@@ -99,6 +99,7 @@ class FakeBugsnagServer(object):
         self.server.shutdown()
         self.thread.join()
         self.server.server_close()
+        self.received = []
 
     def wait_for_request(self, timeout=2):
         start = time.time()
