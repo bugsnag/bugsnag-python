@@ -1456,6 +1456,43 @@ class ClientTest(IntegrationTest):
 
         assert self.sent_report_count == 1
 
+    def test_skip_bugsnag_attr_prevents_notify_when_true(self):
+        exception = Exception('Testing Notify')
+        self.client.notify(exception)
+
+        assert self.sent_report_count == 1
+
+        exception.skip_bugsnag = True
+        self.client.notify(exception)
+
+        assert self.sent_report_count == 1
+
+    def test_setting_skip_bugsnag_attr_to_false_allows_notify(self):
+        exception = Exception('Testing Notify')
+        exception.skip_bugsnag = True
+
+        self.client.notify(exception)
+
+        assert self.sent_report_count == 0
+
+        exception.skip_bugsnag = False
+        self.client.notify(exception)
+
+        assert self.sent_report_count == 1
+
+    def test_deleting_skip_bugsnag_attr_allows_notify(self):
+        exception = Exception('Testing Notify')
+        exception.skip_bugsnag = True
+
+        self.client.notify(exception)
+
+        assert self.sent_report_count == 0
+
+        delattr(exception, 'skip_bugsnag')
+        self.client.notify(exception)
+
+        assert self.sent_report_count == 1
+
 
 @pytest.mark.parametrize("metadata,type", [
     (1234, 'int'),

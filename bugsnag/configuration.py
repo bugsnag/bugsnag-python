@@ -15,7 +15,11 @@ from bugsnag.breadcrumbs import (
     OnBreadcrumbCallback
 )
 from bugsnag.sessiontracker import SessionMiddleware
-from bugsnag.middleware import DefaultMiddleware, MiddlewareStack
+from bugsnag.middleware import (
+    DefaultMiddleware,
+    MiddlewareStack,
+    skip_bugsnag_middleware
+)
 from bugsnag.utils import (fully_qualified_class_name, validate_str_setter,
                            validate_bool_setter, validate_iterable_setter,
                            validate_required_str_setter, validate_int_setter)
@@ -72,6 +76,7 @@ class Configuration:
         self.middleware = MiddlewareStack()
 
         self.internal_middleware = MiddlewareStack()
+        self.internal_middleware.before_notify(skip_bugsnag_middleware)
         self.internal_middleware.append(DefaultMiddleware)
         self.internal_middleware.append(SessionMiddleware)
 
