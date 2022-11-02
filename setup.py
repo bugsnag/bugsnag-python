@@ -37,9 +37,11 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
         'Topic :: Software Development'
     ],
-    package_data = {
+    package_data={
         'bugsnag': ['py.typed'],
     },
     test_suite='tests',
