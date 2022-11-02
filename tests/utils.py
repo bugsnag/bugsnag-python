@@ -43,7 +43,7 @@ class IntegrationTest(unittest.TestCase):
 
     @property
     def sent_report_count(self) -> int:
-        return len(self.server.received)
+        return self.server.sent_report_count
 
 
 class FakeBugsnagServer(object):
@@ -107,6 +107,10 @@ class FakeBugsnagServer(object):
                 raise MissingRequestError("No request received before timeout")
 
             time.sleep(0.25)
+
+    @property
+    def sent_report_count(self) -> int:
+        return len(self.received)
 
 
 class ScaryException(Exception):
