@@ -90,10 +90,7 @@ def configure():
     config.runtime_versions['django'] = django.__version__
 
     request_started.connect(__track_session)
-    got_request_exception.connect(
-        __handle_request_exception(config.logger),
-        weak=False
-    )
+    got_request_exception.connect(__handle_request_exception)
 
     return config
 
@@ -103,19 +100,17 @@ def __track_session(sender, **extra):
         bugsnag.start_session()
 
 
-def __handle_request_exception(logger):
-    def inner(sender, **kwargs):
-        request = kwargs.get('request', None)
+def __handle_request_exception(sender, **kwargs):
+    request = kwargs.get('request', None)
 
-        if request is not None:
-            bugsnag.configure_request(django_request=request)
+    if request is not None:
+        bugsnag.configure_request(django_request=request)
 
-        try:
-            bugsnag.auto_notify_exc_info(severity_reason={
-                "type": "unhandledExceptionMiddleware",
-                "attributes": {"framework": "Django"}
-            })
-        except Exception:
-            logger.exception("Error in exception middleware")
+    try:
+        bugsnag.auto_notify_exc_info(severity_reason={
+            "type": "unhandledExceptionMiddleware",
+            "attributes": {"framework": "Django"}
+        })
 
-    return inner
+    except Exception:
+        bugsnag.configure().logger.exception("Error in exception middleware")
