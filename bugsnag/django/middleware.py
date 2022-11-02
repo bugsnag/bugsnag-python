@@ -48,6 +48,10 @@ class BugsnagMiddleware(MiddlewareMixin):
                 }
             )
 
+            # ensure the 'got_request_exception' signal doesn't also notify
+            # this exception
+            setattr(exception, 'skip_bugsnag', True)
+
         except Exception:
             self.config.logger.exception("Error in exception middleware")
 
