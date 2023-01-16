@@ -4,7 +4,9 @@ on: [push, pull_request]
 
 jobs:
   license-audit:
-    runs-on: ubuntu-latest
+    # TODO: a GH action update broke the 'ubuntu-latest' image
+    #       when it's fixed, we should switch back
+    runs-on: ubuntu-20.04
 
     steps:
     - uses: actions/checkout@v2
