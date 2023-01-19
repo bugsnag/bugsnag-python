@@ -4,8 +4,10 @@ on: [ push, pull_request ]
 
 jobs:
   test:
+    # TODO: a GH action update broke the 'ubuntu-latest' image
+    #       when it's fixed, we should switch back
+    runs-on: ubuntu-20.04
 
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -13,18 +15,22 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+
     - name: Install dependencies
       run: |
-        python -m pip install coveralls tox tox-factor
+        python -m pip install coveralls 'tox<4.0.0' tox-factor
+
     - name: Run tests
       run: |
         pyversion=${{ matrix.python-version }}
         TOXFACTOR=${pyversion//.0-*/}
         tox -f py${TOXFACTOR//./} --parallel --quiet
+
     - name: Upload code coverage data
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

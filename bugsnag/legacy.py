@@ -1,4 +1,4 @@
-from typing import Dict, Any, Tuple, Type
+from typing import Dict, Any, Tuple, Type, Optional
 import types
 import sys
 
@@ -102,7 +102,7 @@ def auto_notify(exception: BaseException, **options):
         )
 
 
-def auto_notify_exc_info(exc_info: ExcInfoType = None, **options):
+def auto_notify_exc_info(exc_info: Optional[ExcInfoType] = None, **options):
     """
     Notify bugsnag of a exc_info tuple if auto_notify is enabled
     """

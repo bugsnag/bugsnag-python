@@ -1,7 +1,7 @@
 import tornado
 from tornado.web import RequestHandler, HTTPError
 from tornado.wsgi import WSGIContainer
-from typing import Dict, Any
+from typing import Dict, Any  # noqa
 from urllib.parse import parse_qs
 from bugsnag.breadcrumbs import BreadcrumbType
 from bugsnag.utils import (

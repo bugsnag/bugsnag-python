@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Type, List
+from typing import Callable, Optional, Type, List  # noqa
 
 from bugsnag.event import Event
 
