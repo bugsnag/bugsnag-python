@@ -2,9 +2,7 @@ twine
 wheel
 
 tox
-tox-factor
-pytest-cov
-coveralls
+pytest
 flake8
 
 --index-url https://pypi.python.org/simple/
