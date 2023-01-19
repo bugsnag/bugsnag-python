@@ -1,12 +1,12 @@
 from enum import Enum, unique
-from typing import Any, Dict, List, Optional, Union, Callable, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Union, Callable, TYPE_CHECKING  # noqa
 from collections import deque
 
 from bugsnag.utils import FilterDict
 
 # Deque is not present in 'typing' until 3.5.4, so we can't use it directly
 if TYPE_CHECKING:
-    from typing import Deque
+    from typing import Deque  # noqa
 
 # The _breadcrumbs context var contains None or a deque of Breadcrumb instances
 try:
