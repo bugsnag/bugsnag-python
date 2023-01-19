@@ -207,7 +207,10 @@ class Client:
 
         return True
 
-    def log_handler(self, extra_fields: List[str] = None) -> BugsnagHandler:
+    def log_handler(
+        self,
+        extra_fields: Optional[List[str]] = None
+    ) -> BugsnagHandler:
         return BugsnagHandler(client=self, extra_fields=extra_fields)
 
     @property
