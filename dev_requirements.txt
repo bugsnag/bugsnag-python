@@ -1,7 +1,7 @@
 twine
 wheel
 
-tox
+tox<4.0.0
 pytest
 flake8
 

@@ -23,7 +23,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install coveralls tox tox-factor
+        python -m pip install coveralls 'tox<4.0.0' tox-factor
 
     - name: Run tests
       run: |
