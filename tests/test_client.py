@@ -1493,6 +1493,69 @@ class ClientTest(IntegrationTest):
 
         assert self.sent_report_count == 1
 
+    @pytest.mark.skipif(
+        sys.version_info < (3, 11),
+        reason="requires python 3.11 or higher"
+    )
+    def test_exception_groups_are_unwrapped(self):
+        # disable send_code so we can assert against stacktraces more easily
+        self.client.configuration.configure(send_code=False)
+
+        self.client.notify(fixtures.exception_group_with_no_cause)
+
+        assert self.sent_report_count == 1
+
+        payload = self.server.received[0]['json_body']
+        exceptions = payload['events'][0]['exceptions']
+
+        # there should be 1 ExceptionGroup with 4 sub-exceptions
+        assert len(exceptions) == 5
+
+        assert exceptions[0] == {
+            'message': 'the message of the group (4 sub-exceptions)',
+            'errorClass': 'builtins.ExceptionGroup',
+            'type': 'python',
+            'stacktrace': [
+                {
+                    'file': 'fixtures/exception_groups.py',
+                    'method': 'raise_exception_group_with_no_cause',
+                    'lineNumber': 13,
+                    'inProject': True,
+                    'code': None,
+                },
+                {
+                    'file': 'fixtures/exception_groups.py',
+                    'method': '<module>',
+                    'lineNumber': 25,
+                    'inProject': True,
+                    'code': None,
+                },
+            ],
+        }
+
+        expected_sub_exceptions = [
+            'Exception',
+            'ArithmeticError',
+            'NameError',
+            'AssertionError',
+        ]
+
+        for i, expected in enumerate(expected_sub_exceptions, start=1):
+            assert exceptions[i] == {
+                'message': 'exception #' + str(i),
+                'errorClass': expected,
+                'type': 'python',
+                'stacktrace': [
+                    {
+                        'file': 'fixtures/exception_groups.py',
+                        'method': 'generate_exception',
+                        'lineNumber': 7,
+                        'inProject': True,
+                        'code': None,
+                    }
+                ]
+            }
+
 
 @pytest.mark.parametrize("metadata,type", [
     (1234, 'int'),

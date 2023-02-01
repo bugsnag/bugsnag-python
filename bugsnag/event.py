@@ -17,6 +17,13 @@ from bugsnag.error import Error
 
 __all__ = ('Event',)
 
+if sys.version_info < (3, 11):
+    # an empty tuple can be passed to 'isinstance' safely and will
+    # always return false, so we default to that
+    # this avoids having to wrap any uses of 'BaseExceptionGroup' in a version
+    # check
+    BaseExceptionGroup = ()
+
 
 class Event:
     """
@@ -253,6 +260,21 @@ class Event:
                     self._generate_stacktrace(exception.__traceback__)
                 )
             )
+
+        # unwrap BaseExceptionGroups so that their contained exceptions are
+        # also reported
+        # we don't recurse into nested BaseExceptionGroups or cause/context
+        # here because there's a big risk of that leading to a huge number of
+        # exceptions, which is difficult to reason about
+        if isinstance(exception, BaseExceptionGroup):
+            for sub_exception in exception.exceptions:  # type: ignore
+                error_list.append(
+                    Error(
+                        class_name(sub_exception),
+                        str(sub_exception),
+                        self._generate_stacktrace(sub_exception.__traceback__)
+                    )
+                )
 
         return error_list
 
