@@ -5,7 +5,7 @@
 def generate_exception(exception_class, message):
     try:
         raise exception_class(message)
-    except Exception as exception:
+    except BaseException as exception:
         return exception
 
 
@@ -25,3 +25,24 @@ try:
     raise_exception_group_with_no_cause()
 except BaseExceptionGroup as exception_group:
     exception_group_with_no_cause = exception_group
+
+
+class MyExceptionGroup(BaseExceptionGroup):
+    pass
+
+
+def raise_base_exception_group_subclass_with_no_cause():
+    raise MyExceptionGroup(
+        'my very easy method just speeds up (n)making exception groups',
+        [
+            generate_exception(GeneratorExit, 'exception #1'),
+            generate_exception(ReferenceError, 'exception #2'),
+            generate_exception(NotImplementedError, 'exception #3'),
+        ]
+    )
+
+
+try:
+    raise_base_exception_group_subclass_with_no_cause()
+except BaseExceptionGroup as exception_group:
+    base_exception_group_subclass = exception_group

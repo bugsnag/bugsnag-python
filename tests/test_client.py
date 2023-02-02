@@ -1556,6 +1556,68 @@ class ClientTest(IntegrationTest):
                 ]
             }
 
+    @pytest.mark.skipif(
+        sys.version_info < (3, 11),
+        reason="requires python 3.11 or higher"
+    )
+    def test_base_exception_group_subclasses_are_unwrapped(self):
+        # disable send_code so we can assert against stacktraces more easily
+        self.client.configuration.configure(send_code=False)
+
+        self.client.notify(fixtures.base_exception_group_subclass)
+
+        assert self.sent_report_count == 1
+
+        payload = self.server.received[0]['json_body']
+        exceptions = payload['events'][0]['exceptions']
+
+        # there should be 1 MyExceptionGroup with 3 sub-exceptions
+        assert len(exceptions) == 4
+
+        assert exceptions[0] == {
+            'message': 'my very easy method just speeds up (n)making exception groups (3 sub-exceptions)',  # noqa: E501
+            'errorClass': 'tests.fixtures.exception_groups.MyExceptionGroup',
+            'type': 'python',
+            'stacktrace': [
+                {
+                    'file': 'fixtures/exception_groups.py',
+                    'method': 'raise_base_exception_group_subclass_with_no_cause',  # noqa: E501
+                    'lineNumber': 35,
+                    'inProject': True,
+                    'code': None,
+                },
+                {
+                    'file': 'fixtures/exception_groups.py',
+                    'method': '<module>',
+                    'lineNumber': 46,
+                    'inProject': True,
+                    'code': None,
+                },
+            ],
+        }
+
+        expected_sub_exceptions = [
+            'GeneratorExit',
+            'ReferenceError',
+            'NotImplementedError',
+        ]
+
+        for i, expected in enumerate(expected_sub_exceptions, start=1):
+            assert exceptions[i] == {
+                'message': 'exception #' + str(i),
+                'errorClass': expected,
+                'type': 'python',
+                'stacktrace': [
+                    {
+                        'file': 'fixtures/exception_groups.py',
+                        'method': 'generate_exception',
+                        'lineNumber': 7,
+                        'inProject': True,
+                        'code': None,
+                    }
+                ]
+            }
+
 
 @pytest.mark.parametrize("metadata,type", [
     (1234, 'int'),
