@@ -358,7 +358,7 @@ class TestEvent(unittest.TestCase):
 
             assert len(records) > 0
             i = len(records) - 1
-            assert str(records[i].message) == ('The Event "metadata" ' +
+            assert str(records[i].message) == ('The Event "meta_data" ' +
                                                'argument has been replaced ' +
                                                'with "metadata"')
             assert event.metadata['nuts']['almonds']

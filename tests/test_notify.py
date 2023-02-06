@@ -843,7 +843,7 @@ class TestBugsnag(IntegrationTest):
                            meta_data={'fruit': {'apples': 2}})
 
             assert len(records) == 1
-            assert str(records[0].message) == ('The Event "metadata" ' +
+            assert str(records[0].message) == ('The Event "meta_data" ' +
                                                'argument has been replaced ' +
                                                'with "metadata"')
 
