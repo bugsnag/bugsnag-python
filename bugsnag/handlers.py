@@ -18,7 +18,8 @@ class BugsnagHandler(logging.Handler, object):
         self.custom_metadata_fields = extra_fields
         self.callbacks = [self.extract_default_metadata,
                           self.extract_custom_metadata,
-                          self.extract_severity]
+                          self.extract_severity,
+                          self.extract_grouping_hash]
 
     def emit(self, record: LogRecord):
         """
@@ -112,6 +113,13 @@ class BugsnagHandler(logging.Handler, object):
             options['severity'] = 'warning'
         else:
             options['severity'] = 'info'
+
+    def extract_grouping_hash(self, record: LogRecord, options: Dict):
+        """
+        Add the grouping_hash from a log record to the options
+        """
+        if 'groupingHash' in record.__dict__:
+            options['grouping_hash'] = record.__dict__['groupingHash']
 
     def extract_custom_metadata(self, record: LogRecord, options: Dict):
         """
