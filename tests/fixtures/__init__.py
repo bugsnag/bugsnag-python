@@ -19,4 +19,5 @@ if sys.version_info >= (3, 11):
     from .exception_groups import (
         exception_group_with_no_cause,
         base_exception_group_subclass,
+        exception_group_with_nested_group,
     )

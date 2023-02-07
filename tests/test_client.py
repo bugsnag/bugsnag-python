@@ -1618,6 +1618,98 @@ class ClientTest(IntegrationTest):
                 ]
             }
 
+    @pytest.mark.skipif(
+        sys.version_info < (3, 11),
+        reason="requires python 3.11 or higher"
+    )
+    def test_do_not_recurse_into_sub_exception_groups(self):
+        # disable send_code so we can assert against stacktraces more easily
+        self.client.configuration.configure(send_code=False)
+
+        self.client.notify(fixtures.exception_group_with_nested_group)
+
+        assert self.sent_report_count == 1
+
+        payload = self.server.received[0]['json_body']
+        exceptions = payload['events'][0]['exceptions']
+
+        # there should be 1 ExceptionGroup with 3 sub-exceptions
+        assert len(exceptions) == 4
+
+        assert exceptions[0] == {
+            'message': 'the message of the group (3 sub-exceptions)',
+            'errorClass': 'builtins.ExceptionGroup',
+            'type': 'python',
+            'stacktrace': [
+                {
+                    'file': 'fixtures/exception_groups.py',
+                    'method': 'raise_exception_group_with_nested_group',
+                    'lineNumber': 52,
+                    'inProject': True,
+                    'code': None,
+                },
+                {
+                    'file': 'fixtures/exception_groups.py',
+                    'method': '<module>',
+                    'lineNumber': 63,
+                    'inProject': True,
+                    'code': None,
+                },
+            ],
+        }
+
+        assert exceptions[1] == {
+            'message': 'exception #1',
+            'errorClass': 'Exception',
+            'type': 'python',
+            'stacktrace': [
+                {
+                    'file': 'fixtures/exception_groups.py',
+                    'method': 'generate_exception',
+                    'lineNumber': 7,
+                    'inProject': True,
+                    'code': None,
+                }
+            ]
+        }
+
+        assert exceptions[2] == {
+            'message': 'the message of the group (4 sub-exceptions)',
+            'errorClass': 'builtins.ExceptionGroup',
+            'type': 'python',
+            'stacktrace': [
+                {
+                    'file': 'fixtures/exception_groups.py',
+                    'method': 'raise_exception_group_with_no_cause',
+                    'lineNumber': 13,
+                    'inProject': True,
+                    'code': None,
+                },
+                {
+                    'file': 'fixtures/exception_groups.py',
+                    'method': '<module>',
+                    'lineNumber': 25,
+                    'inProject': True,
+                    'code': None,
+                },
+            ],
+        }
+
+        assert exceptions[3] == {
+            'message': 'exception #3',
+            'errorClass': 'ArithmeticError',
+            'type': 'python',
+            'stacktrace': [
+                {
+                    'file': 'fixtures/exception_groups.py',
+                    'method': 'generate_exception',
+                    'lineNumber': 7,
+                    'inProject': True,
+                    'code': None,
+                }
+            ]
+        }
+
 
 @pytest.mark.parametrize("metadata,type", [
     (1234, 'int'),

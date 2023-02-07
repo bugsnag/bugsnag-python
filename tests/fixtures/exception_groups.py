@@ -46,3 +46,22 @@ try:
     raise_base_exception_group_subclass_with_no_cause()
 except BaseExceptionGroup as exception_group:
     base_exception_group_subclass = exception_group
+
+
+def raise_exception_group_with_nested_group():
+    raise ExceptionGroup(
+        'the message of the group',
+        [
+            generate_exception(Exception, 'exception #1'),
+            exception_group_with_no_cause,
+            generate_exception(ArithmeticError, 'exception #3')
+        ]
+    )
+
+
+try:
+    raise_exception_group_with_nested_group()
+except BaseExceptionGroup as exception_group:
+    exception_group_with_nested_group = exception_group
+
+
