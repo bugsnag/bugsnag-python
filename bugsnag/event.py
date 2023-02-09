@@ -266,8 +266,8 @@ class Event:
         # we don't recurse into nested BaseExceptionGroups or cause/context
         # here because there's a big risk of that leading to a huge number of
         # exceptions, which is difficult to reason about
-        if isinstance(exception, BaseExceptionGroup):
-            for sub_exception in exception.exceptions:  # type: ignore
+        if isinstance(self._original_error, BaseExceptionGroup):
+            for sub_exception in self._original_error.exceptions: # type: ignore # noqa
                 error_list.append(
                     Error(
                         class_name(sub_exception),
