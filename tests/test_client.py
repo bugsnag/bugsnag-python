@@ -1815,6 +1815,129 @@ class ClientTest(IntegrationTest):
             ],
         }
 
+    @pytest.mark.skipif(
+        sys.version_info < (3, 11),
+        reason="requires python 3.11 or higher"
+    )
+    def test_exception_group_explicit_cause_is_traversed(self):
+        # disable send_code so we can assert against stacktraces more easily
+        self.client.configuration.configure(send_code=False)
+
+        self.client.notify(fixtures.exception_group_with_explicit_cause)
+
+        assert self.sent_report_count == 1
+
+        payload = self.server.received[0]['json_body']
+        exceptions = payload['events'][0]['exceptions']
+
+        print(exceptions)
+
+        # 1 ExceptionGroup + 1 cause + 1 sub-cause + 2 sub-exceptions
+        assert len(exceptions) == 5
+
+        assert exceptions[0] == {
+            'message': 'group with explicit cause (2 sub-exceptions)',
+            'errorClass': 'ExceptionGroup',
+            'type': 'python',
+            'stacktrace': [
+                {
+                    'file': 'fixtures/exception_groups.py',
+                    'method': 'raise_exception_group_with_explicit_cause',
+                    'lineNumber': 91,
+                    'inProject': True,
+                    'code': None,
+                },
+                {
+                    'file': 'fixtures/exception_groups.py',
+                    'method': '<module>',
+                    'lineNumber': 101,
+                    'inProject': True,
+                    'code': None,
+                },
+            ],
+        }
+
+        assert exceptions[1] == {
+            'message': 'group with implicit cause (2 sub-exceptions)',
+            'errorClass': 'ExceptionGroup',
+            'type': 'python',
+            'stacktrace': [
+                {
+                    'file': 'fixtures/exception_groups.py',
+                    'method': 'raise_exception_group_with_implicit_cause',
+                    'lineNumber': 72,
+                    'inProject': True,
+                    'code': None,
+                },
+                {
+                    'file': 'fixtures/exception_groups.py',
+                    'method': 'raise_exception_group_with_explicit_cause',
+                    'lineNumber': 89,
+                    'inProject': True,
+                    'code': None,
+                },
+            ],
+        }
+
+        assert exceptions[2] == {
+            'message': 'the message of the group (3 sub-exceptions)',
+            'errorClass': 'ExceptionGroup',
+            'type': 'python',
+            'stacktrace': [
+                {
+                    'file': 'fixtures/exception_groups.py',
+                    'method': 'raise_exception_group_with_nested_group',
+                    'lineNumber': 52,
+                    'inProject': True,
+                    'code': None,
+                },
+                {
+                    'file': 'fixtures/exception_groups.py',
+                    'method': 'raise_exception_group_with_implicit_cause',
+                    'lineNumber': 70,
+                    'inProject': True,
+                    'code': None,
+                },
+            ],
+        }
+
+        assert exceptions[3] == {
+            'message': 'exception #1',
+            'errorClass': 'NameError',
+            'type': 'python',
+            'stacktrace': [
+                {
+                    'file': 'fixtures/exception_groups.py',
+                    'method': 'generate_exception',
+                    'lineNumber': 7,
+                    'inProject': True,
+                    'code': None,
+                },
+            ],
+        }
+
+        assert exceptions[4] == {
+            'message': 'a',
+            'errorClass': 'NameError',
+            'type': 'python',
+            'stacktrace': [
+                {
+                    'file': 'fixtures/caused_by.py',
+                    'method': 'raise_exception_with_explicit_cause',
+                    'lineNumber': 5,
+                    'inProject': True,
+                    'code': None,
+                },
+                {
+                    'file': 'fixtures/caused_by.py',
+                    'method': '<module>',
+                    'lineNumber': 20,
+                    'inProject': True,
+                    'code': None,
+                },
+            ],
+        }
+
 
 @pytest.mark.parametrize("metadata,type", [
     (1234, 'int'),

@@ -82,3 +82,22 @@ try:
     raise_exception_group_with_implicit_cause()
 except BaseExceptionGroup as exception_group:
     exception_group_with_implicit_cause = exception_group
+
+
+def raise_exception_group_with_explicit_cause():
+    try:
+        raise_exception_group_with_implicit_cause()
+    except BaseExceptionGroup as exception_group:
+        raise ExceptionGroup(
+            'group with explicit cause',
+            [
+                generate_exception(NameError, 'exception #1'),
+                exception_with_explicit_cause,
+            ]
+        ) from exception_group
+
+
+try:
+    raise_exception_group_with_explicit_cause()
+except BaseExceptionGroup as exception_group:
+    exception_group_with_explicit_cause = exception_group
