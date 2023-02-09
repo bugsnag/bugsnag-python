@@ -1513,7 +1513,7 @@ class ClientTest(IntegrationTest):
 
         assert exceptions[0] == {
             'message': 'the message of the group (4 sub-exceptions)',
-            'errorClass': 'builtins.ExceptionGroup',
+            'errorClass': 'ExceptionGroup',
             'type': 'python',
             'stacktrace': [
                 {
@@ -1638,7 +1638,7 @@ class ClientTest(IntegrationTest):
 
         assert exceptions[0] == {
             'message': 'the message of the group (3 sub-exceptions)',
-            'errorClass': 'builtins.ExceptionGroup',
+            'errorClass': 'ExceptionGroup',
             'type': 'python',
             'stacktrace': [
                 {
@@ -1675,7 +1675,7 @@ class ClientTest(IntegrationTest):
 
         assert exceptions[2] == {
             'message': 'the message of the group (4 sub-exceptions)',
-            'errorClass': 'builtins.ExceptionGroup',
+            'errorClass': 'ExceptionGroup',
             'type': 'python',
             'stacktrace': [
                 {

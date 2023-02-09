@@ -240,12 +240,16 @@ def is_json_content_type(value: str) -> bool:
     return type == 'application' and (subtype == 'json' or suffix == 'json')
 
 
+_ignore_modules = ('__main__', 'builtins')
+
+
 def fully_qualified_class_name(obj):
     module = inspect.getmodule(obj)
-    if module is not None and module.__name__ != "__main__":
-        return module.__name__ + "." + obj.__class__.__name__
-    else:
+
+    if module is None or module.__name__ in _ignore_modules:
         return obj.__class__.__name__
+
+    return module.__name__ + '.' + obj.__class__.__name__
 
 
 def package_version(package_name):
