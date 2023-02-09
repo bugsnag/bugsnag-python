@@ -1,5 +1,5 @@
 # flake8: noqa
-
+from .caused_by import exception_with_explicit_cause
 # this creates an exception with a very small __traceback__, so it's easier to
 # assert against in tests
 def generate_exception(exception_class, message):
@@ -65,3 +65,20 @@ except BaseExceptionGroup as exception_group:
     exception_group_with_nested_group = exception_group
 
 
+def raise_exception_group_with_implicit_cause():
+    try:
+        raise_exception_group_with_nested_group()
+    except BaseExceptionGroup as exception_group:
+        raise ExceptionGroup(
+            'group with implicit cause',
+            [
+                exception_with_explicit_cause,
+                generate_exception(NameError, 'exception #2'),
+            ]
+        )
+
+
+try:
+    raise_exception_group_with_implicit_cause()
+except BaseExceptionGroup as exception_group:
+    exception_group_with_implicit_cause = exception_group
