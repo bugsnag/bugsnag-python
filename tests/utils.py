@@ -111,7 +111,7 @@ class FakeBugsnagServer(object):
 
         # sleep for the time remaining until 'timeout' to allow more requests
         # to arrive
-        time.sleep(time.time() - start)
+        time.sleep(timeout - (time.time() - start))
 
     @property
     def sent_report_count(self) -> int:
