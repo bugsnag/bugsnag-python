@@ -20,4 +20,6 @@ if sys.version_info >= (3, 11):
         exception_group_with_no_cause,
         base_exception_group_subclass,
         exception_group_with_nested_group,
+        exception_group_with_implicit_cause,
+        exception_group_with_explicit_cause,
     )
