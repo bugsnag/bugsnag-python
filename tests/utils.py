@@ -104,11 +104,12 @@ class FakeBugsnagServer(object):
 
     def wait_for_request(self, timeout=2):
         start = time.time()
-        while (len(self.received) == 0):
-            if (time.time() - start > timeout):
+
+        while len(self.received) == 0:
+            if time.time() - start > timeout:
                 raise MissingRequestError("No request received before timeout")
 
-            time.sleep(0.25)
+            time.sleep(0.01)
 
         # sleep for the time remaining until 'timeout' to allow more requests
         # to arrive
