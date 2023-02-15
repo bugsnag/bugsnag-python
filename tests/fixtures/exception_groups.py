@@ -18,15 +18,7 @@ def generate_exception(exception_class, message):
 
 
 def raise_exception_group_with_no_cause():
-    raise ExceptionGroup(
-        'the message of the group',
-        [
-            generate_exception(Exception, 'exception #1'),
-            generate_exception(ArithmeticError, 'exception #2'),
-            generate_exception(NameError, 'exception #3'),
-            generate_exception(AssertionError, 'exception #4'),
-        ]
-    )
+    raise ExceptionGroup('the message of the group', [generate_exception(Exception, 'exception #1'), generate_exception(ArithmeticError, 'exception #2'), generate_exception(NameError, 'exception #3'), generate_exception(AssertionError, 'exception #4')])
 
 
 try:
@@ -40,14 +32,7 @@ class MyExceptionGroup(BaseExceptionGroup):
 
 
 def raise_base_exception_group_subclass_with_no_cause():
-    raise MyExceptionGroup(
-        'my very easy method just speeds up (n)making exception groups',
-        [
-            generate_exception(GeneratorExit, 'exception #1'),
-            generate_exception(ReferenceError, 'exception #2'),
-            generate_exception(NotImplementedError, 'exception #3'),
-        ]
-    )
+    raise MyExceptionGroup('my very easy method just speeds up (n)making exception groups', [generate_exception(GeneratorExit, 'exception #1'), generate_exception(ReferenceError, 'exception #2'), generate_exception(NotImplementedError, 'exception #3')])
 
 
 try:
@@ -57,14 +42,7 @@ except BaseExceptionGroup as exception_group:
 
 
 def raise_exception_group_with_nested_group():
-    raise ExceptionGroup(
-        'the message of the group',
-        [
-            generate_exception(Exception, 'exception #1'),
-            exception_group_with_no_cause,
-            generate_exception(ArithmeticError, 'exception #3')
-        ]
-    )
+    raise ExceptionGroup('the message of the group', [generate_exception(Exception, 'exception #1'), exception_group_with_no_cause, generate_exception(ArithmeticError, 'exception #3')])
 
 
 try:
@@ -77,13 +55,7 @@ def raise_exception_group_with_implicit_cause():
     try:
         raise_exception_group_with_nested_group()
     except BaseExceptionGroup as exception_group:
-        raise ExceptionGroup(
-            'group with implicit cause',
-            [
-                exception_with_explicit_cause,
-                generate_exception(NameError, 'exception #2'),
-            ]
-        )
+        raise ExceptionGroup('group with implicit cause', [exception_with_explicit_cause, generate_exception(NameError, 'exception #2')])
 
 
 try:
@@ -96,13 +68,7 @@ def raise_exception_group_with_explicit_cause():
     try:
         raise_exception_group_with_implicit_cause()
     except BaseExceptionGroup as exception_group:
-        raise ExceptionGroup(
-            'group with explicit cause',
-            [
-                generate_exception(NameError, 'exception #1'),
-                exception_with_explicit_cause,
-            ]
-        ) from exception_group
+        raise ExceptionGroup('group with explicit cause', [generate_exception(NameError, 'exception #1'), exception_with_explicit_cause]) from exception_group
 
 
 try:
