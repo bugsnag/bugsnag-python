@@ -18,11 +18,13 @@ from bugsnag.error import Error
 __all__ = ('Event',)
 
 if sys.version_info < (3, 11):
-    # an empty tuple can be passed to 'isinstance' safely and will
-    # always return false, so we default to that
-    # this avoids having to wrap any uses of 'BaseExceptionGroup' in a version
-    # check
-    BaseExceptionGroup = ()
+    try:
+        from exceptiongroup import BaseExceptionGroup
+    except ImportError:
+        # we're on Python < 3.11 and exceptiongroup isn't installed
+        # an empty tuple can be passed to 'isinstance' safely and will
+        # always return false, so we default to that
+        BaseExceptionGroup = ()
 
 
 class Event:
