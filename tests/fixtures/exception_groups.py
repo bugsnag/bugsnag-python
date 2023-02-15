@@ -1,5 +1,13 @@
 # flake8: noqa
+try:
+    from exceptiongroup import ExceptionGroup, BaseExceptionGroup # noqa
+except ImportError:
+    # if we're here and 'exceptiongroup' isn't installed, it must mean we're on
+    # Python 3.11+ and have support natively
+    pass
+
 from .caused_by import exception_with_explicit_cause
+
 # this creates an exception with a very small __traceback__, so it's easier to
 # assert against in tests
 def generate_exception(exception_class, message):

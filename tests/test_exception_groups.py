@@ -3,11 +3,21 @@ import pytest
 import sys
 
 from tests import fixtures
+from .utils import is_exception_group_supported
+
+
+# the exceptiongroup package will only define ExceptionGroup on versions <3.11
+# on 3.11+ it re-exports the built-in class so even if exceptiongroup is
+# installed, the class name won't have the 'exceptiongroup' prefix
+if sys.version_info < (3, 11):
+    expected_exception_group_class = 'exceptiongroup.ExceptionGroup'
+else:
+    expected_exception_group_class = 'ExceptionGroup'
 
 
 @pytest.mark.skipif(
-    sys.version_info < (3, 11),
-    reason="requires python 3.11 or higher"
+    not is_exception_group_supported,
+    reason="requires python 3.11 or the exceptiongroup pacakge"
 )
 def test_exception_groups_are_unwrapped(bugsnag_server):
     # disable send_code so we can assert against stacktraces more easily
@@ -26,20 +36,20 @@ def test_exception_groups_are_unwrapped(bugsnag_server):
 
     assert exceptions[0] == {
         'message': 'the message of the group (4 sub-exceptions)',
-        'errorClass': 'ExceptionGroup',
+        'errorClass': expected_exception_group_class,
         'type': 'python',
         'stacktrace': [
             {
                 'file': 'tests/fixtures/exception_groups.py',
                 'method': 'raise_exception_group_with_no_cause',
-                'lineNumber': 13,
+                'lineNumber': 21,
                 'inProject': True,
                 'code': None,
             },
             {
                 'file': 'tests/fixtures/exception_groups.py',
                 'method': '<module>',
-                'lineNumber': 25,
+                'lineNumber': 33,
                 'inProject': True,
                 'code': None,
             },
@@ -62,7 +72,7 @@ def test_exception_groups_are_unwrapped(bugsnag_server):
                 {
                     'file': 'tests/fixtures/exception_groups.py',
                     'method': 'generate_exception',
-                    'lineNumber': 7,
+                    'lineNumber': 15,
                     'inProject': True,
                     'code': None,
                 }
@@ -71,8 +81,8 @@ def test_exception_groups_are_unwrapped(bugsnag_server):
 
 
 @pytest.mark.skipif(
-    sys.version_info < (3, 11),
-    reason="requires python 3.11 or higher"
+    not is_exception_group_supported,
+    reason="requires python 3.11 or the exceptiongroup pacakge"
 )
 def test_base_exception_group_subclasses_are_unwrapped(bugsnag_server):
     # disable send_code so we can assert against stacktraces more easily
@@ -97,14 +107,14 @@ def test_base_exception_group_subclasses_are_unwrapped(bugsnag_server):
             {
                 'file': 'tests/fixtures/exception_groups.py',
                 'method': 'raise_base_exception_group_subclass_with_no_cause',  # noqa: E501
-                'lineNumber': 35,
+                'lineNumber': 43,
                 'inProject': True,
                 'code': None,
             },
             {
                 'file': 'tests/fixtures/exception_groups.py',
                 'method': '<module>',
-                'lineNumber': 46,
+                'lineNumber': 54,
                 'inProject': True,
                 'code': None,
             },
@@ -126,7 +136,7 @@ def test_base_exception_group_subclasses_are_unwrapped(bugsnag_server):
                 {
                     'file': 'tests/fixtures/exception_groups.py',
                     'method': 'generate_exception',
-                    'lineNumber': 7,
+                    'lineNumber': 15,
                     'inProject': True,
                     'code': None,
                 }
@@ -135,8 +145,8 @@ def test_base_exception_group_subclasses_are_unwrapped(bugsnag_server):
 
 
 @pytest.mark.skipif(
-    sys.version_info < (3, 11),
-    reason="requires python 3.11 or higher"
+    not is_exception_group_supported,
+    reason="requires python 3.11 or the exceptiongroup pacakge"
 )
 def test_do_not_recurse_into_sub_exception_groups(bugsnag_server):
     # disable send_code so we can assert against stacktraces more easily
@@ -155,20 +165,20 @@ def test_do_not_recurse_into_sub_exception_groups(bugsnag_server):
 
     assert exceptions[0] == {
         'message': 'the message of the group (3 sub-exceptions)',
-        'errorClass': 'ExceptionGroup',
+        'errorClass': expected_exception_group_class,
         'type': 'python',
         'stacktrace': [
             {
                 'file': 'tests/fixtures/exception_groups.py',
                 'method': 'raise_exception_group_with_nested_group',
-                'lineNumber': 52,
+                'lineNumber': 60,
                 'inProject': True,
                 'code': None,
             },
             {
                 'file': 'tests/fixtures/exception_groups.py',
                 'method': '<module>',
-                'lineNumber': 63,
+                'lineNumber': 71,
                 'inProject': True,
                 'code': None,
             },
@@ -183,7 +193,7 @@ def test_do_not_recurse_into_sub_exception_groups(bugsnag_server):
             {
                 'file': 'tests/fixtures/exception_groups.py',
                 'method': 'generate_exception',
-                'lineNumber': 7,
+                'lineNumber': 15,
                 'inProject': True,
                 'code': None,
             }
@@ -192,20 +202,20 @@ def test_do_not_recurse_into_sub_exception_groups(bugsnag_server):
 
     assert exceptions[2] == {
         'message': 'the message of the group (4 sub-exceptions)',
-        'errorClass': 'ExceptionGroup',
+        'errorClass': expected_exception_group_class,
         'type': 'python',
         'stacktrace': [
             {
                 'file': 'tests/fixtures/exception_groups.py',
                 'method': 'raise_exception_group_with_no_cause',
-                'lineNumber': 13,
+                'lineNumber': 21,
                 'inProject': True,
                 'code': None,
             },
             {
                 'file': 'tests/fixtures/exception_groups.py',
                 'method': '<module>',
-                'lineNumber': 25,
+                'lineNumber': 33,
                 'inProject': True,
                 'code': None,
             },
@@ -220,7 +230,7 @@ def test_do_not_recurse_into_sub_exception_groups(bugsnag_server):
             {
                 'file': 'tests/fixtures/exception_groups.py',
                 'method': 'generate_exception',
-                'lineNumber': 7,
+                'lineNumber': 15,
                 'inProject': True,
                 'code': None,
             }
@@ -229,8 +239,8 @@ def test_do_not_recurse_into_sub_exception_groups(bugsnag_server):
 
 
 @pytest.mark.skipif(
-    sys.version_info < (3, 11),
-    reason="requires python 3.11 or higher"
+    not is_exception_group_supported,
+    reason="requires python 3.11 or the exceptiongroup pacakge"
 )
 def test_exception_group_implicit_cause_is_traversed(bugsnag_server):
     # disable send_code so we can assert against stacktraces more easily
@@ -252,20 +262,20 @@ def test_exception_group_implicit_cause_is_traversed(bugsnag_server):
     # the ExceptionGroup
     assert exceptions[0] == {
         'message': 'group with implicit cause (2 sub-exceptions)',
-        'errorClass': 'ExceptionGroup',
+        'errorClass': expected_exception_group_class,
         'type': 'python',
         'stacktrace': [
             {
                 'file': 'tests/fixtures/exception_groups.py',
                 'method': 'raise_exception_group_with_implicit_cause',
-                'lineNumber': 72,
+                'lineNumber': 80,
                 'inProject': True,
                 'code': None,
             },
             {
                 'file': 'tests/fixtures/exception_groups.py',
                 'method': '<module>',
-                'lineNumber': 82,
+                'lineNumber': 90,
                 'inProject': True,
                 'code': None,
             },
@@ -276,20 +286,20 @@ def test_exception_group_implicit_cause_is_traversed(bugsnag_server):
     # note: we don't recurse into this!
     assert exceptions[1] == {
         'message': 'the message of the group (3 sub-exceptions)',
-        'errorClass': 'ExceptionGroup',
+        'errorClass': expected_exception_group_class,
         'type': 'python',
         'stacktrace': [
             {
                 'file': 'tests/fixtures/exception_groups.py',
                 'method': 'raise_exception_group_with_nested_group',
-                'lineNumber': 52,
+                'lineNumber': 60,
                 'inProject': True,
                 'code': None,
             },
             {
                 'file': 'tests/fixtures/exception_groups.py',
                 'method': 'raise_exception_group_with_implicit_cause',
-                'lineNumber': 70,
+                'lineNumber': 78,
                 'inProject': True,
                 'code': None,
             },
@@ -327,7 +337,7 @@ def test_exception_group_implicit_cause_is_traversed(bugsnag_server):
             {
                 'file': 'tests/fixtures/exception_groups.py',
                 'method': 'generate_exception',
-                'lineNumber': 7,
+                'lineNumber': 15,
                 'inProject': True,
                 'code': None,
             },
@@ -336,8 +346,8 @@ def test_exception_group_implicit_cause_is_traversed(bugsnag_server):
 
 
 @pytest.mark.skipif(
-    sys.version_info < (3, 11),
-    reason="requires python 3.11 or higher"
+    not is_exception_group_supported,
+    reason="requires python 3.11 or the exceptiongroup pacakge"
 )
 def test_exception_group_explicit_cause_is_traversed(bugsnag_server):
     # disable send_code so we can assert against stacktraces more easily
@@ -358,20 +368,20 @@ def test_exception_group_explicit_cause_is_traversed(bugsnag_server):
 
     assert exceptions[0] == {
         'message': 'group with explicit cause (2 sub-exceptions)',
-        'errorClass': 'ExceptionGroup',
+        'errorClass': expected_exception_group_class,
         'type': 'python',
         'stacktrace': [
             {
                 'file': 'tests/fixtures/exception_groups.py',
                 'method': 'raise_exception_group_with_explicit_cause',
-                'lineNumber': 91,
+                'lineNumber': 99,
                 'inProject': True,
                 'code': None,
             },
             {
                 'file': 'tests/fixtures/exception_groups.py',
                 'method': '<module>',
-                'lineNumber': 101,
+                'lineNumber': 109,
                 'inProject': True,
                 'code': None,
             },
@@ -380,20 +390,20 @@ def test_exception_group_explicit_cause_is_traversed(bugsnag_server):
 
     assert exceptions[1] == {
         'message': 'group with implicit cause (2 sub-exceptions)',
-        'errorClass': 'ExceptionGroup',
+        'errorClass': expected_exception_group_class,
         'type': 'python',
         'stacktrace': [
             {
                 'file': 'tests/fixtures/exception_groups.py',
                 'method': 'raise_exception_group_with_implicit_cause',
-                'lineNumber': 72,
+                'lineNumber': 80,
                 'inProject': True,
                 'code': None,
             },
             {
                 'file': 'tests/fixtures/exception_groups.py',
                 'method': 'raise_exception_group_with_explicit_cause',
-                'lineNumber': 89,
+                'lineNumber': 97,
                 'inProject': True,
                 'code': None,
             },
@@ -402,20 +412,20 @@ def test_exception_group_explicit_cause_is_traversed(bugsnag_server):
 
     assert exceptions[2] == {
         'message': 'the message of the group (3 sub-exceptions)',
-        'errorClass': 'ExceptionGroup',
+        'errorClass': expected_exception_group_class,
         'type': 'python',
         'stacktrace': [
             {
                 'file': 'tests/fixtures/exception_groups.py',
                 'method': 'raise_exception_group_with_nested_group',
-                'lineNumber': 52,
+                'lineNumber': 60,
                 'inProject': True,
                 'code': None,
             },
             {
                 'file': 'tests/fixtures/exception_groups.py',
                 'method': 'raise_exception_group_with_implicit_cause',
-                'lineNumber': 70,
+                'lineNumber': 78,
                 'inProject': True,
                 'code': None,
             },
@@ -430,7 +440,7 @@ def test_exception_group_explicit_cause_is_traversed(bugsnag_server):
             {
                 'file': 'tests/fixtures/exception_groups.py',
                 'method': 'generate_exception',
-                'lineNumber': 7,
+                'lineNumber': 15,
                 'inProject': True,
                 'code': None,
             },

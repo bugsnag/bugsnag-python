@@ -1,5 +1,6 @@
 # flake8: noqa
 import sys
+from ..utils import is_exception_group_supported
 
 from .start_and_end_of_file import (
     start_of_file,
@@ -15,7 +16,7 @@ from .caused_by import (
     raise_exception_with_no_cause,
 )
 
-if sys.version_info >= (3, 11):
+if is_exception_group_supported:
     from .exception_groups import (
         exception_group_with_no_cause,
         base_exception_group_subclass,
