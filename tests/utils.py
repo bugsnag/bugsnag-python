@@ -16,7 +16,7 @@ class IntegrationTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.server = FakeBugsnagServer()
+        cls.server = FakeBugsnagServer(wait_for_duplicate_requests=False)
 
     def setUp(self):
         self.server.received = []
@@ -52,9 +52,10 @@ class FakeBugsnagServer(object):
     other request information
     """
 
-    def __init__(self):
+    def __init__(self, wait_for_duplicate_requests: bool):
         self.received = []
         self.paused = False
+        self.wait_for_duplicate_requests = wait_for_duplicate_requests
 
         class Handler(SimpleHTTPRequestHandler):
 
@@ -103,15 +104,17 @@ class FakeBugsnagServer(object):
 
     def wait_for_request(self, timeout=2):
         start = time.time()
-        while (len(self.received) == 0):
-            if (time.time() - start > timeout):
+
+        while len(self.received) == 0:
+            if time.time() - start > timeout:
                 raise MissingRequestError("No request received before timeout")
 
-            time.sleep(0.25)
+            time.sleep(0.01)
 
         # sleep for the time remaining until 'timeout' to allow more requests
         # to arrive
-        time.sleep(time.time() - start)
+        if self.wait_for_duplicate_requests:
+            time.sleep(timeout - (time.time() - start))
 
     @property
     def sent_report_count(self) -> int:

@@ -1,13 +1,12 @@
 import pytest
-from tests.utils import FakeBugsnagServer
-
-import bugsnag.legacy as global_setup
 import bugsnag
+import bugsnag.legacy as global_setup
+from tests.utils import FakeBugsnagServer
 
 
 @pytest.fixture
 def bugsnag_server():
-    server = FakeBugsnagServer()
+    server = FakeBugsnagServer(wait_for_duplicate_requests=True)
     bugsnag.configure(endpoint=server.url, api_key='3874876376238728937')
 
     yield server
