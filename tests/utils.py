@@ -1,3 +1,4 @@
+import sys
 import json
 import time
 import unittest
@@ -6,6 +7,13 @@ from threading import Thread
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 
 import bugsnag
+
+
+try:
+    import exceptiongroup # noqa
+    is_exception_group_supported = True
+except ImportError:
+    is_exception_group_supported = sys.version_info >= (3, 11)
 
 
 class MissingRequestError(Exception):
