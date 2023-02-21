@@ -1,6 +1,14 @@
 Changelog
 =========
 
+## v4.4.0 (2023-02-21)
+
+### Enhancements
+
+* Sub-exceptions will now be reported when an `ExceptionGroup` or `BaseExceptionGroup` is passed to `bugsnag.notify`. This includes support for the backports provided by the `exceptiongroup` package
+  [#332](https://github.com/bugsnag/bugsnag-python/pull/332)
+  [#338](https://github.com/bugsnag/bugsnag-python/pull/338)
+
 ## v4.3.0 (2022-11-02)
 
 ### Enhancements
