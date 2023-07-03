@@ -42,7 +42,7 @@ class BugsnagRequestHandler(RequestHandler):
         event.add_tab("request", request_tab)
 
         if bugsnag.configure().send_environment:
-            env = WSGIContainer.environ(self.request)
+            env = WSGIContainer(self.application).environ(self.request)
             event.add_tab("environment", env)
 
     def _handle_request_exception(self, exc: BaseException):
