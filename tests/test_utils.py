@@ -204,6 +204,18 @@ class TestUtils(unittest.TestCase):
         sane_data = json.loads(encoder.encode(data))
         self.assertEqual(sane_data,
                          {"Test": ["a", "b", "c"], "Self": "[RECURSIVE]"})
+        
+    def test_encoding_identical_siblings(self):
+        """
+        Test encoding identical siblings
+        """
+        inner_list = [1,2,3]
+        nested_list = [inner_list, inner_list]
+        data = {"nested0": nested_list, "nested1": nested_list, "inner": inner_list}
+        encoder = SanitizingJSONEncoder(logger, keyword_filters=[])
+        sane_data = json.loads(encoder.encode(data))
+        self.assertEqual(sane_data,
+                         {"0": nested_list, "1": nested_list, "inner": inner_list})
 
     def test_encoding_nested_repeated(self):
         """
