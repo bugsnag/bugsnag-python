@@ -1,6 +1,13 @@
 Changelog
 =========
 
+## TBD
+
+### Enhancements
+
+* Allows changing the grouping hash when using the logger methods and
+  [#334](https://github.com/bugsnag/bugsnag-python/pull/334)
+
 ## v4.4.0 (2023-02-21)
 
 ### Enhancements
