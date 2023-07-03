@@ -215,7 +215,7 @@ class TestUtils(unittest.TestCase):
         encoder = SanitizingJSONEncoder(logger, keyword_filters=[])
         sane_data = json.loads(encoder.encode(data))
         self.assertEqual(sane_data,
-                         {"0": nested_list, "1": nested_list, "inner": inner_list})
+                         {"nested0": nested_list, "nested1": nested_list, "inner": inner_list})
 
     def test_encoding_nested_repeated(self):
         """
