@@ -130,4 +130,5 @@ class FakeBugsnagServer(object):
 
 
 class ScaryException(Exception):
-    pass
+    class NestedScaryException(Exception):
+        pass
