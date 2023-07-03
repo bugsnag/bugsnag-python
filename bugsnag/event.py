@@ -17,6 +17,15 @@ from bugsnag.error import Error
 
 __all__ = ('Event',)
 
+if sys.version_info < (3, 11):
+    try:
+        from exceptiongroup import BaseExceptionGroup
+    except ImportError:
+        # we're on Python < 3.11 and exceptiongroup isn't installed
+        # an empty tuple can be passed to 'isinstance' safely and will
+        # always return false, so we default to that
+        BaseExceptionGroup = ()
+
 
 class Event:
     """
@@ -253,6 +262,21 @@ class Event:
                     self._generate_stacktrace(exception.__traceback__)
                 )
             )
+
+        # unwrap BaseExceptionGroups so that their contained exceptions are
+        # also reported
+        # we don't recurse into nested BaseExceptionGroups or cause/context
+        # here because there's a big risk of that leading to a huge number of
+        # exceptions, which is difficult to reason about
+        if isinstance(self._original_error, BaseExceptionGroup):
+            for sub_exception in self._original_error.exceptions: # type: ignore # noqa
+                error_list.append(
+                    Error(
+                        class_name(sub_exception),
+                        str(sub_exception),
+                        self._generate_stacktrace(sub_exception.__traceback__)
+                    )
+                )
 
         return error_list
 
