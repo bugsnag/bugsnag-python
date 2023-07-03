@@ -1071,7 +1071,6 @@ class ClientTest(IntegrationTest):
         assert notes['0'] == "exception note 1"
         assert notes['1'] == "exception note 2"
 
-
     def test_chained_exceptions_with_explicit_cause_using_capture_cm(self):
         try:
             with self.client.capture():
