@@ -1,6 +1,13 @@
 Changelog
 =========
 
+## TBD
+
+### Bug fixes
+
+* Fixes one of the fields being mistakenly replaced with `[RECURSIVE]` when encoding a list or dictionary with identical siblings but no recursion.
+  [#341](https://github.com/bugsnag/bugsnag-python/pull/341)
+
 ## v4.4.0 (2023-02-21)
 
 ### Enhancements
