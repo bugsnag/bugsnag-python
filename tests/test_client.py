@@ -1056,6 +1056,22 @@ class ClientTest(IntegrationTest):
             }
         ]
 
+    def test_notes(self):
+        e = Exception("exception")
+        e.add_note("exception note 1")
+        e.add_note("exception note 2")
+        self.client.notify(e)
+        assert self.sent_report_count == 1
+
+        payload = self.server.received[0]['json_body']
+        metadata = payload['events'][0]['metaData']
+        notes = metadata['notes']
+
+        assert len(notes) == 2
+        assert notes['0'] == "exception note 1"
+        assert notes['1'] == "exception note 2"
+
+
     def test_chained_exceptions_with_explicit_cause_using_capture_cm(self):
         try:
             with self.client.capture():
