@@ -311,7 +311,6 @@ class TestConfiguration(unittest.TestCase):
             assert len(record) == 1
             assert c.project_root == '/path/to/python/project'
 
-
     def test_validate_proxy_host(self):
         c = Configuration()
         with pytest.warns(RuntimeWarning) as record:
