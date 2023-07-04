@@ -1056,6 +1056,10 @@ class ClientTest(IntegrationTest):
             }
         ]
 
+    @pytest.mark.skipif(
+         sys.version_info < (3, 11),
+         reason="requires BaseException.add_note (Python 3.11 or higher)"
+    )
     def test_notes(self):
         e = Exception("exception")
         e.add_note("exception note 1")
