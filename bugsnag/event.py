@@ -125,7 +125,10 @@ class Event:
             self.add_tab(name, tab)
 
         if hasattr(exception, "__notes__"):
-            self.add_tab("exception notes", dict(enumerate(exception.__notes__)))
+            self.add_tab(
+                "exception notes",
+                dict(enumerate(exception.__notes__))
+            )
 
     @property
     def meta_data(self) -> Dict[str, Dict[str, Any]]:
