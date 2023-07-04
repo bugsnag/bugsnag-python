@@ -4,6 +4,7 @@ import logging
 import random
 import time
 import unittest
+from pathlib import PurePath, Path
 from unittest.mock import patch
 from io import StringIO
 from threading import Thread
@@ -292,13 +293,24 @@ class TestConfiguration(unittest.TestCase):
 
             assert len(record) == 1
             assert (str(record[0].message) ==
-                    'project_root should be str, got bool')
+                    'project_root should be str or PathLike, got bool')
             assert c.project_root == os.getcwd()
 
             c.configure(project_root='/path/to/python/project')
 
             assert len(record) == 1
             assert c.project_root == '/path/to/python/project'
+
+            c.configure(project_root=Path('/path/to/python/project'))
+
+            assert len(record) == 1
+            assert c.project_root == '/path/to/python/project'
+
+            c.configure(project_root=PurePath('/path/to/python/project'))
+
+            assert len(record) == 1
+            assert c.project_root == '/path/to/python/project'
+
 
     def test_validate_proxy_host(self):
         c = Configuration()

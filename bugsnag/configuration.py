@@ -8,6 +8,7 @@ import warnings
 import logging
 from threading import Lock
 
+from os import PathLike
 from bugsnag.breadcrumbs import (
     BreadcrumbType,
     Breadcrumb,
@@ -20,12 +21,16 @@ from bugsnag.middleware import (
     MiddlewareStack,
     skip_bugsnag_middleware
 )
-from bugsnag.utils import (fully_qualified_class_name,
-                           partly_qualified_class_name,
-                           validate_str_setter, validate_bool_setter,
-                           validate_iterable_setter,
-                           validate_required_str_setter,
-                           validate_int_setter)
+from bugsnag.utils import (
+    fully_qualified_class_name,
+    partly_qualified_class_name,
+    validate_str_setter,
+    validate_bool_setter,
+    validate_iterable_setter,
+    validate_required_str_setter,
+    validate_int_setter,
+    validate_path_setter
+)
 from bugsnag.delivery import (create_default_delivery, DEFAULT_ENDPOINT,
                               DEFAULT_SESSIONS_ENDPOINT)
 from bugsnag.uwsgi import warn_if_running_uwsgi_without_threads
@@ -365,9 +370,9 @@ class Configuration:
         return self._project_root
 
     @project_root.setter  # type: ignore
-    @validate_str_setter
-    def project_root(self, value: str):
-        self._project_root = value
+    @validate_path_setter
+    def project_root(self, value: Union[str, PathLike]):
+        self._project_root = str(value)
 
     @property
     def proxy_host(self):
