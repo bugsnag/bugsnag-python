@@ -20,9 +20,12 @@ from bugsnag.middleware import (
     MiddlewareStack,
     skip_bugsnag_middleware
 )
-from bugsnag.utils import (fully_qualified_class_name, validate_str_setter,
-                           validate_bool_setter, validate_iterable_setter,
-                           validate_required_str_setter, validate_int_setter)
+from bugsnag.utils import (fully_qualified_class_name,
+                           partly_qualified_class_name,
+                           validate_str_setter, validate_bool_setter,
+                           validate_iterable_setter,
+                           validate_required_str_setter,
+                           validate_int_setter)
 from bugsnag.delivery import (create_default_delivery, DEFAULT_ENDPOINT,
                               DEFAULT_SESSIONS_ENDPOINT)
 from bugsnag.uwsgi import warn_if_running_uwsgi_without_threads
@@ -521,7 +524,8 @@ class Configuration:
         if isinstance(exception, list):
             return any(e.error_class in self.ignore_classes for e in exception)
 
-        return fully_qualified_class_name(exception) in self.ignore_classes
+        return (fully_qualified_class_name(exception) in self.ignore_classes or
+                partly_qualified_class_name(exception) in self.ignore_classes)
 
     def _create_default_logger(self) -> logging.Logger:
         logger = logging.getLogger('bugsnag')

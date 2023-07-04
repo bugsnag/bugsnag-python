@@ -113,7 +113,7 @@ class Event:
 
         self.metadata = {}  # type: Dict[str, Dict[str, Any]]
         if 'meta_data' in options:
-            warnings.warn('The Event "metadata" argument has been replaced ' +
+            warnings.warn('The Event "meta_data" argument has been replaced ' +
                           'with "metadata"', DeprecationWarning)
             for name, tab in options.pop("meta_data").items():
                 self.add_tab(name, tab)
@@ -132,8 +132,8 @@ class Event:
 
     @property
     def meta_data(self) -> Dict[str, Dict[str, Any]]:
-        warnings.warn('The Event "metadata" property has been replaced ' +
-                      'with "meta_data".', DeprecationWarning)
+        warnings.warn('The Event "meta_data" property has been replaced ' +
+                      'with "metadata".', DeprecationWarning)
         return self.metadata
 
     @property

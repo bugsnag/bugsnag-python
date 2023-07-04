@@ -243,13 +243,26 @@ def is_json_content_type(value: str) -> bool:
 _ignore_modules = ('__main__', 'builtins')
 
 
-def fully_qualified_class_name(obj):
+def partly_qualified_class_name(obj):
     module = inspect.getmodule(obj)
 
     if module is None or module.__name__ in _ignore_modules:
         return obj.__class__.__name__
 
     return module.__name__ + '.' + obj.__class__.__name__
+
+
+def fully_qualified_class_name(obj):
+    module = inspect.getmodule(obj)
+    if hasattr(obj.__class__, "__qualname__"):
+        qualified_name = obj.__class__.__qualname__
+    else:
+        qualified_name = obj.__class__.__name__
+
+    if module is None or module.__name__ in _ignore_modules:
+        return qualified_name
+
+    return module.__name__ + '.' + qualified_name
 
 
 def package_version(package_name):
