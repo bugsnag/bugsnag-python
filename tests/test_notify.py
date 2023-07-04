@@ -182,6 +182,12 @@ class TestBugsnag(IntegrationTest):
         bugsnag.notify(ScaryException('unexpected failover'))
         self.assertEqual(0, len(self.server.received))
 
+    def test_notify_ignore_class_nested(self):
+        bugsnag.configure(
+            ignore_classes=['tests.utils.ScaryException.NestedScaryException'])
+        bugsnag.notify(ScaryException.NestedScaryException('nested'))
+        self.assertEqual(0, len(self.server.received))
+
     def test_ignore_classes_checks_exception_chain_with_explicit_cause(self):
         bugsnag.configure(ignore_classes=['ArithmeticError'])
         bugsnag.notify(fixtures.exception_with_explicit_cause)
