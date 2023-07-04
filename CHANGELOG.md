@@ -1,6 +1,12 @@
 Changelog
 =========
 
+## TBD
+
+### Bug fixes
+* Fix the ignore class list not accounting for nested classes
+  [#342](https://github.com/bugsnag/bugsnag-python/pull/342)
+
 ## v4.4.0 (2023-02-21)
 
 ### Enhancements
