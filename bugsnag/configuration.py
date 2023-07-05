@@ -8,7 +8,7 @@ import warnings
 import logging
 from threading import Lock
 
-from os import PathLike
+from pathlib import PurePath
 from bugsnag.breadcrumbs import (
     BreadcrumbType,
     Breadcrumb,
@@ -371,7 +371,7 @@ class Configuration:
 
     @project_root.setter  # type: ignore
     @validate_path_setter
-    def project_root(self, value: Union[str, PathLike]):
+    def project_root(self, value: Union[str, PurePath]):
         self._project_root = str(value)
 
     @property
