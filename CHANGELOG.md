@@ -10,6 +10,9 @@ Changelog
 
 ### Bug fixes
 
+* Fixes one of the fields being mistakenly replaced with `[RECURSIVE]` when encoding a list or dictionary with identical siblings but no recursion.
+  [#341](https://github.com/bugsnag/bugsnag-python/pull/341)
+
 * Fix the ignore class list not accounting for nested classes
   [#342](https://github.com/bugsnag/bugsnag-python/pull/342)
 

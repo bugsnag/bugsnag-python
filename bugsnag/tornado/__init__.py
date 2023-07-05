@@ -1,8 +1,7 @@
 import tornado
 from tornado.web import RequestHandler, HTTPError
-from tornado.wsgi import WSGIContainer
 from typing import Dict, Any  # noqa
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, unquote_to_bytes
 from bugsnag.breadcrumbs import BreadcrumbType
 from bugsnag.utils import (
     is_json_content_type,
@@ -12,6 +11,53 @@ from bugsnag.utils import (
 from bugsnag.legacy import _auto_leave_breadcrumb
 import bugsnag
 import json
+
+
+def tornado_environ(request):
+    """Copyright The Tornado Web Library Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        https://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+    Converts a tornado request to a WSGI environment.
+
+    Taken from tornado's WSGI implementation
+    https://github.com/tornadoweb/tornado/blob/6e3521da44c349197cf8048c8a6c69d3f4ccd971/tornado/wsgi.py#L207-L246
+    but without WSGI prefixed entries that require a WSGI application.
+    """
+    hostport = request.host.split(":")
+    if len(hostport) == 2:
+        host = hostport[0]
+        port = int(hostport[1])
+    else:
+        host = request.host
+        port = 443 if request.protocol == "https" else 80
+    environ = {
+        "REQUEST_METHOD": request.method,
+        "SCRIPT_NAME": "",
+        "PATH_INFO": unquote_to_bytes(request.path).decode("latin1"),
+        "QUERY_STRING": request.query,
+        "REMOTE_ADDR": request.remote_ip,
+        "SERVER_NAME": host,
+        "SERVER_PORT": str(port),
+        "SERVER_PROTOCOL": request.version,
+    }
+    if "Content-Type" in request.headers:
+        environ["CONTENT_TYPE"] = request.headers.pop("Content-Type")
+    if "Content-Length" in request.headers:
+        environ["CONTENT_LENGTH"] = request.headers.pop("Content-Length")
+    for key, value in request.headers.items():
+        environ["HTTP_" + key.replace("-", "_").upper()] = value
+    return environ
 
 
 class BugsnagRequestHandler(RequestHandler):
@@ -42,7 +88,7 @@ class BugsnagRequestHandler(RequestHandler):
         event.add_tab("request", request_tab)
 
         if bugsnag.configure().send_environment:
-            env = WSGIContainer.environ(self.request)
+            env = tornado_environ(self.request)
             event.add_tab("environment", env)
 
     def _handle_request_exception(self, exc: BaseException):
