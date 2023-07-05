@@ -127,7 +127,7 @@ class Event:
         if hasattr(exception, "__notes__"):
             self.add_tab(
                 "exception notes",
-                dict(enumerate(exception.__notes__))
+                dict(enumerate(exception.__notes__)) # type: ignore # noqa
             )
 
     @property
