@@ -5,7 +5,7 @@ Changelog
 
 ### Enhancements
 
-* Allows changing the grouping hash when using the logger methods and
+* Allows changing the grouping hash when using `BugsnagHandler` via the logger methods' `extra` keyword argument
   [#334](https://github.com/bugsnag/bugsnag-python/pull/334)
 
 ### Bug fixes
