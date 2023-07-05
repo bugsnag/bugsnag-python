@@ -81,6 +81,9 @@ class SanitizingJSONEncoder(JSONEncoder):
                     clean_dict[key] = self.filter_string_values(
                         value, ignored, seen)
 
+            # Only ignore whilst encoding children
+            ignored.remove(id(obj))
+
             return clean_dict
 
         return obj
@@ -119,16 +122,25 @@ class SanitizingJSONEncoder(JSONEncoder):
         if id(obj) in ignored:
             return self.recursive_value
         elif isinstance(obj, dict):
-            ignored.add(id(obj))
             seen.append(obj)
-            return self._sanitize_dict(obj, trim_strings, ignored, seen)
+
+            ignored.add(id(obj))
+            sanitized = self._sanitize_dict(obj, trim_strings, ignored, seen)
+            # Only ignore whilst encoding children
+            ignored.remove(id(obj))
+
+            return sanitized
         elif isinstance(obj, (set, tuple, list)):
-            ignored.add(id(obj))
             seen.append(obj)
+
+            ignored.add(id(obj))
             items = []
             for value in obj:
                 items.append(
                         self._sanitize(value, trim_strings, ignored, seen))
+            # Only ignore whilst encoding children
+            ignored.remove(id(obj))
+
             return items
         elif trim_strings and isinstance(obj, str):
             return obj[:MAX_STRING_LENGTH]
