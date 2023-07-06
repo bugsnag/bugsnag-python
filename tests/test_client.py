@@ -1069,7 +1069,7 @@ class ClientTest(IntegrationTest):
 
         payload = self.server.received[0]['json_body']
         metadata = payload['events'][0]['metaData']
-        notes = metadata['notes']
+        notes = metadata['exception notes']
 
         assert len(notes) == 2
         assert notes['0'] == "exception note 1"
