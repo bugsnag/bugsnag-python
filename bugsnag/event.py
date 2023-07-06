@@ -124,6 +124,12 @@ class Event:
         for name, tab in options.items():
             self.add_tab(name, tab)
 
+        if hasattr(exception, "__notes__"):
+            self.add_tab(
+                "exception notes",
+                dict(enumerate(exception.__notes__)) # type: ignore # noqa
+            )
+
     @property
     def meta_data(self) -> Dict[str, Dict[str, Any]]:
         warnings.warn('The Event "meta_data" property has been replaced ' +

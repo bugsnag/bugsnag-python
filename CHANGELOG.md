@@ -5,6 +5,9 @@ Changelog
 
 ### Enhancements
 
+* The exception's `__notes__` field will now be sent as metadata if it exists
+  [#340](https://github.com/bugsnag/bugsnag-python/pull/340)
+
 * Allows changing the grouping hash when using `BugsnagHandler` via the logger methods' `extra` keyword argument
   [#334](https://github.com/bugsnag/bugsnag-python/pull/334)
 
