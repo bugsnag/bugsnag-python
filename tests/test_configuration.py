@@ -293,7 +293,7 @@ class TestConfiguration(unittest.TestCase):
 
             assert len(record) == 1
             assert (str(record[0].message) ==
-                    'project_root should be str or PathLike, got bool')
+                    'project_root should be str or PurePath, got bool')
             assert c.project_root == os.getcwd()
 
             c.configure(project_root='/path/to/python/project')
