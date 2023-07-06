@@ -3,6 +3,11 @@ Changelog
 
 ## TBD
 
+### Enhancements
+
+* Allows changing the grouping hash when using `BugsnagHandler` via the logger methods' `extra` keyword argument
+  [#334](https://github.com/bugsnag/bugsnag-python/pull/334)
+
 ### Bug fixes
 
 * Fixes one of the fields being mistakenly replaced with `[RECURSIVE]` when encoding a list or dictionary with identical siblings but no recursion.
@@ -10,6 +15,7 @@ Changelog
 
 * Fix the ignore class list not accounting for nested classes
   [#342](https://github.com/bugsnag/bugsnag-python/pull/342)
+
 
 ## v4.4.0 (2023-02-21)
 

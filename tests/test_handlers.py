@@ -458,6 +458,18 @@ class HandlersTest(IntegrationTest):
                          {'exception': 'metadata'})
 
     @use_client_logger
+    def test_logging_grouping_hash(self, handler, logger):
+        logger.info("This happened", extra={'groupingHash': '<hash value>'})
+
+        self.assertSentReportCount(1)
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+        exception = event['exceptions'][0]
+
+        self.assertEqual(exception['message'], 'This happened')
+        self.assertEqual(event['groupingHash'], '<hash value>')
+
+    @use_client_logger
     def test_log_filter_leaves_breadcrumbs_for_logs_below_report_level(
         self,
         handler,
