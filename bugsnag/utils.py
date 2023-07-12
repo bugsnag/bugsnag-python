@@ -8,7 +8,15 @@ import copy
 import logging
 from datetime import datetime, timedelta
 from urllib.parse import urlparse, urlunsplit, parse_qs
-from pathlib import PurePath
+
+
+try:
+    from os import PathLike
+except ImportError:
+    # PathLike was added in Python 3.6 so fallback to PurePath on Python 3.5 as
+    # all builtin Path objects inherit from PurePath
+    from pathlib import PurePath as PathLike  # type: ignore
+
 
 MAX_PAYLOAD_LENGTH = 128 * 1024
 MAX_STRING_LENGTH = 1024
@@ -319,7 +327,7 @@ validate_required_str_setter = partial(_validate_setter, (str,),
 validate_bool_setter = partial(_validate_setter, (bool,))
 validate_iterable_setter = partial(_validate_setter, (list, tuple))
 validate_int_setter = partial(_validate_setter, (int,))
-validate_path_setter = partial(_validate_setter, (str, PurePath))
+validate_path_setter = partial(_validate_setter, (str, PathLike))
 
 
 class ThreadContextVar:

@@ -8,7 +8,6 @@ import warnings
 import logging
 from threading import Lock
 
-from pathlib import PurePath
 from bugsnag.breadcrumbs import (
     BreadcrumbType,
     Breadcrumb,
@@ -42,6 +41,14 @@ try:
 except ImportError:
     from bugsnag.utils import ThreadContextVar
     _request_info = ThreadContextVar('bugsnag-request', default=None)  # type: ignore  # noqa: E501
+
+
+try:
+    from os import PathLike
+except ImportError:
+    # PathLike was added in Python 3.6 so fallback to PurePath on Python 3.5 as
+    # all builtin Path objects inherit from PurePath
+    from pathlib import PurePath as PathLike  # type: ignore
 
 
 __all__ = ('Configuration', 'RequestConfiguration')
@@ -371,7 +378,7 @@ class Configuration:
 
     @project_root.setter  # type: ignore
     @validate_path_setter
-    def project_root(self, value: Union[str, PurePath]):
+    def project_root(self, value: Union[str, PathLike]):
         self._project_root = str(value)
 
     @property
