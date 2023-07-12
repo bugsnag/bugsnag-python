@@ -5,6 +5,7 @@ import time
 
 import pytest
 import bugsnag
+from pathlib import Path
 from tests import fixtures
 from tests.utils import ScaryException, IntegrationTest
 from tests.fixtures import samples
@@ -175,7 +176,7 @@ class TestBugsnag(IntegrationTest):
 
         self.assertEqual(4, event['metaData']['custom']['foo'])
         self.assertEqual('[FILTERED]', event['metaData']['custom']['bar'])
-        self.assertEqual(170, exception['stacktrace'][0]['lineNumber'])
+        self.assertEqual(171, exception['stacktrace'][0]['lineNumber'])
 
     def test_notify_ignore_class(self):
         bugsnag.configure(ignore_classes=['tests.utils.ScaryException'])
@@ -314,6 +315,15 @@ class TestBugsnag(IntegrationTest):
         json_body = self.server.received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('/the/basement', event['projectRoot'])
+
+    def test_notify_configured_project_root_using_path_object(self):
+        bugsnag.configure(project_root=Path('/the/basement'))
+        bugsnag.notify(ScaryException('unexpected failover'))
+
+        json_body = self.server.received[0]['json_body']
+        event = json_body['events'][0]
+
+        assert event['projectRoot'] == '/the/basement'
 
     def test_notify_invalid_severity(self):
         bugsnag.notify(ScaryException('unexpected failover'),
