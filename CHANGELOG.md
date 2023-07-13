@@ -11,6 +11,9 @@ Changelog
 * Allows changing the grouping hash when using `BugsnagHandler` via the logger methods' `extra` keyword argument
   [#334](https://github.com/bugsnag/bugsnag-python/pull/334)
 
+* PathLike objects are now accepted as the project path
+  [#344](https://github.com/bugsnag/bugsnag-python/pull/344)
+
 ### Bug fixes
 
 * Fixes one of the fields being mistakenly replaced with `[RECURSIVE]` when encoding a list or dictionary with identical siblings but no recursion.
