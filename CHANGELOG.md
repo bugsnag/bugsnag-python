@@ -1,27 +1,31 @@
 Changelog
 =========
 
-## TBD
+## v4.5.0 (2023-07-17)
 
 ### Enhancements
 
 * The exception's `__notes__` field will now be sent as metadata if it exists
   [#340](https://github.com/bugsnag/bugsnag-python/pull/340)
+  [0HyperCube](https://github.com/0HyperCube)
 
 * Allows changing the grouping hash when using `BugsnagHandler` via the logger methods' `extra` keyword argument
   [#334](https://github.com/bugsnag/bugsnag-python/pull/334)
+  [0HyperCube](https://github.com/0HyperCube)
 
 * PathLike objects are now accepted as the project path
   [#344](https://github.com/bugsnag/bugsnag-python/pull/344)
+  [0HyperCube](https://github.com/0HyperCube)
 
 ### Bug fixes
 
 * Fixes one of the fields being mistakenly replaced with `[RECURSIVE]` when encoding a list or dictionary with identical siblings but no recursion.
   [#341](https://github.com/bugsnag/bugsnag-python/pull/341)
+  [0HyperCube](https://github.com/0HyperCube)
 
 * Fix the ignore class list not accounting for nested classes
   [#342](https://github.com/bugsnag/bugsnag-python/pull/342)
-
+  [0HyperCube](https://github.com/0HyperCube)
 
 ## v4.4.0 (2023-02-21)
 
