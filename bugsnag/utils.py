@@ -9,6 +9,15 @@ import logging
 from datetime import datetime, timedelta
 from urllib.parse import urlparse, urlunsplit, parse_qs
 
+
+try:
+    from os import PathLike
+except ImportError:
+    # PathLike was added in Python 3.6 so fallback to PurePath on Python 3.5 as
+    # all builtin Path objects inherit from PurePath
+    from pathlib import PurePath as PathLike  # type: ignore
+
+
 MAX_PAYLOAD_LENGTH = 128 * 1024
 MAX_STRING_LENGTH = 1024
 
@@ -81,6 +90,9 @@ class SanitizingJSONEncoder(JSONEncoder):
                     clean_dict[key] = self.filter_string_values(
                         value, ignored, seen)
 
+            # Only ignore whilst encoding children
+            ignored.remove(id(obj))
+
             return clean_dict
 
         return obj
@@ -119,16 +131,25 @@ class SanitizingJSONEncoder(JSONEncoder):
         if id(obj) in ignored:
             return self.recursive_value
         elif isinstance(obj, dict):
-            ignored.add(id(obj))
             seen.append(obj)
-            return self._sanitize_dict(obj, trim_strings, ignored, seen)
+
+            ignored.add(id(obj))
+            sanitized = self._sanitize_dict(obj, trim_strings, ignored, seen)
+            # Only ignore whilst encoding children
+            ignored.remove(id(obj))
+
+            return sanitized
         elif isinstance(obj, (set, tuple, list)):
-            ignored.add(id(obj))
             seen.append(obj)
+
+            ignored.add(id(obj))
             items = []
             for value in obj:
                 items.append(
                         self._sanitize(value, trim_strings, ignored, seen))
+            # Only ignore whilst encoding children
+            ignored.remove(id(obj))
+
             return items
         elif trim_strings and isinstance(obj, str):
             return obj[:MAX_STRING_LENGTH]
@@ -243,13 +264,26 @@ def is_json_content_type(value: str) -> bool:
 _ignore_modules = ('__main__', 'builtins')
 
 
-def fully_qualified_class_name(obj):
+def partly_qualified_class_name(obj):
     module = inspect.getmodule(obj)
 
     if module is None or module.__name__ in _ignore_modules:
         return obj.__class__.__name__
 
     return module.__name__ + '.' + obj.__class__.__name__
+
+
+def fully_qualified_class_name(obj):
+    module = inspect.getmodule(obj)
+    if hasattr(obj.__class__, "__qualname__"):
+        qualified_name = obj.__class__.__qualname__
+    else:
+        qualified_name = obj.__class__.__name__
+
+    if module is None or module.__name__ in _ignore_modules:
+        return qualified_name
+
+    return module.__name__ + '.' + qualified_name
 
 
 def package_version(package_name):
@@ -293,6 +327,7 @@ validate_required_str_setter = partial(_validate_setter, (str,),
 validate_bool_setter = partial(_validate_setter, (bool,))
 validate_iterable_setter = partial(_validate_setter, (list, tuple))
 validate_int_setter = partial(_validate_setter, (int,))
+validate_path_setter = partial(_validate_setter, (str, PathLike))
 
 
 class ThreadContextVar:

@@ -2,8 +2,10 @@ import os
 import socket
 import logging
 import random
+import sys
 import time
 import unittest
+from pathlib import PurePath, Path
 from unittest.mock import patch
 from io import StringIO
 from threading import Thread
@@ -287,15 +289,31 @@ class TestConfiguration(unittest.TestCase):
 
     def test_validate_project_root(self):
         c = Configuration()
+
+        if sys.version_info < (3, 6):
+            expected_type = 'PurePath'
+        else:
+            expected_type = 'PathLike'
+
         with pytest.warns(RuntimeWarning) as record:
             c.configure(project_root=True)
 
             assert len(record) == 1
-            assert (str(record[0].message) ==
-                    'project_root should be str, got bool')
+            assert str(record[0].message) == \
+                'project_root should be str or %s, got bool' % expected_type
             assert c.project_root == os.getcwd()
 
             c.configure(project_root='/path/to/python/project')
+
+            assert len(record) == 1
+            assert c.project_root == '/path/to/python/project'
+
+            c.configure(project_root=Path('/path/to/python/project'))
+
+            assert len(record) == 1
+            assert c.project_root == '/path/to/python/project'
+
+            c.configure(project_root=PurePath('/path/to/python/project'))
 
             assert len(record) == 1
             assert c.project_root == '/path/to/python/project'
