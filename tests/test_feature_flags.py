@@ -1,4 +1,5 @@
-from bugsnag.feature_flags import FeatureFlag
+from bugsnag.feature_flags import FeatureFlag, FeatureFlagDelegate
+import pytest
 
 
 class Unstringable:
@@ -7,6 +8,17 @@ class Unstringable:
 
     def __repr__(self):
         raise Exception('nope')
+
+
+_invalid_names = [
+    (None,),
+    (True,),
+    (False,),
+    (1234,),
+    ([1, 2, 3],),
+    ({'a': 1, 'b': 2},),
+    ('',)
+]
 
 
 def test_feature_flag_has_name_and_variant():
@@ -78,3 +90,305 @@ def test_a_feature_flag_with_none_name_is_not_valid():
     flag = FeatureFlag(None)
 
     assert flag.is_valid() is False
+
+
+def test_delegate_contains_no_flags_by_default():
+    delegate = FeatureFlagDelegate()
+
+    assert delegate.to_list() == []
+    assert delegate.to_json() == []
+
+
+def test_delegate_does_not_get_mutated_after_being_copied():
+    delegate1 = FeatureFlagDelegate()
+    delegate1.add('abc', '123')
+
+    delegate2 = delegate1.copy()
+    delegate2.add('xyz', '456')
+
+    delegate3 = delegate2.copy()
+    delegate3.clear()
+
+    assert delegate1.to_json() == [{'name': 'abc', 'variant': '123'}]
+    assert delegate2.to_json() == [
+        {'name': 'abc', 'variant': '123'},
+        {'name': 'xyz', 'variant': '456'},
+    ]
+    assert delegate3.to_json() == []
+
+
+def test_delegate_can_add_flags_individually():
+    delegate = FeatureFlagDelegate()
+    delegate.add('abc', 'xyz')
+    delegate.add('another', None)
+    delegate.add('again', 123)
+
+    assert delegate.to_json() == [
+        {'name': 'abc', 'variant': 'xyz'},
+        {'name': 'another'},
+        {'name': 'again', 'variant': '123'}
+    ]
+
+
+def test_delegate_add_replaces_by_name_when_the_original_has_no_variant():
+    delegate = FeatureFlagDelegate()
+    delegate.add('abc', None)
+    delegate.add('another', None)
+    delegate.add('abc', 123)
+
+    assert delegate.to_json() == [
+        {'name': 'abc', 'variant': '123'},
+        {'name': 'another'}
+    ]
+
+
+def test_delegate_add_replaces_by_name_when_the_replacement_has_no_variant():
+    delegate = FeatureFlagDelegate()
+    delegate.add('abc', '123')
+    delegate.add('another', None)
+    delegate.add('abc', None)
+
+    assert delegate.to_json() == [
+        {'name': 'abc'},
+        {'name': 'another'}
+    ]
+
+
+def test_delegate_add_replaces_by_name_when_both_have_variants():
+    delegate = FeatureFlagDelegate()
+    delegate.add('abc', '123')
+    delegate.add('another', None)
+    delegate.add('abc', '456')
+
+    assert delegate.to_json() == [
+        {'name': 'abc', 'variant': '456'},
+        {'name': 'another'}
+    ]
+
+
+@pytest.mark.parametrize('invalid_name', _invalid_names)
+def test_delegate_add_add_drops_flag_when_name_is_invalid(invalid_name):
+    delegate = FeatureFlagDelegate()
+    delegate.add('abc', '123')
+    delegate.add(invalid_name, None)
+
+    assert delegate.to_json() == [
+        {'name': 'abc', 'variant': '123'}
+    ]
+
+
+def test_delegate_can_add_multiple_flags_at_once():
+    delegate = FeatureFlagDelegate()
+    delegate.merge([
+        FeatureFlag('a', 'xyz'),
+        FeatureFlag('b'),
+        FeatureFlag('c', '111'),
+        FeatureFlag('d'),
+    ])
+
+    assert delegate.to_json() == [
+        {'name': 'a', 'variant': 'xyz'},
+        {'name': 'b'},
+        {'name': 'c', 'variant': '111'},
+        {'name': 'd'}
+    ]
+
+
+def test_delegate_can_merge_new_flags_with_existing_ones():
+    delegate = FeatureFlagDelegate()
+    delegate.merge([
+        FeatureFlag('a', 'xyz'),
+        FeatureFlag('b'),
+        FeatureFlag('c', '111'),
+        FeatureFlag('d'),
+    ])
+
+    delegate.merge([
+        FeatureFlag('e'),
+        FeatureFlag('a'),
+        FeatureFlag('d', 'xyz'),
+    ])
+
+    assert delegate.to_json() == [
+        {'name': 'a'},
+        {'name': 'b'},
+        {'name': 'c', 'variant': '111'},
+        {'name': 'd', 'variant': 'xyz'},
+        {'name': 'e'}
+    ]
+
+
+def test_delegate_merge_replaces_by_name_when_the_original_has_no_variant():
+    delegate = FeatureFlagDelegate()
+
+    delegate.add('a', None)
+    delegate.merge([
+        FeatureFlag('a', 'xyz'),
+        FeatureFlag('b'),
+        FeatureFlag('c', '111'),
+        FeatureFlag('d'),
+    ])
+
+    assert delegate.to_json() == [
+        {'name': 'a', 'variant': 'xyz'},
+        {'name': 'b'},
+        {'name': 'c', 'variant': '111'},
+        {'name': 'd'}
+    ]
+
+
+def test_delegate_merge_replaces_by_name_when_the_replacement_has_no_variant():
+    delegate = FeatureFlagDelegate()
+
+    delegate.add('a', 'xyz')
+    delegate.merge([
+        FeatureFlag('a', None),
+        FeatureFlag('b'),
+        FeatureFlag('c', '111'),
+        FeatureFlag('d'),
+    ])
+
+    assert delegate.to_json() == [
+        {'name': 'a'},
+        {'name': 'b'},
+        {'name': 'c', 'variant': '111'},
+        {'name': 'd'}
+    ]
+
+
+def test_delegate_merge_replaces_by_name_when_both_have_variants():
+    delegate = FeatureFlagDelegate()
+
+    delegate.add('a', 'xyz')
+    delegate.merge([
+        FeatureFlag('a', 'abc'),
+        FeatureFlag('b'),
+        FeatureFlag('c', '111'),
+        FeatureFlag('d'),
+    ])
+
+    assert delegate.to_json() == [
+        {'name': 'a', 'variant': 'abc'},
+        {'name': 'b'},
+        {'name': 'c', 'variant': '111'},
+        {'name': 'd'}
+    ]
+
+
+def test_delegate_merge_ignores_anything_that_isnt_a_feature_flag_instance():
+    delegate = FeatureFlagDelegate()
+
+    delegate.merge([
+        FeatureFlag('a', None),
+        1234,
+        FeatureFlag('b'),
+        'hello',
+        FeatureFlag('c', '111'),
+        Exception(':)'),
+        FeatureFlag('d'),
+        None
+    ])
+
+    assert delegate.to_json() == [
+        {'name': 'a'},
+        {'name': 'b'},
+        {'name': 'c', 'variant': '111'},
+        {'name': 'd'}
+    ]
+
+
+@pytest.mark.parametrize('invalid_name', _invalid_names)
+def test_delegate_merge_drops_flag_when_name_is_invalid(invalid_name):
+    delegate = FeatureFlagDelegate()
+    delegate.merge([
+        FeatureFlag('abc', '123'),
+        FeatureFlag(invalid_name, '456'),
+        FeatureFlag('xyz', '789')
+    ])
+
+    assert delegate.to_json() == [
+        {'name': 'abc', 'variant': '123'},
+        {'name': 'xyz', 'variant': '789'}
+    ]
+
+
+def test_delegate_can_remove_flags_by_name():
+    delegate = FeatureFlagDelegate()
+    delegate.merge([
+        FeatureFlag('abc', '123'),
+        FeatureFlag('to be removed', '456'),
+        FeatureFlag('xyz', '789')
+    ])
+
+    delegate.remove('to be removed')
+
+    assert delegate.to_json() == [
+        {'name': 'abc', 'variant': '123'},
+        {'name': 'xyz', 'variant': '789'}
+    ]
+
+
+def test_delegate_remove_does_nothing_when_no_flag_has_the_given_name():
+    delegate = FeatureFlagDelegate()
+    delegate.merge([
+        FeatureFlag('abc', '123'),
+        FeatureFlag('to be kept', '456'),
+        FeatureFlag('xyz', '789')
+    ])
+
+    delegate.remove('to be removed')
+
+    assert delegate.to_json() == [
+        {'name': 'abc', 'variant': '123'},
+        {'name': 'to be kept', 'variant': '456'},
+        {'name': 'xyz', 'variant': '789'}
+    ]
+
+
+def test_delegate_can_remove_all_flags_at_once():
+    delegate = FeatureFlagDelegate()
+    delegate.merge([
+        FeatureFlag('abc', '123'),
+        FeatureFlag('to be kept', '456'),
+        FeatureFlag('xyz', '789')
+    ])
+
+    delegate.clear()
+
+    assert delegate.to_json() == []
+
+
+def test_delegate_clear_does_nothing_when_there_are_no_flags():
+    delegate = FeatureFlagDelegate()
+    delegate.clear()
+
+    assert delegate.to_json() == []
+
+
+def test_delegate_to_list_returns_a_list_of_feature_flags():
+    delegate = FeatureFlagDelegate()
+
+    flag1 = FeatureFlag('a')
+    flag2 = FeatureFlag('b')
+    flag3 = FeatureFlag('c')
+
+    delegate.merge([flag1, flag2, flag3])
+
+    assert delegate.to_list() == [flag1, flag2, flag3]
+
+
+def test_delegate_can_be_mutated_without_affecting_the_internal_storage():
+    delegate = FeatureFlagDelegate()
+
+    flag1 = FeatureFlag('a')
+    flag2 = FeatureFlag('b')
+
+    delegate.merge([flag1, flag2])
+
+    flags = delegate.to_list()
+    flags.pop()
+    flags.append(1234)
+    flags.append(5678)
+
+    assert flags == [flag1, 1234, 5678]
+    assert delegate.to_list() == [flag1, flag2]
