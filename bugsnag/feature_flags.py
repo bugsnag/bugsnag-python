@@ -1,4 +1,5 @@
-from typing import Dict, Union
+from collections import OrderedDict
+from typing import Dict, List, Union
 
 
 class FeatureFlag:
@@ -46,3 +47,42 @@ class FeatureFlag:
             return str(variant)
         except Exception:
             return None
+
+
+class FeatureFlagDelegate:
+    def __init__(self):
+        self._storage = OrderedDict()
+
+    def add(
+        self,
+        name: Union[str, bytes],
+        variant: Union[None, str, bytes]
+    ) -> None:
+        flag = FeatureFlag(name, variant)
+
+        if flag.is_valid():
+            self._storage[flag.name] = flag
+
+    def merge(self, flags: List[FeatureFlag]) -> None:
+        for flag in flags:
+            if isinstance(flag, FeatureFlag) and flag.is_valid():
+                self._storage[flag.name] = flag
+
+    def remove(self, name: Union[str, bytes]) -> None:
+        if name in self._storage:
+            del self._storage[name]
+
+    def clear(self) -> None:
+        self._storage.clear()
+
+    def copy(self) -> 'FeatureFlagDelegate':
+        copy = FeatureFlagDelegate()
+        copy._storage = self._storage.copy()
+
+        return copy
+
+    def to_list(self) -> List[FeatureFlag]:
+        return list(self._storage.values())
+
+    def to_json(self) -> List[Dict[str, Union[str, bytes]]]:
+        return [flag.to_dict() for flag in self.to_list()]
