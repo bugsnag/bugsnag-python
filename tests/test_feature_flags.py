@@ -387,28 +387,23 @@ def test_delegate_clear_does_nothing_when_there_are_no_flags():
 
 def test_delegate_to_list_returns_a_list_of_feature_flags():
     delegate = FeatureFlagDelegate()
+    delegate.merge([FeatureFlag('a'), FeatureFlag('b'), FeatureFlag('c')])
 
-    flag1 = FeatureFlag('a')
-    flag2 = FeatureFlag('b')
-    flag3 = FeatureFlag('c')
-
-    delegate.merge([flag1, flag2, flag3])
-
-    assert delegate.to_list() == [flag1, flag2, flag3]
+    assert delegate.to_list() == [
+        FeatureFlag('a'),
+        FeatureFlag('b'),
+        FeatureFlag('c')
+    ]
 
 
 def test_delegate_can_be_mutated_without_affecting_the_internal_storage():
     delegate = FeatureFlagDelegate()
-
-    flag1 = FeatureFlag('a')
-    flag2 = FeatureFlag('b')
-
-    delegate.merge([flag1, flag2])
+    delegate.merge([FeatureFlag('a'), FeatureFlag('b')])
 
     flags = delegate.to_list()
     flags.pop()
     flags.append(1234)
     flags.append(5678)
 
-    assert flags == [flag1, 1234, 5678]
-    assert delegate.to_list() == [flag1, flag2]
+    assert flags == [FeatureFlag('a'), 1234, 5678]
+    assert delegate.to_list() == [FeatureFlag('a'), FeatureFlag('b')]
