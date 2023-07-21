@@ -92,6 +92,26 @@ def test_a_feature_flag_with_none_name_is_not_valid():
     assert flag.is_valid() is False
 
 
+def test_feature_flags_are_comparable():
+    flag1 = FeatureFlag('a')
+    flag2 = FeatureFlag('b', 'x')
+    flag3 = FeatureFlag('c')
+
+    assert flag1 == FeatureFlag('a')
+    assert flag2 == FeatureFlag('b', 'x')
+    assert flag3 == FeatureFlag('c')
+
+    assert flag1 != FeatureFlag('a', '1')
+    assert flag2 != FeatureFlag('b')
+
+    assert flag1 != flag2
+    assert flag1 != flag3
+    assert flag2 != flag3
+
+    assert flag1 != 'a'
+    assert flag1 is not None
+
+
 def test_delegate_contains_no_flags_by_default():
     delegate = FeatureFlagDelegate()
 

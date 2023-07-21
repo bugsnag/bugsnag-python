@@ -36,6 +36,18 @@ class FeatureFlag:
             (self._variant is None or isinstance(self._variant, (str, bytes)))
         )
 
+    def __eq__(self, other) -> bool:
+        if isinstance(other, FeatureFlag):
+            return (
+                self._name == other._name and
+                self._variant == other._variant
+            )
+
+        return NotImplemented
+
+    def __hash__(self):
+        return hash((self._name, self._variant))
+
     def _coerce_variant(
         self,
         variant: Union[None, str, bytes]
