@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, List  # noqa
+from typing import Any, Dict, Optional, List, Union  # noqa
 import linecache
 import logging
 import os
@@ -14,6 +14,7 @@ from bugsnag.breadcrumbs import Breadcrumb
 from bugsnag.utils import fully_qualified_class_name as class_name
 from bugsnag.utils import FilterDict, package_version, SanitizingJSONEncoder
 from bugsnag.error import Error
+from bugsnag.feature_flags import FeatureFlag, FeatureFlagDelegate
 
 __all__ = ('Event',)
 
@@ -65,6 +66,7 @@ class Event:
         self._breadcrumbs = [
             deepcopy(breadcrumb) for breadcrumb in config.breadcrumbs
         ]
+        self._feature_flag_delegate = FeatureFlagDelegate()
 
         def get_config(key):
             return options.pop(key, getattr(self.config, key))
@@ -236,6 +238,26 @@ class Event:
             self.metadata[name] = {}
 
         self.metadata[name].update(dictionary)
+
+    @property
+    def feature_flags(self) -> List[FeatureFlag]:
+        return self._feature_flag_delegate.to_list()
+
+    def add_feature_flag(
+        self,
+        name: Union[str, bytes],
+        variant: Union[None, str, bytes] = None
+    ) -> None:
+        self._feature_flag_delegate.add(name, variant)
+
+    def add_feature_flags(self, feature_flags: List[FeatureFlag]) -> None:
+        self._feature_flag_delegate.merge(feature_flags)
+
+    def clear_feature_flag(self, name: Union[str, bytes]) -> None:
+        self._feature_flag_delegate.remove(name)
+
+    def clear_feature_flags(self) -> None:
+        self._feature_flag_delegate.clear()
 
     def _generate_error_list(
         self,
@@ -437,6 +459,7 @@ class Event:
                 "session": self.session,
                 "breadcrumbs": [
                     breadcrumb.to_dict() for breadcrumb in self._breadcrumbs
-                ]
+                ],
+                "featureFlags": self._feature_flag_delegate.to_json()
             }]
         })
