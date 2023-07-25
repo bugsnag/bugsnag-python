@@ -66,7 +66,10 @@ class Event:
         self._breadcrumbs = [
             deepcopy(breadcrumb) for breadcrumb in config.breadcrumbs
         ]
-        self._feature_flag_delegate = FeatureFlagDelegate()
+        self._feature_flag_delegate = options.pop(
+            'feature_flag_delegate',
+            FeatureFlagDelegate()
+        ).copy()
 
         def get_config(key):
             return options.pop(key, getattr(self.config, key))

@@ -8,6 +8,7 @@ from bugsnag.breadcrumbs import (
     Breadcrumbs,
     OnBreadcrumbCallback
 )
+from bugsnag.feature_flags import FeatureFlag
 from bugsnag.legacy import (configuration, configure, configure_request,
                             add_metadata_tab, clear_request_config, notify,
                             auto_notify, before_notify, start_session,
@@ -21,4 +22,4 @@ __all__ = ('Client', 'Event', 'Configuration', 'RequestConfiguration',
            'auto_notify_exc_info', 'Notification', 'logger',
            'BreadcrumbType', 'Breadcrumb', 'Breadcrumbs',
            'OnBreadcrumbCallback', 'leave_breadcrumb', 'add_on_breadcrumb',
-           'remove_on_breadcrumb')
+           'remove_on_breadcrumb', 'FeatureFlag')
