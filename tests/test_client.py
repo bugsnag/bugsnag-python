@@ -37,6 +37,7 @@ class ClientTest(IntegrationTest):
                              install_sys_hook=False)
 
         self.client.clear_feature_flags()
+        legacy.clear_feature_flags()
 
     # Initialisation
 
@@ -1563,6 +1564,55 @@ class ClientTest(IntegrationTest):
         self.client.clear_feature_flags()
 
         assert self.client.feature_flags == []
+
+    def test_feature_flags_can_be_added_individually_with_legacy_client(self):
+        legacy.add_feature_flag('one')
+        legacy.add_feature_flag('two', 'a')
+        legacy.add_feature_flag('three', None)
+
+        assert legacy.default_client.feature_flags == [
+            FeatureFlag('one'),
+            FeatureFlag('two', 'a'),
+            FeatureFlag('three')
+        ]
+
+    def test_feature_flags_can_be_added_in_bulk_with_legacy_client(self):
+        legacy.add_feature_flags([
+            FeatureFlag('a', '1'),
+            FeatureFlag('b'),
+            FeatureFlag('c', '3')
+        ])
+
+        assert legacy.default_client.feature_flags == [
+            FeatureFlag('a', '1'),
+            FeatureFlag('b'),
+            FeatureFlag('c', '3')
+        ]
+
+    def test_feature_flags_can_be_removed_with_legacy_client(self):
+        legacy.add_feature_flags([
+            FeatureFlag('a', '1'),
+            FeatureFlag('b'),
+            FeatureFlag('c', '3')
+        ])
+
+        legacy.clear_feature_flag('b')
+
+        assert legacy.default_client.feature_flags == [
+            FeatureFlag('a', '1'),
+            FeatureFlag('c', '3')
+        ]
+
+    def test_feature_flags_can_be_cleared_with_legacy_client(self):
+        legacy.add_feature_flags([
+            FeatureFlag('a', '1'),
+            FeatureFlag('b'),
+            FeatureFlag('c', '3')
+        ])
+
+        legacy.clear_feature_flags()
+
+        assert legacy.default_client.feature_flags == []
 
     def test_feature_flags_are_included_in_payload(self):
         self.client.add_feature_flags([

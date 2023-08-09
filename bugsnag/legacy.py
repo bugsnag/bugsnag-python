@@ -1,8 +1,9 @@
-from typing import Dict, Any, Tuple, Type, Optional
+from typing import Dict, Any, Tuple, Type, Optional, Union, List
 import types
 import sys
 
 from bugsnag.breadcrumbs import BreadcrumbType, OnBreadcrumbCallback
+from bugsnag.feature_flags import FeatureFlag
 from bugsnag.configuration import RequestConfiguration
 from bugsnag.client import Client
 
@@ -160,3 +161,22 @@ def _auto_leave_breadcrumb(
     type: BreadcrumbType
 ) -> None:
     default_client._auto_leave_breadcrumb(message, metadata, type)
+
+
+def add_feature_flag(
+    name: Union[str, bytes],
+    variant: Union[None, str, bytes] = None
+) -> None:
+    default_client.add_feature_flag(name, variant)
+
+
+def add_feature_flags(feature_flags: List[FeatureFlag]) -> None:
+    default_client.add_feature_flags(feature_flags)
+
+
+def clear_feature_flag(name: Union[str, bytes]) -> None:
+    default_client.clear_feature_flag(name)
+
+
+def clear_feature_flags() -> None:
+    default_client.clear_feature_flags()
