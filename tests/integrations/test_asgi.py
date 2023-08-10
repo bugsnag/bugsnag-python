@@ -333,3 +333,70 @@ class TestASGIMiddleware(IntegrationTest):
         assert len(exception2['stacktrace']) == 2
         assert 'other_func' == exception2['stacktrace'][0]['method']
         assert 'index' == exception2['stacktrace'][1]['method']
+
+    def test_feature_flags_dont_leak_between_requests(self):
+        count = 0
+        app = Starlette()
+
+        async def other_func():
+            nonlocal count
+            count += 1
+            bugsnag.add_feature_flag(str(count), 'b')
+
+            if count > 4:
+                bugsnag.clear_feature_flags()
+
+            raise ScaryException('fell winds!')
+
+        @app.route('/')
+        async def index(req):
+            nonlocal count
+            count += 1
+            bugsnag.add_feature_flag(str(count), 'a')
+
+            await other_func()
+            return PlainTextResponse('pineapple')
+
+        app = TestClient(BugsnagMiddleware(app))
+
+        with pytest.raises(Exception):
+            app.get('/')
+
+        assert self.sent_report_count == 1
+
+        payload = self.server.received[0]['json_body']
+        exception = payload['events'][0]['exceptions'][0]
+        feature_flags = payload['events'][0]['featureFlags']
+
+        assert exception['errorClass'] == 'tests.utils.ScaryException'
+        assert exception['message'] == 'fell winds!'
+        assert exception['stacktrace'][0]['method'] == 'other_func'
+        assert exception['stacktrace'][1]['method'] == 'index'
+
+        assert feature_flags == [
+            {'name': '1', 'variant': 'a'},
+            {'name': '2', 'variant': 'b'}
+        ]
+
+        with pytest.raises(Exception):
+            app.get('/')
+
+        assert self.sent_report_count == 2
+
+        payload = self.server.received[1]['json_body']
+        feature_flags = payload['events'][0]['featureFlags']
+
+        assert feature_flags == [
+            {'name': '3', 'variant': 'a'},
+            {'name': '4', 'variant': 'b'}
+        ]
+
+        with pytest.raises(Exception):
+            app.get('/')
+
+        assert self.sent_report_count == 3
+
+        payload = self.server.received[2]['json_body']
+        feature_flags = payload['events'][0]['featureFlags']
+
+        assert feature_flags == []
