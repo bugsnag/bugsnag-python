@@ -11,10 +11,13 @@ import bugsnag
 class AsyncIntegrationTest(IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.server = FakeBugsnag()
-        bugsnag.configure(asynchronous=True,
-                          endpoint=self.server.events_url,
-                          session_endpoint=self.server.sessions_url,
-                          api_key='ffffffffffffffffff')
+        self.sent_report_count = 0
+        bugsnag.configure(
+            asynchronous=True,
+            endpoint=self.server.events_url,
+            session_endpoint=self.server.sessions_url,
+            api_key='ffffffffffffffffff'
+        )
 
     async def asyncTearDown(self):
         bugsnag.legacy.default_client.uninstall_sys_hook()
@@ -29,7 +32,9 @@ class AsyncIntegrationTest(IsolatedAsyncioTestCase):
             while len(self.server.events_received) == 0:
                 await asyncio.sleep(0.1)
 
+            self.sent_report_count += 1
             return self.server.events_received.pop()
+
         try:
             return await asyncio.wait_for(poll(), timeout=1.0)
         except asyncio.TimeoutError:
