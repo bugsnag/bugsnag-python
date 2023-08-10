@@ -28,7 +28,8 @@ class AsyncIntegrationTest(IsolatedAsyncioTestCase):
         async def poll():
             while len(self.server.events_received) == 0:
                 await asyncio.sleep(0.1)
-            return self.server.events_received[0]
+
+            return self.server.events_received.pop()
         try:
             return await asyncio.wait_for(poll(), timeout=1.0)
         except asyncio.TimeoutError:
