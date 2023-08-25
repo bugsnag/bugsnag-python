@@ -18,19 +18,9 @@ from bugsnag.feature_flags import FeatureFlag, FeatureFlagDelegate
 from bugsnag.handlers import BugsnagHandler
 from bugsnag.sessiontracker import SessionTracker
 from bugsnag.utils import to_rfc3339
+from bugsnag.context import ContextLocalState
 
 __all__ = ('Client',)
-
-
-try:
-    from contextvars import ContextVar
-    _feature_flag_delegate_context_var = ContextVar(
-        'bugsnag-client-feature-flag-delegate',
-        default=None
-    )  # type: ContextVar[Optional[FeatureFlagDelegate]]
-except ImportError:
-    from bugsnag.utils import ThreadContextVar
-    _feature_flag_delegate_context_var = ThreadContextVar('bugsnag-client-feature-flag-delegate', default=None)  # type: ignore  # noqa: E501
 
 
 class Client:
@@ -45,6 +35,7 @@ class Client:
         self.configuration = configuration or Configuration()  # type: Configuration  # noqa: E501
         self.session_tracker = SessionTracker(self.configuration)
         self.configuration.configure(**kwargs)
+        self._context = ContextLocalState(self)
 
         if install_sys_hook:
             self.install_sys_hook()
@@ -237,14 +228,11 @@ class Client:
 
     @property
     def _feature_flag_delegate(self) -> FeatureFlagDelegate:
-        try:
-            feature_flag_delegate = _feature_flag_delegate_context_var.get()
-        except LookupError:
-            feature_flag_delegate = None
+        feature_flag_delegate = self._context.feature_flag_delegate
 
         if feature_flag_delegate is None:
             feature_flag_delegate = FeatureFlagDelegate()
-            _feature_flag_delegate_context_var.set(feature_flag_delegate)
+            self._context.feature_flag_delegate = feature_flag_delegate
 
         return feature_flag_delegate
 

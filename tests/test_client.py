@@ -36,9 +36,6 @@ class ClientTest(IntegrationTest):
                              asynchronous=False,
                              install_sys_hook=False)
 
-        self.client.clear_feature_flags()
-        legacy.clear_feature_flags()
-
     # Initialisation
 
     def test_init_no_configuration(self):
@@ -1591,16 +1588,16 @@ class ClientTest(IntegrationTest):
 
     def test_feature_flags_can_be_removed_with_legacy_client(self):
         legacy.add_feature_flags([
-            FeatureFlag('a', '1'),
-            FeatureFlag('b'),
-            FeatureFlag('c', '3')
+            FeatureFlag('x', '1'),
+            FeatureFlag('y'),
+            FeatureFlag('z', '3')
         ])
 
-        legacy.clear_feature_flag('b')
+        legacy.clear_feature_flag('y')
 
         assert legacy.default_client.feature_flags == [
-            FeatureFlag('a', '1'),
-            FeatureFlag('c', '3')
+            FeatureFlag('x', '1'),
+            FeatureFlag('z', '3')
         ]
 
     def test_feature_flags_can_be_cleared_with_legacy_client(self):
