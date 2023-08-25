@@ -4,26 +4,23 @@ import asyncio
 from time import sleep
 from threading import Thread
 from random import shuffle, randrange
-from bugsnag.context import ContextLocalState
-
-
-class Client:
-    def __init__(self):
-        self.state = ContextLocalState(self)
+from bugsnag.client import Client
+from bugsnag.feature_flags import FeatureFlag
+from bugsnag.context import create_new_context
 
 
 def test_state_is_stored_separately_per_thread():
     client1 = Client()
     client2 = Client()
 
-    assert client1.state.feature_flag_delegate is None
-    assert client2.state.feature_flag_delegate is None
+    assert client1.feature_flags == []
+    assert client2.feature_flags == []
 
-    client1.state.feature_flag_delegate = 'a delegate'
-    client2.state.feature_flag_delegate = 'another delegate'
+    client1.add_feature_flag('a')
+    client2.add_feature_flag('b')
 
-    assert client1.state.feature_flag_delegate == 'a delegate'
-    assert client2.state.feature_flag_delegate == 'another delegate'
+    assert client1.feature_flags == [FeatureFlag('a')]
+    assert client2.feature_flags == [FeatureFlag('b')]
 
     def thread_target(client1, client2, id):
         thread.exception = None
@@ -32,17 +29,28 @@ def test_state_is_stored_separately_per_thread():
             # sleep for a bit to allow other threads time to interfere
             sleep(randrange(0, 100) / 1000)
 
-            assert client1.state.feature_flag_delegate is None
-            assert client2.state.feature_flag_delegate is None
+            assert client1.feature_flags == []
+            assert client2.feature_flags == []
 
-            client1.state.feature_flag_delegate = 'client1 (#%d)' % id
-            client2.state.feature_flag_delegate = 'client2 (#%d)' % id
+            client1.add_feature_flag('client1 (#%d) 1' % id)
+            client2.add_feature_flag('client2 (#%d) 1' % id)
 
             # sleep for a bit to allow other threads time to interfere
             sleep(randrange(0, 100) / 1000)
 
-            assert client1.state.feature_flag_delegate == 'client1 (#%d)' % id
-            assert client2.state.feature_flag_delegate == 'client2 (#%d)' % id
+            client1.add_feature_flag('client1 (#%d) 2' % id)
+            client2.add_feature_flag('client2 (#%d) 2' % id)
+
+            assert client1.feature_flags == [
+                FeatureFlag('client1 (#%d) 1' % id),
+                FeatureFlag('client1 (#%d) 2' % id)
+            ]
+
+            assert client2.feature_flags == [
+                FeatureFlag('client2 (#%d) 1' % id),
+                FeatureFlag('client2 (#%d) 2' % id)
+            ]
+
         except Exception as e:
             thread.exception = e
 
@@ -68,8 +76,8 @@ def test_state_is_stored_separately_per_thread():
             raise thread.exception
 
     # changes in other threads should not affect this thread
-    assert client1.state.feature_flag_delegate == 'a delegate'
-    assert client2.state.feature_flag_delegate == 'another delegate'
+    assert client1.feature_flags == [FeatureFlag('a')]
+    assert client2.feature_flags == [FeatureFlag('b')]
 
 
 @pytest.mark.skipif(
@@ -80,42 +88,49 @@ def test_state_is_stored_separately_per_async_context():
     client1 = Client()
     client2 = Client()
 
-    assert client1.state.feature_flag_delegate is None
-    assert client2.state.feature_flag_delegate is None
+    assert client1.feature_flags == []
+    assert client2.feature_flags == []
+
+    client1.add_feature_flag('a')
+    client2.add_feature_flag('b')
+
+    assert client1.feature_flags == [FeatureFlag('a')]
+    assert client2.feature_flags == [FeatureFlag('b')]
 
     async def mutate_state(id):
-        client1.state.create_copy_for_context()
-        client2.state.create_copy_for_context()
-
-        client1.state.feature_flag_delegate = None
-        client2.state.feature_flag_delegate = None
+        create_new_context()
 
         await asyncio.sleep(randrange(0, 100) / 1000)
 
-        assert client1.state.feature_flag_delegate is None
-        assert client2.state.feature_flag_delegate is None
+        assert client1.feature_flags == []
+        assert client2.feature_flags == []
 
-        client1.state.feature_flag_delegate = 'client1 (#%d)' % id
+        client1.add_feature_flag('client1 (#%d) 1' % id)
         await asyncio.sleep(randrange(0, 100) / 1000)
 
-        client2.state.feature_flag_delegate = 'client2 (#%d)' % id
+        client2.add_feature_flag('client2 (#%d) 1' % id)
         await asyncio.sleep(randrange(0, 100) / 1000)
 
-        assert client1.state.feature_flag_delegate == 'client1 (#%d)' % id
-        assert client2.state.feature_flag_delegate == 'client2 (#%d)' % id
+        assert client1.feature_flags == [FeatureFlag('client1 (#%d) 1' % id)]
+        assert client2.feature_flags == [FeatureFlag('client2 (#%d) 1' % id)]
 
-        client1.state.feature_flag_delegate = 'client1 (#%d) 2' % id
-        client2.state.feature_flag_delegate = 'client2 (#%d) 2' % id
+        client1.add_feature_flag('client1 (#%d) 2' % id)
+        client2.add_feature_flag('client2 (#%d) 2' % id)
 
         await asyncio.sleep(randrange(0, 100) / 1000)
 
-        assert client1.state.feature_flag_delegate == 'client1 (#%d) 2' % id
-        assert client2.state.feature_flag_delegate == 'client2 (#%d) 2' % id
+        assert client1.feature_flags == [
+            FeatureFlag('client1 (#%d) 1' % id),
+            FeatureFlag('client1 (#%d) 2' % id),
+        ]
+
+        assert client2.feature_flags == [
+            FeatureFlag('client2 (#%d) 1' % id),
+            FeatureFlag('client2 (#%d) 2' % id),
+        ]
 
     async def test():
-        tasks = []
-        for i in range(10):
-            tasks.append(mutate_state(i))
+        tasks = [mutate_state(i) for i in range(10)]
 
         await asyncio.gather(*tasks)
 
@@ -126,5 +141,5 @@ def test_state_is_stored_separately_per_async_context():
     finally:
         loop.close()
 
-    assert client1.state.feature_flag_delegate is None
-    assert client2.state.feature_flag_delegate is None
+    assert client1.feature_flags == [FeatureFlag('a')]
+    assert client2.feature_flags == [FeatureFlag('b')]

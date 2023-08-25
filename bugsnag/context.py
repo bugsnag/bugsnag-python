@@ -1,4 +1,5 @@
 from weakref import WeakKeyDictionary
+from bugsnag.feature_flags import FeatureFlagDelegate
 
 
 try:
@@ -39,14 +40,8 @@ def _raw_set(client, key, value):
     client_context[client][key] = value
 
 
-def _raw_copy(client):
-    client_context = _client_contexts.get()
-
-    # no need to copy if there is no existing value
-    if client_context is None:
-        return
-
-    _client_contexts.set(client_context.copy())
+def create_new_context():
+    _client_contexts.set(None)
 
 
 FEATURE_FLAG_DELEGATE_KEY = 'feature_flag_delegate'
@@ -56,13 +51,13 @@ class ContextLocalState:
     def __init__(self, client):
         self._client = client
 
-    def create_copy_for_context(self):
-        _raw_copy(self._client)
-
     @property
-    def feature_flag_delegate(self):
-        return _raw_get(self._client, FEATURE_FLAG_DELEGATE_KEY)
+    def feature_flag_delegate(self) -> FeatureFlagDelegate:
+        delegate = _raw_get(self._client, FEATURE_FLAG_DELEGATE_KEY)
 
-    @feature_flag_delegate.setter
-    def feature_flag_delegate(self, new_delegate):
-        _raw_set(self._client, FEATURE_FLAG_DELEGATE_KEY, new_delegate)
+        # create a new delegate if one does not exist already
+        if delegate is None:
+            delegate = FeatureFlagDelegate()
+            _raw_set(self._client, FEATURE_FLAG_DELEGATE_KEY, delegate)
+
+        return delegate

@@ -14,7 +14,7 @@ from bugsnag.breadcrumbs import (
 )
 from bugsnag.configuration import Configuration, RequestConfiguration
 from bugsnag.event import Event
-from bugsnag.feature_flags import FeatureFlag, FeatureFlagDelegate
+from bugsnag.feature_flags import FeatureFlag
 from bugsnag.handlers import BugsnagHandler
 from bugsnag.sessiontracker import SessionTracker
 from bugsnag.utils import to_rfc3339
@@ -86,7 +86,7 @@ class Client:
             self.configuration,
             RequestConfiguration.get_instance(),
             **options,
-            feature_flag_delegate=self._feature_flag_delegate
+            feature_flag_delegate=self._context.feature_flag_delegate
         )
 
         self._leave_breadcrumb_for_event(event)
@@ -107,7 +107,7 @@ class Client:
             self.configuration,
             RequestConfiguration.get_instance(),
             **options,
-            feature_flag_delegate=self._feature_flag_delegate
+            feature_flag_delegate=self._context.feature_flag_delegate
         )
 
         self._leave_breadcrumb_for_event(event)
@@ -227,34 +227,24 @@ class Client:
         return BugsnagHandler(client=self, extra_fields=extra_fields)
 
     @property
-    def _feature_flag_delegate(self) -> FeatureFlagDelegate:
-        feature_flag_delegate = self._context.feature_flag_delegate
-
-        if feature_flag_delegate is None:
-            feature_flag_delegate = FeatureFlagDelegate()
-            self._context.feature_flag_delegate = feature_flag_delegate
-
-        return feature_flag_delegate
-
-    @property
     def feature_flags(self) -> List[FeatureFlag]:
-        return self._feature_flag_delegate.to_list()
+        return self._context.feature_flag_delegate.to_list()
 
     def add_feature_flag(
         self,
         name: Union[str, bytes],
         variant: Union[None, str, bytes] = None
     ) -> None:
-        self._feature_flag_delegate.add(name, variant)
+        self._context.feature_flag_delegate.add(name, variant)
 
     def add_feature_flags(self, feature_flags: List[FeatureFlag]) -> None:
-        self._feature_flag_delegate.merge(feature_flags)
+        self._context.feature_flag_delegate.merge(feature_flags)
 
     def clear_feature_flag(self, name: Union[str, bytes]) -> None:
-        self._feature_flag_delegate.remove(name)
+        self._context.feature_flag_delegate.remove(name)
 
     def clear_feature_flags(self) -> None:
-        self._feature_flag_delegate.clear()
+        self._context.feature_flag_delegate.clear()
 
     @property
     def breadcrumbs(self) -> List[Breadcrumb]:
