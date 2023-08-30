@@ -3,6 +3,7 @@ import sys
 from typing import Dict
 
 import bugsnag
+from bugsnag.context import create_new_context
 from bugsnag.wsgi import request_path
 from bugsnag.breadcrumbs import BreadcrumbType
 from bugsnag.legacy import _auto_leave_breadcrumb
@@ -59,6 +60,8 @@ class WrappedWSGIApp:
         self.environ = environ
 
         bugsnag.configure_request(wsgi_environ=self.environ)
+        create_new_context()
+
         try:
             if bugsnag.configuration.auto_capture_sessions:
                 bugsnag.start_session()
