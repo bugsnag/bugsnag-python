@@ -3,6 +3,7 @@ from tornado.web import RequestHandler, HTTPError
 from typing import Dict, Any  # noqa
 from urllib.parse import parse_qs, unquote_to_bytes
 from bugsnag.breadcrumbs import BreadcrumbType
+from bugsnag.context import create_new_context
 from bugsnag.utils import (
     is_json_content_type,
     remove_query_from_url,
@@ -130,6 +131,7 @@ class BugsnagRequestHandler(RequestHandler):
         bugsnag.configure().runtime_versions['tornado'] = tornado.version
         middleware.before_notify(self.add_tornado_request_to_notification)
         bugsnag.configure()._breadcrumbs.create_copy_for_context()
+        create_new_context()
 
         _auto_leave_breadcrumb(
             'http request',
