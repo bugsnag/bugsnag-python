@@ -7,6 +7,7 @@ from typing import Dict
 
 import bugsnag
 import bugsnag.django
+from bugsnag.context import create_new_context
 from bugsnag.legacy import _auto_leave_breadcrumb
 from bugsnag.breadcrumbs import BreadcrumbType
 from bugsnag.utils import remove_query_from_url
@@ -20,6 +21,7 @@ class BugsnagMiddleware(MiddlewareMixin):
     # pylint: disable-msg=R0201
     def process_request(self, request):
         bugsnag.configure_request(django_request=request)
+        create_new_context()
 
         _auto_leave_breadcrumb(
             'http request',
