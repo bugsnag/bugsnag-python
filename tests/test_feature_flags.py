@@ -49,6 +49,12 @@ def test_feature_flag_variant_is_unset_if_not_coercable():
     assert FeatureFlag('a', Unstringable()).variant is None
 
 
+def test_feature_flag_implements_repr():
+    assert repr(FeatureFlag('abc', 'xyz')) == "FeatureFlag('abc', 'xyz')"
+    assert repr(FeatureFlag('ayc', None)) == "FeatureFlag('ayc', None)"
+    assert repr(FeatureFlag('xyz')) == "FeatureFlag('xyz', None)"
+
+
 def test_feature_flag_can_be_converted_to_dict():
     flag = FeatureFlag('abc', 'xyz')
 

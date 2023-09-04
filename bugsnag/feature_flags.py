@@ -48,6 +48,9 @@ class FeatureFlag:
     def __hash__(self):
         return hash((self._name, self._variant))
 
+    def __repr__(self):
+        return 'FeatureFlag(%s, %s)' % (repr(self._name), repr(self._variant))
+
     def _coerce_variant(
         self,
         variant: Union[None, str, bytes]
