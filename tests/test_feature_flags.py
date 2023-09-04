@@ -58,19 +58,19 @@ def test_feature_flag_implements_repr():
 def test_feature_flag_can_be_converted_to_dict():
     flag = FeatureFlag('abc', 'xyz')
 
-    assert flag.to_dict() == {'name': 'abc', 'variant': 'xyz'}
+    assert flag.to_dict() == {'featureFlag': 'abc', 'variant': 'xyz'}
 
 
 def test_feature_flag_dict_does_not_have_variant_when_variant_is_not_given():
     flag = FeatureFlag('xyz')
 
-    assert flag.to_dict() == {'name': 'xyz'}
+    assert flag.to_dict() == {'featureFlag': 'xyz'}
 
 
 def test_feature_flag_dict_does_not_have_variant_when_variant_is_none():
     flag = FeatureFlag('abc', variant=None)
 
-    assert flag.to_dict() == {'name': 'abc'}
+    assert flag.to_dict() == {'featureFlag': 'abc'}
 
 
 def test_a_feature_flag_with_name_and_variant_is_valid():
@@ -135,10 +135,10 @@ def test_delegate_does_not_get_mutated_after_being_copied():
     delegate3 = delegate2.copy()
     delegate3.clear()
 
-    assert delegate1.to_json() == [{'name': 'abc', 'variant': '123'}]
+    assert delegate1.to_json() == [{'featureFlag': 'abc', 'variant': '123'}]
     assert delegate2.to_json() == [
-        {'name': 'abc', 'variant': '123'},
-        {'name': 'xyz', 'variant': '456'},
+        {'featureFlag': 'abc', 'variant': '123'},
+        {'featureFlag': 'xyz', 'variant': '456'},
     ]
     assert delegate3.to_json() == []
 
@@ -150,9 +150,9 @@ def test_delegate_can_add_flags_individually():
     delegate.add('again', 123)
 
     assert delegate.to_json() == [
-        {'name': 'abc', 'variant': 'xyz'},
-        {'name': 'another'},
-        {'name': 'again', 'variant': '123'}
+        {'featureFlag': 'abc', 'variant': 'xyz'},
+        {'featureFlag': 'another'},
+        {'featureFlag': 'again', 'variant': '123'}
     ]
 
 
@@ -163,8 +163,8 @@ def test_delegate_add_replaces_by_name_when_the_original_has_no_variant():
     delegate.add('abc', 123)
 
     assert delegate.to_json() == [
-        {'name': 'abc', 'variant': '123'},
-        {'name': 'another'}
+        {'featureFlag': 'abc', 'variant': '123'},
+        {'featureFlag': 'another'}
     ]
 
 
@@ -175,8 +175,8 @@ def test_delegate_add_replaces_by_name_when_the_replacement_has_no_variant():
     delegate.add('abc', None)
 
     assert delegate.to_json() == [
-        {'name': 'abc'},
-        {'name': 'another'}
+        {'featureFlag': 'abc'},
+        {'featureFlag': 'another'}
     ]
 
 
@@ -187,8 +187,8 @@ def test_delegate_add_replaces_by_name_when_both_have_variants():
     delegate.add('abc', '456')
 
     assert delegate.to_json() == [
-        {'name': 'abc', 'variant': '456'},
-        {'name': 'another'}
+        {'featureFlag': 'abc', 'variant': '456'},
+        {'featureFlag': 'another'}
     ]
 
 
@@ -199,7 +199,7 @@ def test_delegate_add_add_drops_flag_when_name_is_invalid(invalid_name):
     delegate.add(invalid_name, None)
 
     assert delegate.to_json() == [
-        {'name': 'abc', 'variant': '123'}
+        {'featureFlag': 'abc', 'variant': '123'}
     ]
 
 
@@ -213,10 +213,10 @@ def test_delegate_can_add_multiple_flags_at_once():
     ])
 
     assert delegate.to_json() == [
-        {'name': 'a', 'variant': 'xyz'},
-        {'name': 'b'},
-        {'name': 'c', 'variant': '111'},
-        {'name': 'd'}
+        {'featureFlag': 'a', 'variant': 'xyz'},
+        {'featureFlag': 'b'},
+        {'featureFlag': 'c', 'variant': '111'},
+        {'featureFlag': 'd'}
     ]
 
 
@@ -236,11 +236,11 @@ def test_delegate_can_merge_new_flags_with_existing_ones():
     ])
 
     assert delegate.to_json() == [
-        {'name': 'a'},
-        {'name': 'b'},
-        {'name': 'c', 'variant': '111'},
-        {'name': 'd', 'variant': 'xyz'},
-        {'name': 'e'}
+        {'featureFlag': 'a'},
+        {'featureFlag': 'b'},
+        {'featureFlag': 'c', 'variant': '111'},
+        {'featureFlag': 'd', 'variant': 'xyz'},
+        {'featureFlag': 'e'}
     ]
 
 
@@ -256,10 +256,10 @@ def test_delegate_merge_replaces_by_name_when_the_original_has_no_variant():
     ])
 
     assert delegate.to_json() == [
-        {'name': 'a', 'variant': 'xyz'},
-        {'name': 'b'},
-        {'name': 'c', 'variant': '111'},
-        {'name': 'd'}
+        {'featureFlag': 'a', 'variant': 'xyz'},
+        {'featureFlag': 'b'},
+        {'featureFlag': 'c', 'variant': '111'},
+        {'featureFlag': 'd'}
     ]
 
 
@@ -275,10 +275,10 @@ def test_delegate_merge_replaces_by_name_when_the_replacement_has_no_variant():
     ])
 
     assert delegate.to_json() == [
-        {'name': 'a'},
-        {'name': 'b'},
-        {'name': 'c', 'variant': '111'},
-        {'name': 'd'}
+        {'featureFlag': 'a'},
+        {'featureFlag': 'b'},
+        {'featureFlag': 'c', 'variant': '111'},
+        {'featureFlag': 'd'}
     ]
 
 
@@ -294,10 +294,10 @@ def test_delegate_merge_replaces_by_name_when_both_have_variants():
     ])
 
     assert delegate.to_json() == [
-        {'name': 'a', 'variant': 'abc'},
-        {'name': 'b'},
-        {'name': 'c', 'variant': '111'},
-        {'name': 'd'}
+        {'featureFlag': 'a', 'variant': 'abc'},
+        {'featureFlag': 'b'},
+        {'featureFlag': 'c', 'variant': '111'},
+        {'featureFlag': 'd'}
     ]
 
 
@@ -316,10 +316,10 @@ def test_delegate_merge_ignores_anything_that_isnt_a_feature_flag_instance():
     ])
 
     assert delegate.to_json() == [
-        {'name': 'a'},
-        {'name': 'b'},
-        {'name': 'c', 'variant': '111'},
-        {'name': 'd'}
+        {'featureFlag': 'a'},
+        {'featureFlag': 'b'},
+        {'featureFlag': 'c', 'variant': '111'},
+        {'featureFlag': 'd'}
     ]
 
 
@@ -333,8 +333,8 @@ def test_delegate_merge_drops_flag_when_name_is_invalid(invalid_name):
     ])
 
     assert delegate.to_json() == [
-        {'name': 'abc', 'variant': '123'},
-        {'name': 'xyz', 'variant': '789'}
+        {'featureFlag': 'abc', 'variant': '123'},
+        {'featureFlag': 'xyz', 'variant': '789'}
     ]
 
 
@@ -349,8 +349,8 @@ def test_delegate_can_remove_flags_by_name():
     delegate.remove('to be removed')
 
     assert delegate.to_json() == [
-        {'name': 'abc', 'variant': '123'},
-        {'name': 'xyz', 'variant': '789'}
+        {'featureFlag': 'abc', 'variant': '123'},
+        {'featureFlag': 'xyz', 'variant': '789'}
     ]
 
 
@@ -365,9 +365,9 @@ def test_delegate_remove_does_nothing_when_no_flag_has_the_given_name():
     delegate.remove('to be removed')
 
     assert delegate.to_json() == [
-        {'name': 'abc', 'variant': '123'},
-        {'name': 'to be kept', 'variant': '456'},
-        {'name': 'xyz', 'variant': '789'}
+        {'featureFlag': 'abc', 'variant': '123'},
+        {'featureFlag': 'to be kept', 'variant': '456'},
+        {'featureFlag': 'xyz', 'variant': '789'}
     ]
 
 

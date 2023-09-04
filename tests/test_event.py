@@ -535,7 +535,7 @@ class TestEvent(unittest.TestCase):
         feature_flags = payload['events'][0]['featureFlags']
 
         assert feature_flags == [
-            {'name': 'a', 'variant': '1'},
-            {'name': 'b'},
-            {'name': 'c', 'variant': '3'}
+            {'featureFlag': 'a', 'variant': '1'},
+            {'featureFlag': 'b'},
+            {'featureFlag': 'c', 'variant': '3'}
         ]

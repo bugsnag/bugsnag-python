@@ -122,8 +122,8 @@ class TestBottle(IntegrationTest):
         assert exception['stacktrace'][1]['method'] == 'index'
 
         assert feature_flags == [
-            {'name': 'a', 'variant': '1'},
-            {'name': 'b', 'variant': '2'}
+            {'featureFlag': 'a', 'variant': '1'},
+            {'featureFlag': 'b', 'variant': '2'}
         ]
 
         with pytest.raises(Exception):
@@ -135,8 +135,8 @@ class TestBottle(IntegrationTest):
         feature_flags = payload['events'][0]['featureFlags']
 
         assert feature_flags == [
-            {'name': 'a', 'variant': '3'},
-            {'name': 'b', 'variant': '4'}
+            {'featureFlag': 'a', 'variant': '3'},
+            {'featureFlag': 'b', 'variant': '4'}
         ]
 
         with pytest.raises(Exception):
