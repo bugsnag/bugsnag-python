@@ -374,8 +374,8 @@ class TestASGIMiddleware(IntegrationTest):
         assert exception['stacktrace'][1]['method'] == 'index'
 
         assert feature_flags == [
-            {'name': '1', 'variant': 'a'},
-            {'name': '2', 'variant': 'b'}
+            {'featureFlag': '1', 'variant': 'a'},
+            {'featureFlag': '2', 'variant': 'b'}
         ]
 
         with pytest.raises(Exception):
@@ -387,8 +387,8 @@ class TestASGIMiddleware(IntegrationTest):
         feature_flags = payload['events'][0]['featureFlags']
 
         assert feature_flags == [
-            {'name': '3', 'variant': 'a'},
-            {'name': '4', 'variant': 'b'}
+            {'featureFlag': '3', 'variant': 'a'},
+            {'featureFlag': '4', 'variant': 'b'}
         ]
 
         with pytest.raises(Exception):

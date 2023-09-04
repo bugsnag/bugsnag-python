@@ -1626,9 +1626,9 @@ class ClientTest(IntegrationTest):
         feature_flags = payload['events'][0]['featureFlags']
 
         assert feature_flags == [
-            {'name': 'a', 'variant': '1'},
-            {'name': 'b'},
-            {'name': 'c', 'variant': '3'}
+            {'featureFlag': 'a', 'variant': '1'},
+            {'featureFlag': 'b'},
+            {'featureFlag': 'c', 'variant': '3'}
         ]
 
     def test_mutating_client_feature_flags_does_not_affect_event(self):
@@ -1655,10 +1655,10 @@ class ClientTest(IntegrationTest):
         feature_flags = payload['events'][0]['featureFlags']
 
         assert feature_flags == [
-            {'name': 'a', 'variant': '1'},
-            {'name': 'b'},
-            {'name': 'c', 'variant': '3'},
-            {'name': 'd'}
+            {'featureFlag': 'a', 'variant': '1'},
+            {'featureFlag': 'b'},
+            {'featureFlag': 'c', 'variant': '3'},
+            {'featureFlag': 'd'}
         ]
 
         assert self.client.feature_flags == [

@@ -22,9 +22,9 @@ class FeatureFlag:
     # for JSON encoding the feature flag
     def to_dict(self) -> Dict[str, Union[str, bytes]]:
         if self._variant is None:
-            return {'name': self._name}
+            return {'featureFlag': self._name}
 
-        return {'name': self._name, 'variant': self._variant}
+        return {'featureFlag': self._name, 'variant': self._variant}
 
     # a FeatureFlag is valid if it has a non-empty string name and a variant
     # that's None or a string
