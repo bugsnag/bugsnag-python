@@ -286,18 +286,6 @@ def fully_qualified_class_name(obj):
     return module.__name__ + '.' + qualified_name
 
 
-def package_version(package_name):
-    try:
-        import pkg_resources
-    except ImportError:
-        return None
-    else:
-        try:
-            return pkg_resources.get_distribution(package_name).version
-        except pkg_resources.DistributionNotFound:
-            return None
-
-
 def _validate_setter(types, func, should_error=False):
     """
     Check that the first argument of a function is of a provided set of types

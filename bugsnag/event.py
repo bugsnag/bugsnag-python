@@ -11,8 +11,12 @@ from copy import deepcopy
 import bugsnag
 
 from bugsnag.breadcrumbs import Breadcrumb
-from bugsnag.utils import fully_qualified_class_name as class_name
-from bugsnag.utils import FilterDict, package_version, SanitizingJSONEncoder
+from bugsnag.notifier import _NOTIFIER_INFORMATION
+from bugsnag.utils import (
+    fully_qualified_class_name as class_name,
+    FilterDict,
+    SanitizingJSONEncoder
+)
 from bugsnag.error import Error
 from bugsnag.feature_flags import FeatureFlag, FeatureFlagDelegate
 
@@ -32,8 +36,8 @@ class Event:
     """
     An occurrence of an exception for delivery to Bugsnag
     """
-    NOTIFIER_NAME = "Python Bugsnag Notifier"
-    NOTIFIER_URL = "https://github.com/bugsnag/bugsnag-python"
+    NOTIFIER_NAME = _NOTIFIER_INFORMATION['name']
+    NOTIFIER_URL = _NOTIFIER_INFORMATION['url']
     PAYLOAD_VERSION = "4.0"
     SUPPORTED_SEVERITIES = ["info", "warning", "error"]
 
@@ -422,7 +426,6 @@ class Event:
 
     def _payload(self):
         # Fetch the notifier version from the package
-        notifier_version = package_version("bugsnag") or "unknown"
         encoder = SanitizingJSONEncoder(
             self.config.logger,
             separators=(',', ':'),
@@ -432,11 +435,7 @@ class Event:
         # Construct the payload dictionary
         return encoder.encode({
             "apiKey": self.api_key,
-            "notifier": {
-                "name": self.NOTIFIER_NAME,
-                "url": self.NOTIFIER_URL,
-                "version": notifier_version,
-            },
+            "notifier": _NOTIFIER_INFORMATION,
             "events": [{
                 "severity": self.severity,
                 "severityReason": self.severity_reason,

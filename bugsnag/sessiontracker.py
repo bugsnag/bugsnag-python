@@ -13,7 +13,8 @@ except ImportError:
     # flake8: noqa
     _session_info = ThreadContextVar('bugsnag-session', default={})  # type: ignore
 
-from bugsnag.utils import package_version, FilterDict, SanitizingJSONEncoder
+from bugsnag.notifier import _NOTIFIER_INFORMATION
+from bugsnag.utils import FilterDict, SanitizingJSONEncoder
 from bugsnag.event import Event
 
 
@@ -109,14 +110,8 @@ class SessionTracker:
             self.config.logger.debug("Not delivering due to release_stages")
             return
 
-        notifier_version = package_version('bugsnag') or 'unknown'
-
         payload = {
-            'notifier': {
-                'name': Event.NOTIFIER_NAME,
-                'url': Event.NOTIFIER_URL,
-                'version': notifier_version
-            },
+            'notifier': _NOTIFIER_INFORMATION,
             'device': FilterDict({
                 'hostname': self.config.hostname,
                 'runtimeVersions': self.config.runtime_versions
