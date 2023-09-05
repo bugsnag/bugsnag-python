@@ -4,20 +4,24 @@ on: [ push, pull_request ]
 
 jobs:
   test:
-    # TODO: a GH action update broke the 'ubuntu-latest' image
-    #       when it's fixed, we should switch back
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.5', '3.6', '3.7', '3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        os: ['ubuntu-latest']
+        include:
+          - python-version: '3.5'
+            os: 'ubuntu-20.04'
+          - python-version: '3.6'
+            os: 'ubuntu-20.04'
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -29,7 +33,7 @@ jobs:
       run: |
         pyversion=${{ matrix.python-version }}
         TOXFACTOR=${pyversion//.0-*/}
-        tox -f py${TOXFACTOR//./} --parallel --quiet
+        tox -f py${TOXFACTOR//./}
 
     - name: Upload code coverage data
       env:

@@ -12,7 +12,8 @@ from bugsnag import (
     Client,
     Configuration,
     BreadcrumbType,
-    Breadcrumb
+    Breadcrumb,
+    FeatureFlag
 )
 
 import bugsnag.legacy as legacy
@@ -1511,6 +1512,161 @@ class ClientTest(IntegrationTest):
         self.client.notify(exception)
 
         assert self.sent_report_count == 1
+
+    def test_feature_flags_can_be_added_individually(self):
+        self.client.add_feature_flag('one')
+        self.client.add_feature_flag('two', 'a')
+        self.client.add_feature_flag('three', None)
+
+        assert self.client.feature_flags == [
+            FeatureFlag('one'),
+            FeatureFlag('two', 'a'),
+            FeatureFlag('three')
+        ]
+
+    def test_feature_flags_can_be_added_in_bulk(self):
+        self.client.add_feature_flags([
+            FeatureFlag('a', '1'),
+            FeatureFlag('b'),
+            FeatureFlag('c', '3')
+        ])
+
+        assert self.client.feature_flags == [
+            FeatureFlag('a', '1'),
+            FeatureFlag('b'),
+            FeatureFlag('c', '3')
+        ]
+
+    def test_feature_flags_can_be_removed_individually(self):
+        self.client.add_feature_flags([
+            FeatureFlag('a', '1'),
+            FeatureFlag('b'),
+            FeatureFlag('c', '3')
+        ])
+
+        self.client.clear_feature_flag('b')
+
+        assert self.client.feature_flags == [
+            FeatureFlag('a', '1'),
+            FeatureFlag('c', '3')
+        ]
+
+    def test_feature_flags_can_be_cleared(self):
+        self.client.add_feature_flags([
+            FeatureFlag('a', '1'),
+            FeatureFlag('b'),
+            FeatureFlag('c', '3')
+        ])
+
+        self.client.clear_feature_flags()
+
+        assert self.client.feature_flags == []
+
+    def test_feature_flags_can_be_added_individually_with_legacy_client(self):
+        legacy.add_feature_flag('one')
+        legacy.add_feature_flag('two', 'a')
+        legacy.add_feature_flag('three', None)
+
+        assert legacy.default_client.feature_flags == [
+            FeatureFlag('one'),
+            FeatureFlag('two', 'a'),
+            FeatureFlag('three')
+        ]
+
+    def test_feature_flags_can_be_added_in_bulk_with_legacy_client(self):
+        legacy.add_feature_flags([
+            FeatureFlag('a', '1'),
+            FeatureFlag('b'),
+            FeatureFlag('c', '3')
+        ])
+
+        assert legacy.default_client.feature_flags == [
+            FeatureFlag('a', '1'),
+            FeatureFlag('b'),
+            FeatureFlag('c', '3')
+        ]
+
+    def test_feature_flags_can_be_removed_with_legacy_client(self):
+        legacy.add_feature_flags([
+            FeatureFlag('x', '1'),
+            FeatureFlag('y'),
+            FeatureFlag('z', '3')
+        ])
+
+        legacy.clear_feature_flag('y')
+
+        assert legacy.default_client.feature_flags == [
+            FeatureFlag('x', '1'),
+            FeatureFlag('z', '3')
+        ]
+
+    def test_feature_flags_can_be_cleared_with_legacy_client(self):
+        legacy.add_feature_flags([
+            FeatureFlag('a', '1'),
+            FeatureFlag('b'),
+            FeatureFlag('c', '3')
+        ])
+
+        legacy.clear_feature_flags()
+
+        assert legacy.default_client.feature_flags == []
+
+    def test_feature_flags_are_included_in_payload(self):
+        self.client.add_feature_flags([
+            FeatureFlag('a', '1'),
+            FeatureFlag('b'),
+            FeatureFlag('c', '3')
+        ])
+
+        self.client.notify(Exception('abc'))
+
+        assert self.sent_report_count == 1
+
+        payload = self.server.received[0]['json_body']
+        feature_flags = payload['events'][0]['featureFlags']
+
+        assert feature_flags == [
+            {'featureFlag': 'a', 'variant': '1'},
+            {'featureFlag': 'b'},
+            {'featureFlag': 'c', 'variant': '3'}
+        ]
+
+    def test_mutating_client_feature_flags_does_not_affect_event(self):
+        self.client.add_feature_flags([
+            FeatureFlag('a', '1'),
+            FeatureFlag('b'),
+            FeatureFlag('c', '3')
+        ])
+
+        def on_error(event):
+            # adding a flag to the event directly should affect the payload
+            event.add_feature_flag('d')
+
+            # adding a flag to the client should not affect the payload as the
+            # event has already been created
+            self.client.add_feature_flag('e')
+
+        self.client.configuration.middleware.before_notify(on_error)
+        self.client.notify(Exception('abc'))
+
+        assert self.sent_report_count == 1
+
+        payload = self.server.received[0]['json_body']
+        feature_flags = payload['events'][0]['featureFlags']
+
+        assert feature_flags == [
+            {'featureFlag': 'a', 'variant': '1'},
+            {'featureFlag': 'b'},
+            {'featureFlag': 'c', 'variant': '3'},
+            {'featureFlag': 'd'}
+        ]
+
+        assert self.client.feature_flags == [
+            FeatureFlag('a', '1'),
+            FeatureFlag('b'),
+            FeatureFlag('c', '3'),
+            FeatureFlag('e')
+        ]
 
 
 @pytest.mark.parametrize("metadata,type", [

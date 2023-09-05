@@ -9,6 +9,7 @@ import pytest
 from bugsnag.breadcrumbs import Breadcrumb, BreadcrumbType
 from bugsnag.configuration import Configuration
 from bugsnag.event import Event
+from bugsnag.feature_flags import FeatureFlag
 from tests import fixtures
 
 
@@ -448,3 +449,93 @@ class TestEvent(unittest.TestCase):
         payload = json.loads(event._payload())
 
         assert payload['events'][0]['breadcrumbs'] == []
+
+    def test_feature_flags_can_be_added_individually(self):
+        config = Configuration()
+        event = self.event_class(Exception('oops'), config, {})
+
+        assert event.feature_flags == []
+
+        event.add_feature_flag('one')
+        event.add_feature_flag('two', 'a')
+        event.add_feature_flag('three', None)
+
+        assert event.feature_flags == [
+            FeatureFlag('one'),
+            FeatureFlag('two', 'a'),
+            FeatureFlag('three')
+        ]
+
+    def test_feature_flags_can_be_added_in_bulk(self):
+        config = Configuration()
+        event = self.event_class(Exception('oops'), config, {})
+
+        assert event.feature_flags == []
+
+        event.add_feature_flags([
+            FeatureFlag('a', '1'),
+            FeatureFlag('b'),
+            FeatureFlag('c', '3')
+        ])
+
+        assert event.feature_flags == [
+            FeatureFlag('a', '1'),
+            FeatureFlag('b'),
+            FeatureFlag('c', '3')
+        ]
+
+    def test_feature_flags_can_be_removed_individually(self):
+        config = Configuration()
+        event = self.event_class(Exception('oops'), config, {})
+
+        assert event.feature_flags == []
+
+        event.add_feature_flags([
+            FeatureFlag('a', '1'),
+            FeatureFlag('b'),
+            FeatureFlag('c', '3')
+        ])
+
+        event.clear_feature_flag('b')
+
+        assert event.feature_flags == [
+            FeatureFlag('a', '1'),
+            FeatureFlag('c', '3')
+        ]
+
+    def test_feature_flags_can_be_cleared(self):
+        config = Configuration()
+        event = self.event_class(Exception('oops'), config, {})
+
+        assert event.feature_flags == []
+
+        event.add_feature_flags([
+            FeatureFlag('a', '1'),
+            FeatureFlag('b'),
+            FeatureFlag('c', '3')
+        ])
+
+        event.clear_feature_flags()
+
+        assert event.feature_flags == []
+
+    def test_feature_flags_are_included_in_payload(self):
+        config = Configuration()
+        event = self.event_class(Exception('oops'), config, {})
+
+        assert event.feature_flags == []
+
+        event.add_feature_flags([
+            FeatureFlag('a', '1'),
+            FeatureFlag('b'),
+            FeatureFlag('c', '3')
+        ])
+
+        payload = json.loads(event._payload())
+        feature_flags = payload['events'][0]['featureFlags']
+
+        assert feature_flags == [
+            {'featureFlag': 'a', 'variant': '1'},
+            {'featureFlag': 'b'},
+            {'featureFlag': 'c', 'variant': '3'}
+        ]

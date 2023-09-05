@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, List  # noqa
+from typing import Any, Dict, Optional, List, Union  # noqa
 import linecache
 import logging
 import os
@@ -11,9 +11,14 @@ from copy import deepcopy
 import bugsnag
 
 from bugsnag.breadcrumbs import Breadcrumb
-from bugsnag.utils import fully_qualified_class_name as class_name
-from bugsnag.utils import FilterDict, package_version, SanitizingJSONEncoder
+from bugsnag.notifier import _NOTIFIER_INFORMATION
+from bugsnag.utils import (
+    fully_qualified_class_name as class_name,
+    FilterDict,
+    SanitizingJSONEncoder
+)
 from bugsnag.error import Error
+from bugsnag.feature_flags import FeatureFlag, FeatureFlagDelegate
 
 __all__ = ('Event',)
 
@@ -31,8 +36,8 @@ class Event:
     """
     An occurrence of an exception for delivery to Bugsnag
     """
-    NOTIFIER_NAME = "Python Bugsnag Notifier"
-    NOTIFIER_URL = "https://github.com/bugsnag/bugsnag-python"
+    NOTIFIER_NAME = _NOTIFIER_INFORMATION['name']
+    NOTIFIER_URL = _NOTIFIER_INFORMATION['url']
     PAYLOAD_VERSION = "4.0"
     SUPPORTED_SEVERITIES = ["info", "warning", "error"]
 
@@ -65,6 +70,10 @@ class Event:
         self._breadcrumbs = [
             deepcopy(breadcrumb) for breadcrumb in config.breadcrumbs
         ]
+        self._feature_flag_delegate = options.pop(
+            'feature_flag_delegate',
+            FeatureFlagDelegate()
+        ).copy()
 
         def get_config(key):
             return options.pop(key, getattr(self.config, key))
@@ -237,6 +246,26 @@ class Event:
 
         self.metadata[name].update(dictionary)
 
+    @property
+    def feature_flags(self) -> List[FeatureFlag]:
+        return self._feature_flag_delegate.to_list()
+
+    def add_feature_flag(
+        self,
+        name: Union[str, bytes],
+        variant: Union[None, str, bytes] = None
+    ) -> None:
+        self._feature_flag_delegate.add(name, variant)
+
+    def add_feature_flags(self, feature_flags: List[FeatureFlag]) -> None:
+        self._feature_flag_delegate.merge(feature_flags)
+
+    def clear_feature_flag(self, name: Union[str, bytes]) -> None:
+        self._feature_flag_delegate.remove(name)
+
+    def clear_feature_flags(self) -> None:
+        self._feature_flag_delegate.clear()
+
     def _generate_error_list(
         self,
         exception: BaseException,
@@ -397,7 +426,6 @@ class Event:
 
     def _payload(self):
         # Fetch the notifier version from the package
-        notifier_version = package_version("bugsnag") or "unknown"
         encoder = SanitizingJSONEncoder(
             self.config.logger,
             separators=(',', ':'),
@@ -407,11 +435,7 @@ class Event:
         # Construct the payload dictionary
         return encoder.encode({
             "apiKey": self.api_key,
-            "notifier": {
-                "name": self.NOTIFIER_NAME,
-                "url": self.NOTIFIER_URL,
-                "version": notifier_version,
-            },
+            "notifier": _NOTIFIER_INFORMATION,
             "events": [{
                 "severity": self.severity,
                 "severityReason": self.severity_reason,
@@ -437,6 +461,7 @@ class Event:
                 "session": self.session,
                 "breadcrumbs": [
                     breadcrumb.to_dict() for breadcrumb in self._breadcrumbs
-                ]
+                ],
+                "featureFlags": self._feature_flag_delegate.to_json()
             }]
         })

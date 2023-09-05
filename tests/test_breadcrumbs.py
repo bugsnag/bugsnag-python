@@ -341,7 +341,7 @@ def test_the_breadcrumb_list_is_separate_on_different_async_contexts():
 
         await asyncio.gather(*tasks)
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
 
     try:
         loop.run_until_complete(test())
