@@ -5,6 +5,10 @@ Changelog
 
 ### Enhancements
 
+* Add support for feature flags & experiments
+  [#350](https://github.com/bugsnag/bugsnag-python/pull/350)
+  [#351](https://github.com/bugsnag/bugsnag-python/pull/351)
+
 * Remove use of deprecated `pkg_resources` module
   [#362](https://github.com/bugsnag/bugsnag-python/pull/362)
 
