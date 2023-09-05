@@ -1,7 +1,7 @@
 Changelog
 =========
 
-## v4.6.0 (TBD)
+## v4.6.0 (2023-09-05)
 
 ### Enhancements
 
