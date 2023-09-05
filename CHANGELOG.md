@@ -1,6 +1,13 @@
 Changelog
 =========
 
+## v4.6.0 (TBD)
+
+### Enhancements
+
+* Remove use of deprecated `pkg_resources` module
+  [#362](https://github.com/bugsnag/bugsnag-python/pull/362)
+
 ## v4.5.0 (2023-07-17)
 
 ### Enhancements
