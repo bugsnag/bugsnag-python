@@ -1,6 +1,13 @@
 Changelog
 =========
 
+## TBD
+
+### Enhancements
+
+* Avoid using deprecated `flask.__version__` attribute
+  [#365](https://github.com/bugsnag/bugsnag-python/pull/365)
+
 ## v4.6.0 (2023-09-05)
 
 ### Enhancements

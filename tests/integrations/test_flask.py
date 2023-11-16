@@ -261,16 +261,14 @@ class TestFlask(IntegrationTest):
         handle_exceptions(app)
         app.test_client().get('/hello')
 
-        self.assertEqual(len(self.server.received), 1)
+        assert self.server.sent_report_count == 1
 
         payload = self.server.received[0]['json_body']
-        device_data = payload['events'][0]['device']
+        versions = payload['events'][0]['device']['runtimeVersions']
 
-        self.assertEquals(len(device_data['runtimeVersions']), 2)
-        self.assertTrue(re.match(r'\d+\.\d+\.\d+',
-                                 device_data['runtimeVersions']['python']))
-        self.assertTrue(re.match(r'\d+\.\d+\.\d+',
-                                 device_data['runtimeVersions']['flask']))
+        assert re.match(r'^\d+\.\d+\.\d+$', versions['python'])
+        assert re.match(r'^\d+\.\d+\.\d+$', versions['flask'])
+        assert len(versions) == 2
 
     def test_read_request_in_callback(self):
         def callback(event):
