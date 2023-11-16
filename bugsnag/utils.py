@@ -461,3 +461,20 @@ except Exception:
             int(dt.microsecond / 1000),
             _get_timezone_offset(dt)
         )
+
+
+def get_package_version(package_name: str) -> Optional[str]:
+    try:
+        from importlib import metadata
+
+        return metadata.version(package_name)  # type: ignore
+    except ImportError:
+        try:
+            import pkg_resources
+        except ImportError:
+            return None
+
+        try:
+            return pkg_resources.get_distribution(package_name).version
+        except pkg_resources.DistributionNotFound:
+            return None
