@@ -38,9 +38,10 @@ class SessionTracker:
         self.delivery_thread = None
 
     def start_session(self):
-        if not self.auto_sessions and self.config.auto_capture_sessions:
+        if not self.auto_sessions:
             self.auto_sessions = True
             self.__start_delivery()
+
         start_time = strftime('%Y-%m-%dT%H:%M:00', gmtime())
         new_session = {
             'id': uuid4().hex,
