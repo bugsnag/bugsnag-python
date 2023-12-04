@@ -7,7 +7,11 @@ from tests.utils import FakeBugsnagServer
 @pytest.fixture
 def bugsnag_server():
     server = FakeBugsnagServer(wait_for_duplicate_requests=True)
-    bugsnag.configure(endpoint=server.url, api_key='3874876376238728937')
+    bugsnag.configure(
+        endpoint=server.url,
+        session_endpoint=server.url,
+        api_key='3874876376238728937'
+    )
 
     yield server
 

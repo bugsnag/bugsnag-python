@@ -5,7 +5,8 @@ from bugsnag import Configuration
 from bugsnag.delivery import (
     UrllibDelivery,
     RequestsDelivery,
-    create_default_delivery
+    create_default_delivery,
+    DEFAULT_SESSIONS_ENDPOINT
 )
 
 from tests.utils import IntegrationTest
@@ -16,9 +17,12 @@ class DeliveryTest(IntegrationTest):
     def setUp(self):
         super(DeliveryTest, self).setUp()
         self.config = Configuration()
-        self.config.configure(api_key='abc',
-                              endpoint=self.server.url,
-                              asynchronous=False)
+        self.config.configure(
+            api_key='abc',
+            endpoint=self.server.url,
+            session_endpoint=self.server.url,
+            asynchronous=False
+        )
 
     def test_urllib_delivery(self):
         UrllibDelivery().deliver(self.config, '{"legit": 4}')
@@ -40,6 +44,17 @@ class DeliveryTest(IntegrationTest):
     def test_misconfigured_sessions_endpoint_sends_warning(self):
         delivery = create_default_delivery()
 
+        self.config.configure(session_endpoint=self.server.url)
+
+        with warnings.catch_warnings(record=True) as warn:
+            warnings.simplefilter("always")
+            delivery.deliver_sessions(self.config, '{"apiKey":"aaab"}')
+            self.assertEqual(0, len(warn))
+            self.assertEqual(1, len(self.server.received))
+
+        self.server.received.clear()
+        self.config.configure(session_endpoint=DEFAULT_SESSIONS_ENDPOINT)
+
         with warnings.catch_warnings(record=True) as warn:
             warnings.simplefilter("always")
             delivery.deliver_sessions(self.config, '{"apiKey":"aaab"}')
@@ -49,11 +64,3 @@ class DeliveryTest(IntegrationTest):
             delivery.deliver_sessions(self.config, '{"apiKey":"aaab"}')
             self.assertEqual(1, len(warn))
             self.assertEqual(0, len(self.server.received))
-
-        self.config.configure(session_endpoint=self.server.url)
-
-        with warnings.catch_warnings(record=True) as warn:
-            warnings.simplefilter("always")
-            delivery.deliver_sessions(self.config, '{"apiKey":"aaab"}')
-            self.assertEqual(0, len(warn))
-            self.assertEqual(1, len(self.server.received))

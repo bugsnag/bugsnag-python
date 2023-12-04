@@ -16,6 +16,7 @@ def use_client_logger(func):
         client = Client(
             api_key='abcdef',
             endpoint=obj.server.url,
+            session_endpoint=obj.server.url,
             asynchronous=False
         )
 
@@ -44,10 +45,14 @@ def scoped_logger():
 class HandlersTest(IntegrationTest):
     def setUp(self):
         super(HandlersTest, self).setUp()
-        bugsnag.configure(endpoint=self.server.url,
-                          notify_release_stages=['dev'],
-                          release_stage='dev',
-                          asynchronous=False)
+        bugsnag.configure(
+            endpoint=self.server.url,
+            session_endpoint=self.server.url,
+            notify_release_stages=['dev'],
+            release_stage='dev',
+            asynchronous=False,
+        )
+
         bugsnag.logger.setLevel(logging.INFO)
 
     def tearDown(self):
@@ -238,6 +243,7 @@ class HandlersTest(IntegrationTest):
         client = Client(
             api_key='abcdef',
             endpoint=self.server.url,
+            session_endpoint=self.server.url,
             asynchronous=False
         )
 

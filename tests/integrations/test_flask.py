@@ -15,12 +15,16 @@ class TestFlask(IntegrationTest):
 
     def setUp(self):
         super(TestFlask, self).setUp()
-        bugsnag.configure(endpoint=self.server.url,
-                          api_key='3874876376238728937',
-                          notify_release_stages=['dev'],
-                          release_stage='dev',
-                          asynchronous=False,
-                          max_breadcrumbs=25)
+        bugsnag.configure(
+            endpoint=self.server.url,
+            session_endpoint=self.server.url,
+            api_key='3874876376238728937',
+            notify_release_stages=['dev'],
+            release_stage='dev',
+            asynchronous=False,
+            max_breadcrumbs=25,
+            auto_capture_sessions=False,
+        )
 
     def test_bugsnag_middleware_working(self):
         app = Flask("bugsnag")

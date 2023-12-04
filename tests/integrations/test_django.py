@@ -28,7 +28,7 @@ def pytest_configure(bugsnag_server):
 
 @pytest.fixture
 def django_client():
-    bugsnag.configure(max_breadcrumbs=25)
+    bugsnag.configure(max_breadcrumbs=25, auto_capture_sessions=False)
 
     client = Client()
     User.objects.create_user(
