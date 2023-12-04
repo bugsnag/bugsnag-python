@@ -4,6 +4,7 @@ import pytest
 import django
 from django.contrib.auth.models import User
 from django.test import Client
+from tests.utils import MissingRequestError
 try:
     from django.template.exceptions import TemplateSyntaxError
     template_error_class = 'django.template.exceptions.TemplateSyntaxError'
@@ -11,19 +12,9 @@ except ImportError:
     from django.template.base import TemplateSyntaxError
     template_error_class = 'django.template.base.TemplateSyntaxError'
 
-from django.conf import settings
-
-from tests.utils import MissingRequestError
 
 # All tests will be treated as marked.
 pytestmark = [pytest.mark.django_db]
-
-
-def pytest_configure(bugsnag_server):
-    settings.configure(BUGSNAG={
-        'endpoint': bugsnag_server.url,
-        'session_endpoint': bugsnag_server.url,
-    })
 
 
 @pytest.fixture
