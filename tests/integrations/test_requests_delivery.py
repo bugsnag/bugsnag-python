@@ -11,11 +11,12 @@ class RequestsDeliveryTest(IntegrationTest):
         self.config = Configuration()
         self.config.configure(
             api_key='abc',
-            asynchronous=False
+            asynchronous=False,
+            endpoint=self.server.url,
+            session_endpoint=self.server.url,
         )
 
     def test_requests_delivery(self):
-        self.config.configure(endpoint=self.server.url)
         RequestsDelivery().deliver(self.config, '{"legit": 4}')
 
         self.assertSentReportCount(1)
@@ -29,8 +30,6 @@ class RequestsDeliveryTest(IntegrationTest):
         )
 
     def test_requests_delivery_full_url(self):
-        self.config.configure(endpoint=self.server.url)
-
         RequestsDelivery().deliver(self.config, '{"good": 5}')
 
         self.assertSentReportCount(1)

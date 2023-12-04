@@ -14,10 +14,14 @@ import pytest
 class TestASGIMiddleware(IntegrationTest):
     def setUp(self):
         super(TestASGIMiddleware, self).setUp()
-        bugsnag.configure(endpoint=self.server.url,
-                          asynchronous=False,
-                          api_key='3874876376238728937',
-                          max_breadcrumbs=25)
+        bugsnag.configure(
+            endpoint=self.server.url,
+            session_endpoint=self.server.url,
+            asynchronous=False,
+            api_key='3874876376238728937',
+            max_breadcrumbs=25,
+            auto_capture_sessions=False,
+        )
 
     def test_normal_http_operation(self):
         async def app(scope, recv, send):

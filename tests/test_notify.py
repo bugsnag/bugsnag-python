@@ -15,11 +15,14 @@ class TestBugsnag(IntegrationTest):
 
     def setUp(self):
         super(TestBugsnag, self).setUp()
-        bugsnag.configure(endpoint=self.server.url,
-                          api_key='tomatoes',
-                          notify_release_stages=['dev'],
-                          release_stage='dev',
-                          asynchronous=False)
+        bugsnag.configure(
+            endpoint=self.server.url,
+            session_endpoint=self.server.url,
+            api_key='tomatoes',
+            notify_release_stages=['dev'],
+            release_stage='dev',
+            asynchronous=False,
+        )
 
     def test_asynchronous_notify(self):
         bugsnag.configure(asynchronous=True)
@@ -176,7 +179,7 @@ class TestBugsnag(IntegrationTest):
 
         self.assertEqual(4, event['metaData']['custom']['foo'])
         self.assertEqual('[FILTERED]', event['metaData']['custom']['bar'])
-        self.assertEqual(171, exception['stacktrace'][0]['lineNumber'])
+        self.assertEqual(174, exception['stacktrace'][0]['lineNumber'])
 
     def test_notify_ignore_class(self):
         bugsnag.configure(ignore_classes=['tests.utils.ScaryException'])
@@ -665,11 +668,14 @@ class TestBugsnag(IntegrationTest):
         self.assertEqual(event['metaData']['test']['array'], [1, 2])
 
     def test_middleware_stack_order(self):
-        client = bugsnag.Client(endpoint=self.server.url,
-                                api_key='tomatoes',
-                                notify_release_stages=['dev'],
-                                release_stage='dev',
-                                asynchronous=False)
+        client = bugsnag.Client(
+            endpoint=self.server.url,
+            session_endpoint=self.server.url,
+            api_key='tomatoes',
+            notify_release_stages=['dev'],
+            release_stage='dev',
+            asynchronous=False,
+        )
 
         def first_callback(event):
             event.metadata['test']['array'].append(1)
@@ -688,11 +694,14 @@ class TestBugsnag(IntegrationTest):
         self.assertEqual(event['metaData']['test']['array'], [1, 2])
 
     def test_internal_middleware_changes_severity(self):
-        client = bugsnag.Client(endpoint=self.server.url,
-                                api_key='tomatoes',
-                                notify_release_stages=['dev'],
-                                release_stage='dev',
-                                asynchronous=False)
+        client = bugsnag.Client(
+            endpoint=self.server.url,
+            session_endpoint=self.server.url,
+            api_key='tomatoes',
+            notify_release_stages=['dev'],
+            release_stage='dev',
+            asynchronous=False,
+        )
 
         def severity_callback(event):
             event.severity = 'info'
@@ -708,11 +717,14 @@ class TestBugsnag(IntegrationTest):
         self.assertEqual(event['severityReason']['type'], 'handledException')
 
     def test_internal_middleware_can_change_severity_reason(self):
-        client = bugsnag.Client(endpoint=self.server.url,
-                                api_key='tomatoes',
-                                notify_release_stages=['dev'],
-                                release_stage='dev',
-                                asynchronous=False)
+        client = bugsnag.Client(
+            endpoint=self.server.url,
+            session_endpoint=self.server.url,
+            api_key='tomatoes',
+            notify_release_stages=['dev'],
+            release_stage='dev',
+            asynchronous=False,
+        )
 
         def severity_reason_callback(event):
             event.severity_reason['type'] = 'testReason'

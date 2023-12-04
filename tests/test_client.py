@@ -30,11 +30,14 @@ class ClientTest(IntegrationTest):
     def setUp(self):
         super(ClientTest, self).setUp()
 
-        self.client = Client(api_key='testing client key',
-                             endpoint=self.server.url,
-                             project_root=os.path.join(os.getcwd(), 'tests'),
-                             asynchronous=False,
-                             install_sys_hook=False)
+        self.client = Client(
+            api_key='testing client key',
+            endpoint=self.server.url,
+            session_endpoint=self.server.url,
+            project_root=os.path.join(os.getcwd(), 'tests'),
+            asynchronous=False,
+            install_sys_hook=False
+        )
 
     # Initialisation
 
@@ -433,10 +436,18 @@ class ClientTest(IntegrationTest):
     # Multiple Clients
 
     def test_multiple_clients_different_keys(self):
-        client1 = Client(api_key='abc', asynchronous=False,
-                         endpoint=self.server.url)
-        client2 = Client(api_key='456', asynchronous=False,
-                         endpoint=self.server.url)
+        client1 = Client(
+            api_key='abc',
+            asynchronous=False,
+            endpoint=self.server.url,
+            session_endpoint=self.server.url,
+        )
+        client2 = Client(
+            api_key='456',
+            asynchronous=False,
+            endpoint=self.server.url,
+            session_endpoint=self.server.url,
+        )
 
         client1.notify(ScaryException('foo'))
         self.assertSentReportCount(1)
@@ -454,10 +465,19 @@ class ClientTest(IntegrationTest):
             pass
         sys.excepthook = excepthook
 
-        client1 = Client(api_key='abc', asynchronous=False,
-                         endpoint=self.server.url)
-        Client(api_key='456', asynchronous=False, endpoint=self.server.url,
-               install_sys_hook=False)
+        client1 = Client(
+            api_key='456',
+            asynchronous=False,
+            endpoint=self.server.url,
+            session_endpoint=self.server.url,
+        )
+        Client(
+            api_key='456',
+            asynchronous=False,
+            endpoint=self.server.url,
+            session_endpoint=self.server.url,
+            install_sys_hook=False,
+        )
 
         self.assertEqual(client1, sys.excepthook.bugsnag_client)
         self.assertEqual(client1.sys_excepthook, excepthook)
