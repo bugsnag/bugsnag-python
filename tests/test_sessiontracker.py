@@ -1,4 +1,3 @@
-import pytest
 import logging
 import platform
 
@@ -6,7 +5,7 @@ from bugsnag import Client
 from bugsnag.configuration import Configuration
 from bugsnag.notifier import _NOTIFIER_INFORMATION
 from bugsnag.sessiontracker import SessionTracker
-from tests.utils import IntegrationTest, MissingRequestError
+from tests.utils import IntegrationTest
 from unittest.mock import Mock
 
 
@@ -178,7 +177,7 @@ class TestConfiguration(IntegrationTest):
 
         assert self.server.sent_session_count == 1
 
-    def test_session_tracker_doesnt_start_delivery_when_auto_capture_is_off(self):  # noqa
+    def test_session_tracker_starts_delivery_when_auto_capture_is_off(self):
         client = Client(
             api_key='a05afff2bd2ffaf0ab0f52715bbdcffd',
             auto_capture_sessions=False,
@@ -188,11 +187,8 @@ class TestConfiguration(IntegrationTest):
 
         client.session_tracker.start_session()
 
-        assert client.session_tracker.delivery_thread is None
+        force_timer_to_fire(client.session_tracker.delivery_thread)
 
-        # we expect not to receive a session request, so this wait should
-        # timeout
-        with pytest.raises(MissingRequestError):
-            self.server.wait_for_session()
+        self.server.wait_for_session()
 
-        assert self.server.sent_session_count == 0
+        assert self.server.sent_session_count == 1
