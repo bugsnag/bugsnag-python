@@ -100,8 +100,6 @@ class TestConfiguration(IntegrationTest):
             api_key='a05afff2bd2ffaf0ab0f52715bbdcffd',
             session_endpoint=self.server.url,
             asynchronous=False,
-            release_stage="dev",
-            notify_release_stages=["prod"],
         )
         client.session_tracker.send_sessions()
         self.assertEqual(0, len(self.server.received))
@@ -123,8 +121,6 @@ class TestConfiguration(IntegrationTest):
             api_key=None,
             session_endpoint=self.server.url,
             asynchronous=False,
-            release_stage="dev",
-            notify_release_stages=["prod"],
         )
         client.session_tracker.start_session()
         client.session_tracker.send_sessions()
