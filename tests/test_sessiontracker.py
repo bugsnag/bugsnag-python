@@ -24,6 +24,7 @@ class TestConfiguration(IntegrationTest):
 
     def test_session_tracker_send_sessions_sends_sessions(self):
         client = Client(
+            api_key='a05afff2bd2ffaf0ab0f52715bbdcffd',
             auto_capture_sessions=True,
             session_endpoint=self.server.url,
             asynchronous=False
@@ -41,6 +42,7 @@ class TestConfiguration(IntegrationTest):
 
     def test_session_tracker_sets_details_from_config(self):
         client = Client(
+            api_key='a05afff2bd2ffaf0ab0f52715bbdcffd',
             auto_capture_sessions=True,
             session_endpoint=self.server.url,
             asynchronous=False
@@ -71,7 +73,7 @@ class TestConfiguration(IntegrationTest):
 
     def test_session_middleware_attaches_session_to_event(self):
         client = Client(
-            auto_capture_sessions=True,
+            api_key='a05afff2bd2ffaf0ab0f52715bbdcffd',
             session_endpoint=self.server.url + '/ignore',
             endpoint=self.server.url,
             asynchronous=False
@@ -95,7 +97,7 @@ class TestConfiguration(IntegrationTest):
 
     def test_session_tracker_does_not_send_when_nothing_to_send(self):
         client = Client(
-            api_key='fff',
+            api_key='a05afff2bd2ffaf0ab0f52715bbdcffd',
             session_endpoint=self.server.url,
             asynchronous=False,
             release_stage="dev",
@@ -106,7 +108,7 @@ class TestConfiguration(IntegrationTest):
 
     def test_session_tracker_does_not_send_when_disabled(self):
         client = Client(
-            api_key='fff',
+            api_key='a05afff2bd2ffaf0ab0f52715bbdcffd',
             session_endpoint=self.server.url,
             asynchronous=False,
             release_stage="dev",
