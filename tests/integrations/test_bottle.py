@@ -10,11 +10,12 @@ from tests.utils import IntegrationTest
 class TestBottle(IntegrationTest):
     def setUp(self):
         super(TestBottle, self).setUp()
-        bugsnag.configure(endpoint=self.server.url,
-                          session_endpoint=self.server.url,
-                          auto_capture_sessions=False,
-                          api_key='3874876376238728937',
-                          asynchronous=False)
+        bugsnag.configure(
+            endpoint=self.server.events_url,
+            session_endpoint=self.server.sessions_url,
+            api_key='3874876376238728937',
+            asynchronous=False,
+        )
 
     def test_routing_error(self):
         @route('/beans')
@@ -26,8 +27,8 @@ class TestBottle(IntegrationTest):
         app = TestApp(BugsnagMiddleware(app))
 
         self.assertRaises(Exception, lambda: app.get('/beans?password=123'))
-        self.assertEqual(1, len(self.server.received))
-        payload = self.server.received[0]['json_body']
+        self.assertEqual(1, len(self.server.events_received))
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         self.assertTrue(event['unhandled'])
         self.assertEqual(event['context'], 'GET /beans')
@@ -54,8 +55,8 @@ class TestBottle(IntegrationTest):
         app = TestApp(BugsnagMiddleware(app))
 
         self.assertRaises(Exception, lambda: app.get('/beans'))
-        self.assertEqual(1, len(self.server.received))
-        payload = self.server.received[0]['json_body']
+        self.assertEqual(1, len(self.server.events_received))
+        payload = self.server.events_received[0]['json_body']
         metadata = payload['events'][0]['metaData']
         self.assertEqual(metadata['environment']['PATH_INFO'], '/beans')
 
@@ -69,9 +70,9 @@ class TestBottle(IntegrationTest):
         app = TestApp(BugsnagMiddleware(app))
 
         self.assertRaises(Exception, lambda: app.get('/berries/red'))
-        self.assertEqual(1, len(self.server.received))
+        self.assertEqual(1, len(self.server.events_received))
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         self.assertTrue(event['unhandled'])
         self.assertEqual(event['context'], 'GET /berries/red')
@@ -112,7 +113,7 @@ class TestBottle(IntegrationTest):
 
         assert self.sent_report_count == 1
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         exception = payload['events'][0]['exceptions'][0]
         feature_flags = payload['events'][0]['featureFlags']
 
@@ -131,7 +132,7 @@ class TestBottle(IntegrationTest):
 
         assert self.sent_report_count == 2
 
-        payload = self.server.received[1]['json_body']
+        payload = self.server.events_received[1]['json_body']
         feature_flags = payload['events'][0]['featureFlags']
 
         assert feature_flags == [
@@ -144,7 +145,7 @@ class TestBottle(IntegrationTest):
 
         assert self.sent_report_count == 3
 
-        payload = self.server.received[2]['json_body']
+        payload = self.server.events_received[2]['json_body']
         feature_flags = payload['events'][0]['featureFlags']
 
         assert feature_flags == []

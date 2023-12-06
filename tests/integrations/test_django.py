@@ -19,7 +19,7 @@ pytestmark = [pytest.mark.django_db]
 
 @pytest.fixture
 def django_client():
-    bugsnag.configure(max_breadcrumbs=25, auto_capture_sessions=False)
+    bugsnag.configure(max_breadcrumbs=25)
 
     client = Client()
     User.objects.create_user(
@@ -42,11 +42,11 @@ def test_notify(bugsnag_server, django_client):
 
     assert response.status_code == 200
 
-    bugsnag_server.wait_for_request()
+    bugsnag_server.wait_for_event()
 
     assert bugsnag_server.sent_report_count == 1
 
-    payload = bugsnag_server.received[0]['json_body']
+    payload = bugsnag_server.events_received[0]['json_body']
     event = payload['events'][0]
     exception = event['exceptions'][0]
 
@@ -95,22 +95,22 @@ def test_enable_environment(bugsnag_server, django_client):
     response = django_client.get('/notes/handled-exception/?foo=strawberry')
     assert response.status_code == 200
 
-    bugsnag_server.wait_for_request()
+    bugsnag_server.wait_for_event()
 
     assert bugsnag_server.sent_report_count == 1
 
-    payload = bugsnag_server.received[0]['json_body']
+    payload = bugsnag_server.events_received[0]['json_body']
     event = payload['events'][0]
     assert event['metaData']['environment']['REQUEST_METHOD'] == 'GET'
 
 
 def test_notify_custom_info(bugsnag_server, django_client):
     django_client.get('/notes/handled-exception-custom/')
-    bugsnag_server.wait_for_request()
+    bugsnag_server.wait_for_event()
 
     assert bugsnag_server.sent_report_count == 1
 
-    payload = bugsnag_server.received[0]['json_body']
+    payload = bugsnag_server.events_received[0]['json_body']
     event = payload['events'][0]
 
     assert payload['apiKey'] == 'a05afff2bd2ffaf0ab0f52715bbdcffd'
@@ -125,11 +125,11 @@ def test_notify_post_body(bugsnag_server, django_client):
                                   content_type='application/json')
     assert response.status_code == 200
 
-    bugsnag_server.wait_for_request()
+    bugsnag_server.wait_for_event()
 
     assert bugsnag_server.sent_report_count == 1
 
-    payload = bugsnag_server.received[0]['json_body']
+    payload = bugsnag_server.events_received[0]['json_body']
     event = payload['events'][0]
     exception = event['exceptions'][0]
 
@@ -170,11 +170,11 @@ def test_unhandled_exception(bugsnag_server, django_client):
     with pytest.raises(RuntimeError):
         django_client.get('/notes/unhandled-crash/')
 
-    bugsnag_server.wait_for_request()
+    bugsnag_server.wait_for_event()
 
     assert bugsnag_server.sent_report_count == 1
 
-    payload = bugsnag_server.received[0]['json_body']
+    payload = bugsnag_server.events_received[0]['json_body']
     event = payload['events'][0]
     exception = event['exceptions'][0]
 
@@ -218,11 +218,11 @@ def test_unhandled_exception_chain(bugsnag_server, django_client):
     with pytest.raises(Exception):
         django_client.get('/notes/unhandled-crash-chain/')
 
-    bugsnag_server.wait_for_request()
+    bugsnag_server.wait_for_event()
 
     assert bugsnag_server.sent_report_count == 1
 
-    payload = bugsnag_server.received[0]['json_body']
+    payload = bugsnag_server.events_received[0]['json_body']
     event = payload['events'][0]
     exception = event['exceptions'][0]
 
@@ -266,11 +266,11 @@ def test_unhandled_exception_in_template(bugsnag_server, django_client):
     with pytest.raises(TemplateSyntaxError):
         django_client.get('/notes/unhandled-template-crash/')
 
-    bugsnag_server.wait_for_request()
+    bugsnag_server.wait_for_event()
 
     assert bugsnag_server.sent_report_count == 1
 
-    payload = bugsnag_server.received[0]['json_body']
+    payload = bugsnag_server.events_received[0]['json_body']
     event = payload['events'][0]
     exception = event['exceptions'][0]
 
@@ -299,7 +299,7 @@ def test_ignores_http404(bugsnag_server, django_client):
     assert response.status_code == 404
 
     with pytest.raises(MissingRequestError):
-        bugsnag_server.wait_for_request()
+        bugsnag_server.wait_for_event()
 
     assert bugsnag_server.sent_report_count == 0
 
@@ -308,11 +308,11 @@ def test_report_error_from_http404handler(bugsnag_server, django_client):
     with pytest.raises(Exception):
         django_client.get('/notes/poorly-handled-404')
 
-    bugsnag_server.wait_for_request()
+    bugsnag_server.wait_for_event()
 
     assert bugsnag_server.sent_report_count == 1
 
-    payload = bugsnag_server.received[0]['json_body']
+    payload = bugsnag_server.events_received[0]['json_body']
     event = payload['events'][0]
     exception = event['exceptions'][0]
 
@@ -356,11 +356,11 @@ def test_notify_appends_user_data(bugsnag_server, django_client):
     response = django_client.get('/notes/handled-exception/?foo=strawberry')
     assert response.status_code == 200
 
-    bugsnag_server.wait_for_request()
+    bugsnag_server.wait_for_event()
 
     assert bugsnag_server.sent_report_count == 1
 
-    payload = bugsnag_server.received[0]['json_body']
+    payload = bugsnag_server.events_received[0]['json_body']
     event = payload['events'][0]
     exception = event['exceptions'][0]
 
@@ -403,11 +403,11 @@ def test_crash_appends_user_data(bugsnag_server, django_client):
     with pytest.raises(RuntimeError):
         django_client.get('/notes/unhandled-crash/')
 
-    bugsnag_server.wait_for_request()
+    bugsnag_server.wait_for_event()
 
     assert bugsnag_server.sent_report_count == 1
 
-    payload = bugsnag_server.received[0]['json_body']
+    payload = bugsnag_server.events_received[0]['json_body']
     event = payload['events'][0]
     exception = event['exceptions'][0]
 
@@ -451,11 +451,11 @@ def test_read_request_in_callback(bugsnag_server, django_client):
     with pytest.raises(RuntimeError):
         django_client.get('/notes/crash-with-callback/?user_id=foo')
 
-    bugsnag_server.wait_for_request()
+    bugsnag_server.wait_for_event()
 
     assert bugsnag_server.sent_report_count == 1
 
-    payload = bugsnag_server.received[0]['json_body']
+    payload = bugsnag_server.events_received[0]['json_body']
     event = payload['events'][0]
     assert event['context'] == 'foo'
 
@@ -471,11 +471,11 @@ def test_bugsnag_middleware_leaves_breadcrumb_with_referer(
 
     assert response.status_code == 200
 
-    bugsnag_server.wait_for_request()
+    bugsnag_server.wait_for_event()
 
     assert bugsnag_server.sent_report_count == 1
 
-    payload = bugsnag_server.received[0]['json_body']
+    payload = bugsnag_server.events_received[0]['json_body']
     event = payload['events'][0]
     exception = event['exceptions'][0]
 

@@ -15,8 +15,8 @@ def use_client_logger(func):
     def wrapped(obj):
         client = Client(
             api_key='abcdef',
-            endpoint=obj.server.url,
-            session_endpoint=obj.server.url,
+            endpoint=obj.server.events_url,
+            session_endpoint=obj.server.sessions_url,
             asynchronous=False
         )
 
@@ -46,8 +46,8 @@ class HandlersTest(IntegrationTest):
     def setUp(self):
         super(HandlersTest, self).setUp()
         bugsnag.configure(
-            endpoint=self.server.url,
-            session_endpoint=self.server.url,
+            endpoint=self.server.events_url,
+            session_endpoint=self.server.sessions_url,
             notify_release_stages=['dev'],
             release_stage='dev',
             asynchronous=False,
@@ -69,7 +69,7 @@ class HandlersTest(IntegrationTest):
 
         self.assertSentReportCount(1)
 
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
         self.assertEqual('The system is down', exception['message'])
@@ -84,7 +84,7 @@ class HandlersTest(IntegrationTest):
 
         self.assertSentReportCount(1)
 
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
         self.assertEqual('LogCRITICAL', exception['errorClass'])
@@ -104,7 +104,7 @@ class HandlersTest(IntegrationTest):
 
         self.assertSentReportCount(1)
 
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
         self.assertEqual('LogERROR', exception['errorClass'])
@@ -123,7 +123,7 @@ class HandlersTest(IntegrationTest):
         logger.removeHandler(handler)
 
         self.assertSentReportCount(1)
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
         self.assertEqual('LogWARNING', exception['errorClass'])
@@ -143,7 +143,7 @@ class HandlersTest(IntegrationTest):
         logger.removeHandler(handler)
 
         self.assertSentReportCount(1)
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
         self.assertEqual('LogINFO', exception['errorClass'])
@@ -170,7 +170,7 @@ class HandlersTest(IntegrationTest):
         logger.removeHandler(handler)
 
         self.assertSentReportCount(1)
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
         self.assertEqual('LogMessage', exception['errorClass'])
@@ -184,7 +184,7 @@ class HandlersTest(IntegrationTest):
         logger.removeHandler(handler)
 
         self.assertSentReportCount(1)
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
         self.assertEqual('LogLevel 341', exception['errorClass'])
@@ -199,7 +199,7 @@ class HandlersTest(IntegrationTest):
         logger.removeHandler(handler)
 
         self.assertSentReportCount(1)
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
         self.assertEqual('LogOMG', exception['errorClass'])
@@ -218,7 +218,7 @@ class HandlersTest(IntegrationTest):
         logger.removeHandler(handler)
 
         self.assertSentReportCount(1)
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
         self.assertEqual(exception['errorClass'], 'tests.utils.ScaryException')
@@ -233,7 +233,7 @@ class HandlersTest(IntegrationTest):
         })
         logger.removeHandler(handler)
 
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual(event['metaData']['fruit'], {
             'grapes': 8, 'pears': 2
@@ -242,8 +242,8 @@ class HandlersTest(IntegrationTest):
     def test_client_metadata_fields(self):
         client = Client(
             api_key='abcdef',
-            endpoint=self.server.url,
-            session_endpoint=self.server.url,
+            endpoint=self.server.events_url,
+            session_endpoint=self.server.sessions_url,
             asynchronous=False
         )
 
@@ -258,7 +258,7 @@ class HandlersTest(IntegrationTest):
         })
         logger.removeHandler(handler)
 
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual(event['metaData']['fruit'], {
             'grapes': 8, 'pears': 2
@@ -269,7 +269,7 @@ class HandlersTest(IntegrationTest):
         logger.critical('The system is down')
         self.assertSentReportCount(1)
 
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
 
@@ -281,7 +281,7 @@ class HandlersTest(IntegrationTest):
 
         self.assertSentReportCount(1)
 
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
 
@@ -298,7 +298,7 @@ class HandlersTest(IntegrationTest):
 
         self.assertSentReportCount(1)
 
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
 
@@ -314,7 +314,7 @@ class HandlersTest(IntegrationTest):
         logger.warning('The system is down')
 
         self.assertSentReportCount(1)
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
 
@@ -330,7 +330,7 @@ class HandlersTest(IntegrationTest):
         logger.info('The system is down')
 
         self.assertSentReportCount(1)
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
 
@@ -355,7 +355,7 @@ class HandlersTest(IntegrationTest):
         }})
 
         self.assertSentReportCount(1)
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual(event['metaData']['food'], {
             'fruit': ['pear', 'grape']
@@ -379,7 +379,7 @@ class HandlersTest(IntegrationTest):
         logger.info('Everything is fine')
 
         self.assertSentReportCount(1)
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertTrue('tab' not in event['metaData'])
         self.assertEqual(event['metaData']['tab2'], {
@@ -401,7 +401,7 @@ class HandlersTest(IntegrationTest):
         logger.info('Everything is fine')
 
         self.assertSentReportCount(1)
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertTrue('tab' not in event['metaData'])
         self.assertTrue('tab2' not in event['metaData'])
@@ -421,7 +421,7 @@ class HandlersTest(IntegrationTest):
         logger.info('Everything is fine')
 
         self.assertSentReportCount(1)
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual(event['metaData']['tab'], {
             'key': 'value', 'key2': 'other value'
@@ -437,7 +437,7 @@ class HandlersTest(IntegrationTest):
         logger.info('Everything is fine')
 
         self.assertSentReportCount(1)
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
 
@@ -454,7 +454,7 @@ class HandlersTest(IntegrationTest):
         logger.info('Everything is fine')
 
         self.assertSentReportCount(1)
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
 
@@ -468,7 +468,7 @@ class HandlersTest(IntegrationTest):
         logger.info("This happened", extra={'groupingHash': '<hash value>'})
 
         self.assertSentReportCount(1)
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
 
@@ -502,7 +502,7 @@ class HandlersTest(IntegrationTest):
         # the notify caused by the 'error' log
         assert len(handler.client.configuration.breadcrumbs) == 2
 
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
 
@@ -645,7 +645,7 @@ class HandlersTest(IntegrationTest):
             # from the notify caused by the 'error' log
             assert len(default_client.configuration.breadcrumbs) == 2
 
-            json_body = self.server.received[0]['json_body']
+            json_body = self.server.events_received[0]['json_body']
             event = json_body['events'][0]
             exception = event['exceptions'][0]
 

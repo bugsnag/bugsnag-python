@@ -46,9 +46,9 @@ def test_app_task_operation(celery_app, celery_worker, bugsnag_server):
         assert square.delay(3).get(timeout=1) == 9
 
     with pytest.raises(MissingRequestError):
-        bugsnag_server.wait_for_request()
+        bugsnag_server.wait_for_event()
 
-    assert len(bugsnag_server.received) == 0
+    assert len(bugsnag_server.events_received) == 0
 
 
 def test_app_task_failure(celery_app, celery_worker, bugsnag_server):
@@ -75,12 +75,12 @@ def test_app_task_failure(celery_app, celery_worker, bugsnag_server):
         divide.delay(7, 0)
         # other (non-failing) tasks should behave normally
         result = cube.delay(3)
-        bugsnag_server.wait_for_request()
+        bugsnag_server.wait_for_event()
 
-    assert len(bugsnag_server.received) == 1
+    assert len(bugsnag_server.events_received) == 1
     assert result.get(timeout=1) == 27
 
-    payload = bugsnag_server.received[0]['json_body']
+    payload = bugsnag_server.events_received[0]['json_body']
     event = payload['events'][0]
     exception = event['exceptions'][0]
     task = event['metaData']['extra_data']
@@ -125,8 +125,8 @@ def test_app_task_failure_result_status(celery_app, celery_worker,
             # bugsnag should not suppress the exception
             failed_result.get(timeout=1)
 
-    bugsnag_server.wait_for_request()
-    assert len(bugsnag_server.received) == 1
+    bugsnag_server.wait_for_event()
+    assert len(bugsnag_server.events_received) == 1
     assert result.get(timeout=1) == 27
 
 
@@ -146,9 +146,9 @@ def test_shared_task_operation(celery_worker, bugsnag_server):
         result = add.delay(2, 2)
 
         with pytest.raises(MissingRequestError):
-            bugsnag_server.wait_for_request()
+            bugsnag_server.wait_for_event()
 
-    assert len(bugsnag_server.received) == 0
+    assert len(bugsnag_server.events_received) == 0
     assert result.get(timeout=1) == 4
 
 
@@ -166,11 +166,11 @@ def test_shared_task_failure(celery_worker, bugsnag_server):
     with celery_failure_handler():
         divide.delay(2, 0, parts='multi', cache=2)
 
-        bugsnag_server.wait_for_request()
+        bugsnag_server.wait_for_event()
 
-    assert len(bugsnag_server.received) == 1
+    assert len(bugsnag_server.events_received) == 1
 
-    payload = bugsnag_server.received[0]['json_body']
+    payload = bugsnag_server.events_received[0]['json_body']
     event = payload['events'][0]
     exception = event['exceptions'][0]
     task = event['metaData']['extra_data']
@@ -205,11 +205,11 @@ def test_task_failure_with_chained_exceptions(
 
     with celery_failure_handler():
         oh_no.delay()
-        bugsnag_server.wait_for_request()
+        bugsnag_server.wait_for_event()
 
-    assert len(bugsnag_server.received) == 1
+    assert len(bugsnag_server.events_received) == 1
 
-    payload = bugsnag_server.received[0]['json_body']
+    payload = bugsnag_server.events_received[0]['json_body']
     event = payload['events'][0]
 
     assert len(event['exceptions']) == 3

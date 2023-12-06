@@ -17,14 +17,13 @@ class TestWSGI(IntegrationTest):
     def setUp(self):
         super(TestWSGI, self).setUp()
         bugsnag.configure(
-            endpoint=self.server.url,
-            session_endpoint=self.server.url,
+            endpoint=self.server.events_url,
+            session_endpoint=self.server.sessions_url,
             api_key='3874876376238728937',
             notify_release_stages=['dev'],
             release_stage='dev',
             asynchronous=False,
             max_breadcrumbs=25,
-            auto_capture_sessions=False,
         )
 
     def test_bugsnag_middleware_working(self):
@@ -38,7 +37,7 @@ class TestWSGI(IntegrationTest):
         resp = app.get('/', status=200)
 
         self.assertEqual(resp.body, b'OK')
-        self.assertEqual(0, len(self.server.received))
+        self.assertEqual(0, len(self.server.events_received))
 
     def test_bugsnag_middleware_crash_on_start(self):
 
@@ -53,8 +52,8 @@ class TestWSGI(IntegrationTest):
             lambda: app.get('/beans?password=drowssap')
         )
 
-        self.assertEqual(1, len(self.server.received))
-        payload = self.server.received[0]['json_body']
+        self.assertEqual(1, len(self.server.events_received))
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         self.assertEqual(event['context'], 'GET /beans')
         assert 'environment' not in event['metaData']
@@ -82,8 +81,8 @@ class TestWSGI(IntegrationTest):
 
         self.assertRaises(SentinelError, lambda: app.get('/beans'))
 
-        self.assertEqual(1, len(self.server.received))
-        payload = self.server.received[0]['json_body']
+        self.assertEqual(1, len(self.server.events_received))
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         self.assertEqual(event['metaData']['environment']['PATH_INFO'],
                          '/beans')
@@ -109,8 +108,8 @@ class TestWSGI(IntegrationTest):
 
         self.assertRaises(SentinelError, lambda: app.get('/beans'))
 
-        self.assertEqual(1, len(self.server.received))
-        payload = self.server.received[0]['json_body']
+        self.assertEqual(1, len(self.server.events_received))
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         assert 'environment' not in event['metaData']
 
@@ -139,8 +138,8 @@ class TestWSGI(IntegrationTest):
 
         self.assertRaises(SentinelError, lambda: app.get('/beans'))
 
-        self.assertEqual(1, len(self.server.received))
-        payload = self.server.received[0]['json_body']
+        self.assertEqual(1, len(self.server.events_received))
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         assert 'environment' not in event['metaData']
 
@@ -166,8 +165,8 @@ class TestWSGI(IntegrationTest):
 
         self.assertRaises(SentinelError, lambda: app.get('/beans'))
 
-        self.assertEqual(1, len(self.server.received))
-        payload = self.server.received[0]['json_body']
+        self.assertEqual(1, len(self.server.events_received))
+        payload = self.server.events_received[0]['json_body']
         self.assertEqual(payload['events'][0]['user']['id'], '5')
 
         breadcrumbs = payload['events'][0]['breadcrumbs']
@@ -191,8 +190,8 @@ class TestWSGI(IntegrationTest):
 
         self.assertRaises(SentinelError, lambda: app.get('/beans'))
 
-        self.assertEqual(1, len(self.server.received))
-        payload = self.server.received[0]['json_body']
+        self.assertEqual(1, len(self.server.events_received))
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         self.assertEqual(event['metaData']['account'], {"paying": True})
 
@@ -221,8 +220,8 @@ class TestWSGI(IntegrationTest):
 
         self.assertRaises(SentinelError, lambda: app.get('/beans'))
 
-        self.assertEqual(1, len(self.server.received))
-        payload = self.server.received[0]['json_body']
+        self.assertEqual(1, len(self.server.events_received))
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         assert 'environment' not in event['metaData']
 
@@ -244,8 +243,8 @@ class TestWSGI(IntegrationTest):
 
         self.assertRaises(SentinelError, lambda: app.get('/beans'))
 
-        self.assertEqual(1, len(self.server.received))
-        payload = self.server.received[0]['json_body']
+        self.assertEqual(1, len(self.server.events_received))
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
 
         self.assertTrue(event['unhandled'])
@@ -279,8 +278,8 @@ class TestWSGI(IntegrationTest):
         with pytest.raises(SentinelError):
             app.get('/beans?user_id=my_id')
 
-        assert len(self.server.received) == 1
-        payload = self.server.received[0]['json_body']
+        assert len(self.server.events_received) == 1
+        payload = self.server.events_received[0]['json_body']
         assert payload['events'][0]['user']['id'] == 'my_id'
 
         breadcrumbs = payload['events'][0]['breadcrumbs']
@@ -303,8 +302,8 @@ class TestWSGI(IntegrationTest):
             lambda: app.get('/beans', headers=headers)
         )
 
-        self.assertEqual(1, len(self.server.received))
-        payload = self.server.received[0]['json_body']
+        self.assertEqual(1, len(self.server.events_received))
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         self.assertEqual(event['context'], 'GET /beans')
         assert 'environment' not in event['metaData']

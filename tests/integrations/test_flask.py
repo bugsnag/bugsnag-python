@@ -16,14 +16,13 @@ class TestFlask(IntegrationTest):
     def setUp(self):
         super(TestFlask, self).setUp()
         bugsnag.configure(
-            endpoint=self.server.url,
-            session_endpoint=self.server.url,
+            endpoint=self.server.events_url,
+            session_endpoint=self.server.sessions_url,
             api_key='3874876376238728937',
             notify_release_stages=['dev'],
             release_stage='dev',
             asynchronous=False,
             max_breadcrumbs=25,
-            auto_capture_sessions=False,
         )
 
     def test_bugsnag_middleware_working(self):
@@ -38,7 +37,7 @@ class TestFlask(IntegrationTest):
         resp = app.test_client().get('/hello')
         self.assertEqual(resp.data, b'OK')
 
-        self.assertEqual(0, len(self.server.received))
+        self.assertEqual(0, len(self.server.events_received))
 
     def test_bugsnag_crash(self):
         app = Flask("bugsnag")
@@ -50,8 +49,8 @@ class TestFlask(IntegrationTest):
         handle_exceptions(app)
         app.test_client().get('/hello?password=secret')
 
-        self.assertEqual(1, len(self.server.received))
-        payload = self.server.received[0]['json_body']
+        self.assertEqual(1, len(self.server.events_received))
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         self.assertEqual(event['exceptions'][0]['errorClass'],
                          'test_flask.SentinelError')
@@ -78,8 +77,8 @@ class TestFlask(IntegrationTest):
         handle_exceptions(app)
         app.test_client().get('/hello')
 
-        self.assertEqual(1, len(self.server.received))
-        payload = self.server.received[0]['json_body']
+        self.assertEqual(1, len(self.server.events_received))
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         self.assertEqual(event['metaData']['environment']['REMOTE_ADDR'],
                          '127.0.0.1')
@@ -95,8 +94,8 @@ class TestFlask(IntegrationTest):
         handle_exceptions(app)
         app.test_client().get('/hello')
 
-        self.assertEqual(1, len(self.server.received))
-        payload = self.server.received[0]['json_body']
+        self.assertEqual(1, len(self.server.events_received))
+        payload = self.server.events_received[0]['json_body']
         self.assertEqual(payload['events'][0]['metaData']['request']['url'],
                          'http://localhost/hello')
 
@@ -116,16 +115,16 @@ class TestFlask(IntegrationTest):
             client.get('/hello')
             client.get('/hello')
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         self.assertEqual(event['metaData'].get('hello'), None)
         self.assertEqual(event['metaData']['again']['hello'], 'world')
 
-        payload = self.server.received[1]['json_body']
+        payload = self.server.events_received[1]['json_body']
         event = payload['events'][0]
         self.assertEqual(event['metaData']['hello']['world'], 'once')
         self.assertEqual(event['metaData'].get('again'), None)
-        self.assertEqual(2, len(self.server.received))
+        self.assertEqual(2, len(self.server.events_received))
 
     def test_bugsnag_includes_posted_json_data(self):
         app = Flask("bugsnag")
@@ -148,8 +147,8 @@ class TestFlask(IntegrationTest):
             '/ajax', data=json.dumps(body),
             content_type='application/hal+json')
 
-        self.assertEqual(1, len(self.server.received))
-        payload = self.server.received[0]['json_body']
+        self.assertEqual(1, len(self.server.events_received))
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         self.assertEqual(event['exceptions'][0]['errorClass'],
                          'test_flask.SentinelError')
@@ -167,8 +166,8 @@ class TestFlask(IntegrationTest):
         handle_exceptions(app)
         app.test_client().post(
             '/ajax', data='{"key": "value"', content_type='application/json')
-        self.assertEqual(1, len(self.server.received))
-        payload = self.server.received[0]['json_body']
+        self.assertEqual(1, len(self.server.events_received))
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         self.assertEqual(event['exceptions'][0]['errorClass'],
                          'test_flask.SentinelError')
@@ -190,8 +189,8 @@ class TestFlask(IntegrationTest):
         app.test_client().put(
             '/form', data='_data', content_type='application/octet-stream')
 
-        self.assertEqual(1, len(self.server.received))
-        payload = self.server.received[0]['json_body']
+        self.assertEqual(1, len(self.server.events_received))
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         self.assertEqual(event['metaData']['account']['premium'], False)
         self.assertEqual(event['metaData']['account']['id'], 1)
@@ -207,8 +206,8 @@ class TestFlask(IntegrationTest):
         app.test_client().put(
             '/form', data='_data', content_type='application/octet-stream')
 
-        self.assertEqual(1, len(self.server.received))
-        payload = self.server.received[0]['json_body']
+        self.assertEqual(1, len(self.server.events_received))
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         self.assertEqual(event['exceptions'][0]['errorClass'],
                          'test_flask.SentinelError')
@@ -229,8 +228,8 @@ class TestFlask(IntegrationTest):
         handle_exceptions(app)
         app.test_client().get('/hello')
 
-        self.assertEqual(1, len(self.server.received))
-        payload = self.server.received[0]['json_body']
+        self.assertEqual(1, len(self.server.events_received))
+        payload = self.server.events_received[0]['json_body']
         self.assertEqual(payload['events'][0]['context'],
                          'custom_context_event_testing')
 
@@ -244,8 +243,8 @@ class TestFlask(IntegrationTest):
         handle_exceptions(app)
         app.test_client().get("/test")
 
-        self.assertEqual(1, len(self.server.received))
-        payload = self.server.received[0]['json_body']
+        self.assertEqual(1, len(self.server.events_received))
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         self.assertTrue(event['unhandled'])
         self.assertEqual(event['severityReason'], {
@@ -267,7 +266,7 @@ class TestFlask(IntegrationTest):
 
         assert self.server.sent_report_count == 1
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         versions = payload['events'][0]['device']['runtimeVersions']
 
         assert re.match(r'^\d+\.\d+\.\d+$', versions['python'])
@@ -289,8 +288,8 @@ class TestFlask(IntegrationTest):
         handle_exceptions(app)
         app.test_client().get('/hello?id=foo')
 
-        assert len(self.server.received) == 1
-        payload = self.server.received[0]['json_body']
+        assert len(self.server.events_received) == 1
+        payload = self.server.events_received[0]['json_body']
         assert payload['events'][0]['user']['id'] == 'foo'
 
     def test_bugsnag_middleware_leaves_breadcrumb_with_referer(self):
@@ -304,8 +303,8 @@ class TestFlask(IntegrationTest):
         headers = {'referer': 'http://localhost/hi?password=hunter2'}
         app.test_client().get('/hello', headers=headers)
 
-        self.assertEqual(1, len(self.server.received))
-        payload = self.server.received[0]['json_body']
+        self.assertEqual(1, len(self.server.events_received))
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         self.assertEqual(event['exceptions'][0]['errorClass'],
                          'test_flask.SentinelError')
@@ -338,7 +337,7 @@ class TestFlask(IntegrationTest):
 
         assert self.sent_report_count == 1
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
 
         assert len(event['exceptions']) == 2

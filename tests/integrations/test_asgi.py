@@ -15,12 +15,11 @@ class TestASGIMiddleware(IntegrationTest):
     def setUp(self):
         super(TestASGIMiddleware, self).setUp()
         bugsnag.configure(
-            endpoint=self.server.url,
-            session_endpoint=self.server.url,
+            endpoint=self.server.events_url,
+            session_endpoint=self.server.sessions_url,
             asynchronous=False,
             api_key='3874876376238728937',
             max_breadcrumbs=25,
-            auto_capture_sessions=False,
         )
 
     def test_normal_http_operation(self):
@@ -50,7 +49,7 @@ class TestASGIMiddleware(IntegrationTest):
         self.assertRaises(ScaryException, lambda: app.get('/'))
         self.assertSentReportCount(1)
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         request = payload['events'][0]['metaData']['request']
         self.assertEqual('/', request['path'])
         self.assertEqual('GET', request['httpMethod'])
@@ -88,7 +87,7 @@ class TestASGIMiddleware(IntegrationTest):
         self.assertRaises(ScaryException, lambda: app.get('/'))
         self.assertSentReportCount(1)
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         environment = payload['events'][0]['metaData']['environment']
 
         self.assertEqual('/', environment['path'])
@@ -120,7 +119,7 @@ class TestASGIMiddleware(IntegrationTest):
         )
         self.assertSentReportCount(1)
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         headers = payload['events'][0]['metaData']['request']['headers']
 
         self.assertEqual('[FILTERED]', headers['authorization'])
@@ -134,7 +133,7 @@ class TestASGIMiddleware(IntegrationTest):
         self.assertRaises(ScaryException, lambda: app.get('/'))
         self.assertSentReportCount(1)
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         request = payload['events'][0]['metaData']['request']
         self.assertEqual('/', request['path'])
         self.assertEqual('GET', request['httpMethod'])
@@ -171,7 +170,7 @@ class TestASGIMiddleware(IntegrationTest):
         self.assertRaises(ScaryException, lambda: app.get('/'))
         self.assertSentReportCount(1)
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         metadata = payload['events'][0]['metaData']
         request = metadata['request']
         self.assertEqual('/', request['path'])
@@ -206,7 +205,7 @@ class TestASGIMiddleware(IntegrationTest):
 
         self.assertSentReportCount(1)
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         metadata = payload['events'][0]['metaData']
         request = metadata['request']
         self.assertEqual('/', request['path'])
@@ -242,7 +241,7 @@ class TestASGIMiddleware(IntegrationTest):
         )
         self.assertSentReportCount(1)
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         request = payload['events'][0]['metaData']['request']
         self.assertEqual(
             'http://testserver/path?password=[FILTERED]',
@@ -276,7 +275,7 @@ class TestASGIMiddleware(IntegrationTest):
         )
         self.assertSentReportCount(1)
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         request = payload['events'][0]['metaData']['request']
         self.assertEqual('/', request['path'])
         self.assertEqual('GET', request['httpMethod'])
@@ -320,7 +319,7 @@ class TestASGIMiddleware(IntegrationTest):
 
         assert self.sent_report_count == 1
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
 
         print(payload)
         assert len(payload['events'][0]['exceptions']) == 2
@@ -368,7 +367,7 @@ class TestASGIMiddleware(IntegrationTest):
 
         assert self.sent_report_count == 1
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         exception = payload['events'][0]['exceptions'][0]
         feature_flags = payload['events'][0]['featureFlags']
 
@@ -387,7 +386,7 @@ class TestASGIMiddleware(IntegrationTest):
 
         assert self.sent_report_count == 2
 
-        payload = self.server.received[1]['json_body']
+        payload = self.server.events_received[1]['json_body']
         feature_flags = payload['events'][0]['featureFlags']
 
         assert feature_flags == [
@@ -400,7 +399,7 @@ class TestASGIMiddleware(IntegrationTest):
 
         assert self.sent_report_count == 3
 
-        payload = self.server.received[2]['json_body']
+        payload = self.server.events_received[2]['json_body']
         feature_flags = payload['events'][0]['featureFlags']
 
         assert feature_flags == []
