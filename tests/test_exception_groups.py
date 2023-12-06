@@ -25,10 +25,10 @@ def test_exception_groups_are_unwrapped(bugsnag_server):
 
     bugsnag.notify(fixtures.exception_group_with_no_cause)
 
-    bugsnag_server.wait_for_request()
+    bugsnag_server.wait_for_event()
     assert bugsnag_server.sent_report_count == 1
 
-    payload = bugsnag_server.received[0]['json_body']
+    payload = bugsnag_server.events_received[0]['json_body']
     exceptions = payload['events'][0]['exceptions']
 
     # there should be 1 ExceptionGroup with 4 sub-exceptions
@@ -90,10 +90,10 @@ def test_base_exception_group_subclasses_are_unwrapped(bugsnag_server):
 
     bugsnag.notify(fixtures.base_exception_group_subclass)
 
-    bugsnag_server.wait_for_request()
+    bugsnag_server.wait_for_event()
     assert bugsnag_server.sent_report_count == 1
 
-    payload = bugsnag_server.received[0]['json_body']
+    payload = bugsnag_server.events_received[0]['json_body']
     exceptions = payload['events'][0]['exceptions']
 
     # there should be 1 MyExceptionGroup with 3 sub-exceptions
@@ -154,10 +154,10 @@ def test_do_not_recurse_into_sub_exception_groups(bugsnag_server):
 
     bugsnag.notify(fixtures.exception_group_with_nested_group)
 
-    bugsnag_server.wait_for_request()
+    bugsnag_server.wait_for_event()
     assert bugsnag_server.sent_report_count == 1
 
-    payload = bugsnag_server.received[0]['json_body']
+    payload = bugsnag_server.events_received[0]['json_body']
     exceptions = payload['events'][0]['exceptions']
 
     # there should be 1 ExceptionGroup with 3 sub-exceptions
@@ -248,10 +248,10 @@ def test_exception_group_implicit_cause_is_traversed(bugsnag_server):
 
     bugsnag.notify(fixtures.exception_group_with_implicit_cause)
 
-    bugsnag_server.wait_for_request()
+    bugsnag_server.wait_for_event()
     assert bugsnag_server.sent_report_count == 1
 
-    payload = bugsnag_server.received[0]['json_body']
+    payload = bugsnag_server.events_received[0]['json_body']
     exceptions = payload['events'][0]['exceptions']
 
     print(exceptions)
@@ -355,10 +355,10 @@ def test_exception_group_explicit_cause_is_traversed(bugsnag_server):
 
     bugsnag.notify(fixtures.exception_group_with_explicit_cause)
 
-    bugsnag_server.wait_for_request()
+    bugsnag_server.wait_for_event()
     assert bugsnag_server.sent_report_count == 1
 
-    payload = bugsnag_server.received[0]['json_body']
+    payload = bugsnag_server.events_received[0]['json_body']
     exceptions = payload['events'][0]['exceptions']
 
     print(exceptions)

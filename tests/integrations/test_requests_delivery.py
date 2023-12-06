@@ -12,8 +12,8 @@ class RequestsDeliveryTest(IntegrationTest):
         self.config.configure(
             api_key='abc',
             asynchronous=False,
-            endpoint=self.server.url,
-            session_endpoint=self.server.url,
+            endpoint=self.server.events_url,
+            session_endpoint=self.server.sessions_url,
         )
 
     def test_requests_delivery(self):
@@ -21,7 +21,7 @@ class RequestsDeliveryTest(IntegrationTest):
 
         self.assertSentReportCount(1)
 
-        request = self.server.received[0]
+        request = self.server.events_received[0]
 
         self.assertEqual(request['json_body'], {"legit": 4})
         self.assertEqual(
@@ -34,7 +34,7 @@ class RequestsDeliveryTest(IntegrationTest):
 
         self.assertSentReportCount(1)
 
-        request = self.server.received[0]
+        request = self.server.events_received[0]
 
         self.assertEqual(request['json_body'], {'good': 5})
 

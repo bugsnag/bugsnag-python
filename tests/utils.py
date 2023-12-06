@@ -27,7 +27,8 @@ class IntegrationTest(unittest.TestCase):
         cls.server = FakeBugsnagServer(wait_for_duplicate_requests=False)
 
     def setUp(self):
-        self.server.received = []
+        self.server.events_received = []
+        self.server.sessions_received = []
 
     def tearDown(self):
         bugsnag.legacy.default_client.uninstall_sys_hook()
@@ -41,10 +42,10 @@ class IntegrationTest(unittest.TestCase):
         cls.server.shutdown()
 
     def assertSentReportCount(self, count):
-        self.assertEqual(len(self.server.received), count)
+        self.assertEqual(len(self.server.events_received), count)
 
     def assertExceptionName(self, received_index, event_index, name):
-        json_body = self.server.received[received_index]['json_body']
+        json_body = self.server.events_received[received_index]['json_body']
         event = json_body['events'][event_index]
         exception = event['exceptions'][0]
         self.assertEqual(exception['errorClass'], name)
@@ -52,6 +53,10 @@ class IntegrationTest(unittest.TestCase):
     @property
     def sent_report_count(self) -> int:
         return self.server.sent_report_count
+
+    @property
+    def sent_session_count(self) -> int:
+        return self.server.sent_session_count
 
 
 class FakeBugsnagServer(object):
@@ -61,12 +66,12 @@ class FakeBugsnagServer(object):
     """
 
     def __init__(self, wait_for_duplicate_requests: bool):
-        self.received = []
+        self.events_received = []
+        self.sessions_received = []
         self.paused = False
         self.wait_for_duplicate_requests = wait_for_duplicate_requests
 
         class Handler(SimpleHTTPRequestHandler):
-
             def do_POST(handler):
                 start = time.time()
 
@@ -78,13 +83,29 @@ class FakeBugsnagServer(object):
 
                 length = int(handler.headers['Content-Length'])
                 raw_body = handler.rfile.read(length).decode('utf-8')
-                if handler.path != '/ignore':
-                    self.received.append({'headers': handler.headers,
-                                          'json_body': json.loads(raw_body),
-                                          'path': handler.path,
-                                          'method': handler.command})
+
+                if handler.path in ('/sessions', self.sessions_url):
+                    self.sessions_received.append({
+                        'headers': handler.headers,
+                        'json_body': json.loads(raw_body),
+                    })
+                elif handler.path in ('/events', self.events_url):
+                    self.events_received.append({
+                        'headers': handler.headers,
+                        'json_body': json.loads(raw_body),
+                        'method': handler.command,
+                        'path': handler.path,
+                    })
+                elif handler.path == '/ignore':
+                    pass
+                else:
+                    raise Exception(
+                        'unknown endpoint requested: ' + handler.path
+                    )
+
                 handler.send_response(200)
                 handler.end_headers()
+
                 return ()
 
             def log_request(self, *args):
@@ -101,19 +122,30 @@ class FakeBugsnagServer(object):
         return '{0}:{1}'.format(*self.server.server_address)
 
     @property
-    def url(self):
-        return 'http://%s' % self.address
+    def events_url(self):
+        return 'http://%s/events' % self.address
+
+    @property
+    def sessions_url(self):
+        return 'http://%s/sessions' % self.address
 
     def shutdown(self):
         self.server.shutdown()
         self.thread.join()
         self.server.server_close()
-        self.received = []
+        self.events_received = []
+        self.sessions_received = []
 
-    def wait_for_request(self, timeout=2):
+    def wait_for_session(self, timeout=2):
+        self._wait_for_request(self.sessions_received, timeout=timeout)
+
+    def wait_for_event(self, timeout=2):
+        self._wait_for_request(self.events_received, timeout=timeout)
+
+    def _wait_for_request(self, request_list, timeout):
         start = time.time()
 
-        while len(self.received) == 0:
+        while len(request_list) == 0:
             if time.time() - start > timeout:
                 raise MissingRequestError("No request received before timeout")
 
@@ -126,7 +158,11 @@ class FakeBugsnagServer(object):
 
     @property
     def sent_report_count(self) -> int:
-        return len(self.received)
+        return len(self.events_received)
+
+    @property
+    def sent_session_count(self) -> int:
+        return len(self.sessions_received)
 
 
 class ScaryException(Exception):

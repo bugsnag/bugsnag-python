@@ -32,8 +32,8 @@ class ClientTest(IntegrationTest):
 
         self.client = Client(
             api_key='testing client key',
-            endpoint=self.server.url,
-            session_endpoint=self.server.url,
+            endpoint=self.server.events_url,
+            session_endpoint=self.server.sessions_url,
             project_root=os.path.join(os.getcwd(), 'tests'),
             asynchronous=False,
             install_sys_hook=False
@@ -60,7 +60,7 @@ class ClientTest(IntegrationTest):
     def test_notify_exception(self):
         self.client.notify(Exception('Testing Notify'))
 
-        self.assertEqual(len(self.server.received), 1)
+        self.assertEqual(len(self.server.events_received), 1)
 
     def test_notify_exc_info(self):
         try:
@@ -68,7 +68,7 @@ class ClientTest(IntegrationTest):
         except Exception:
             self.client.notify_exc_info(*sys.exc_info())
 
-        self.assertEqual(len(self.server.received), 1)
+        self.assertEqual(len(self.server.events_received), 1)
 
     def test_delivery(self):
         c = Configuration()
@@ -126,7 +126,7 @@ class ClientTest(IntegrationTest):
         except Exception:
             pass
 
-        self.assertEqual(len(self.server.received), 1)
+        self.assertEqual(len(self.server.events_received), 1)
 
     def test_notify_capture_raises(self):
 
@@ -135,7 +135,7 @@ class ClientTest(IntegrationTest):
                 raise Exception('Testing Notify Context')
 
         self.assertRaises(Exception, foo)
-        self.assertEqual(len(self.server.received), 1)
+        self.assertEqual(len(self.server.events_received), 1)
 
     def test_notify_capture_options(self):
         try:
@@ -144,8 +144,8 @@ class ClientTest(IntegrationTest):
         except Exception:
             pass
 
-        self.assertEqual(len(self.server.received), 1)
-        json_body = self.server.received[0]['json_body']
+        self.assertEqual(len(self.server.events_received), 1)
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual(event['metaData']['section'], {
             'key': 'value'
@@ -158,7 +158,7 @@ class ClientTest(IntegrationTest):
         except Exception:
             pass
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
 
         self.assertEqual(event['severity'], "info")
@@ -189,7 +189,7 @@ class ClientTest(IntegrationTest):
         with self.client.capture():
             pass
 
-        self.assertEqual(len(self.server.received), 0)
+        self.assertEqual(len(self.server.events_received), 0)
 
     def test_capture_decorator(self):
         @self.client.capture
@@ -203,7 +203,7 @@ class ClientTest(IntegrationTest):
 
         assert self.sent_report_count == 1
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         stacktrace = payload['events'][0]['exceptions'][0]['stacktrace']
 
         assert len(stacktrace) == 2
@@ -233,7 +233,7 @@ class ClientTest(IntegrationTest):
         self.assertRaises(TypeError, foo, 'bar')
         self.assertSentReportCount(1)
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         stacktrace = payload['events'][0]['exceptions'][0]['stacktrace']
 
         assert len(stacktrace) == 1
@@ -263,7 +263,7 @@ class ClientTest(IntegrationTest):
         except Exception:
             pass
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
 
         self.assertEqual(event['severity'], "info")
@@ -324,8 +324,8 @@ class ClientTest(IntegrationTest):
         except Exception:
             self.client.excepthook(*sys.exc_info())
 
-        self.assertEqual(len(self.server.received), 1)
-        event = self.server.received[0]['json_body']['events'][0]
+        self.assertEqual(len(self.server.events_received), 1)
+        event = self.server.events_received[0]['json_body']['events'][0]
         self.assertEqual(event['severity'], 'error')
 
     def test_exception_hook_disabled(self):
@@ -336,17 +336,17 @@ class ClientTest(IntegrationTest):
         except Exception:
             self.client.excepthook(*sys.exc_info())
 
-        self.assertEqual(len(self.server.received), 0)
+        self.assertEqual(len(self.server.events_received), 0)
 
     def test_exception_hook_leaves_a_breadcrumb(self):
-        assert len(self.server.received) == 0
+        assert len(self.server.events_received) == 0
 
         try:
             beep = boop  # noqa: F841, F821
         except Exception:
             self.client.excepthook(*sys.exc_info())
 
-        assert len(self.server.received) == 1
+        assert len(self.server.events_received) == 1
         assert len(self.client.configuration.breadcrumbs) == 1
 
         breadcrumb = self.client.configuration.breadcrumbs[0]
@@ -376,14 +376,14 @@ class ClientTest(IntegrationTest):
             ]
         )
 
-        assert len(self.server.received) == 0
+        assert len(self.server.events_received) == 0
 
         try:
             beep = boop  # noqa: F841, F821
         except Exception:
             self.client.excepthook(*sys.exc_info())
 
-        assert len(self.server.received) == 1
+        assert len(self.server.events_received) == 1
         assert len(self.client.configuration.breadcrumbs) == 0
 
     def test_installed_except_hook(self):
@@ -439,25 +439,25 @@ class ClientTest(IntegrationTest):
         client1 = Client(
             api_key='abc',
             asynchronous=False,
-            endpoint=self.server.url,
-            session_endpoint=self.server.url,
+            endpoint=self.server.events_url,
+            session_endpoint=self.server.sessions_url,
         )
         client2 = Client(
             api_key='456',
             asynchronous=False,
-            endpoint=self.server.url,
-            session_endpoint=self.server.url,
+            endpoint=self.server.events_url,
+            session_endpoint=self.server.sessions_url,
         )
 
         client1.notify(ScaryException('foo'))
         self.assertSentReportCount(1)
 
-        headers = self.server.received[0]['headers']
+        headers = self.server.events_received[0]['headers']
 
         client2.notify(ScaryException('bar'))
         self.assertSentReportCount(2)
 
-        headers = self.server.received[1]['headers']
+        headers = self.server.events_received[1]['headers']
         self.assertEqual(headers['Bugsnag-Api-Key'], '456')
 
     def test_multiple_clients_one_excepthook(self):
@@ -468,14 +468,14 @@ class ClientTest(IntegrationTest):
         client1 = Client(
             api_key='456',
             asynchronous=False,
-            endpoint=self.server.url,
-            session_endpoint=self.server.url,
+            endpoint=self.server.events_url,
+            session_endpoint=self.server.sessions_url,
         )
         Client(
             api_key='456',
             asynchronous=False,
-            endpoint=self.server.url,
-            session_endpoint=self.server.url,
+            endpoint=self.server.events_url,
+            session_endpoint=self.server.sessions_url,
             install_sys_hook=False,
         )
 
@@ -783,7 +783,7 @@ class ClientTest(IntegrationTest):
         )
 
     def test_notify_with_breadcrumbs(self):
-        assert len(self.server.received) == 0
+        assert len(self.server.events_received) == 0
 
         self.client.leave_breadcrumb('breadcrumb 1')
         self.client.leave_breadcrumb('breadcrumb 2', type=BreadcrumbType.USER)
@@ -791,9 +791,9 @@ class ClientTest(IntegrationTest):
 
         self.client.notify(Exception('hello'))
 
-        assert len(self.server.received) == 1
+        assert len(self.server.events_received) == 1
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
 
         assert len(event['breadcrumbs']) == 3
@@ -816,11 +816,11 @@ class ClientTest(IntegrationTest):
         assert is_valid_timestamp(breadcrumbs[2]['timestamp'])
 
     def test_handled_notify_leaves_a_new_breadcrumb(self):
-        assert len(self.server.received) == 0
+        assert len(self.server.events_received) == 0
 
         self.client.notify(Exception('hello'))
 
-        assert len(self.server.received) == 1
+        assert len(self.server.events_received) == 1
         assert len(self.client.configuration.breadcrumbs) == 1
 
         breadcrumb = self.client.configuration.breadcrumbs[0]
@@ -835,7 +835,7 @@ class ClientTest(IntegrationTest):
         assert is_valid_timestamp(breadcrumb.timestamp)
 
     def test_unhandled_notify_leaves_a_new_breadcrumb(self):
-        assert len(self.server.received) == 0
+        assert len(self.server.events_received) == 0
 
         self.client.notify(
             IndexError('hello 123'),
@@ -843,7 +843,7 @@ class ClientTest(IntegrationTest):
             severity='error'
         )
 
-        assert len(self.server.received) == 1
+        assert len(self.server.events_received) == 1
         assert len(self.client.configuration.breadcrumbs) == 1
 
         breadcrumb = self.client.configuration.breadcrumbs[0]
@@ -871,15 +871,15 @@ class ClientTest(IntegrationTest):
             ]
         )
 
-        assert len(self.server.received) == 0
+        assert len(self.server.events_received) == 0
 
         self.client.notify(Exception('hello'))
 
-        assert len(self.server.received) == 1
+        assert len(self.server.events_received) == 1
         assert len(self.client.configuration.breadcrumbs) == 0
 
     def test_can_modify_breadcrumbs_in_before_notify_callbacks(self):
-        assert len(self.server.received) == 0
+        assert len(self.server.events_received) == 0
 
         self.client.leave_breadcrumb('a bad breadcrumb', metadata={'a': 1})
 
@@ -898,9 +898,9 @@ class ClientTest(IntegrationTest):
 
         self.client.notify(Exception('hello'))
 
-        assert len(self.server.received) == 1
+        assert len(self.server.events_received) == 1
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
 
         assert len(event['breadcrumbs']) == 1
@@ -916,7 +916,7 @@ class ClientTest(IntegrationTest):
         assert config.breadcrumbs[0].type == BreadcrumbType.MANUAL
 
     def test_synchronous_delivery_failures_are_logged(self):
-        assert len(self.server.received) == 0
+        assert len(self.server.events_received) == 0
 
         logger = Mock(logging.Logger)
 
@@ -930,7 +930,7 @@ class ClientTest(IntegrationTest):
             asynchronous=False,
         )
 
-        assert len(self.server.received) == 0
+        assert len(self.server.events_received) == 0
 
         logger.exception.assert_called_once_with(
             'Notifying Bugsnag failed %s',
@@ -938,7 +938,7 @@ class ClientTest(IntegrationTest):
         )
 
     def test_asynchronous_delivery_failures_are_logged(self):
-        assert len(self.server.received) == 0
+        assert len(self.server.events_received) == 0
 
         logger = Mock(logging.Logger)
 
@@ -952,7 +952,7 @@ class ClientTest(IntegrationTest):
             asynchronous=True,
         )
 
-        assert len(self.server.received) == 0
+        assert len(self.server.events_received) == 0
 
         logger.exception.assert_called_once_with(
             'Notifying Bugsnag failed %s',
@@ -964,7 +964,7 @@ class ClientTest(IntegrationTest):
 
         assert self.sent_report_count == 1
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         exceptions = payload['events'][0]['exceptions']
 
         assert len(exceptions) == 3
@@ -1088,7 +1088,7 @@ class ClientTest(IntegrationTest):
         self.client.notify(e)
         assert self.sent_report_count == 1
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         metadata = payload['events'][0]['metaData']
         notes = metadata['exception notes']
 
@@ -1105,7 +1105,7 @@ class ClientTest(IntegrationTest):
 
         assert self.sent_report_count == 1
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         exceptions = payload['events'][0]['exceptions']
 
         assert len(exceptions) == 3
@@ -1140,7 +1140,7 @@ class ClientTest(IntegrationTest):
 
         assert self.sent_report_count == 1
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         exceptions = payload['events'][0]['exceptions']
 
         assert len(exceptions) == 3
@@ -1168,7 +1168,7 @@ class ClientTest(IntegrationTest):
 
         assert self.sent_report_count == 1
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         exceptions = payload['events'][0]['exceptions']
 
         assert len(exceptions) == 3
@@ -1290,7 +1290,7 @@ class ClientTest(IntegrationTest):
 
         assert self.sent_report_count == 1
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         exceptions = payload['events'][0]['exceptions']
 
         assert len(exceptions) == 3
@@ -1325,7 +1325,7 @@ class ClientTest(IntegrationTest):
 
         assert self.sent_report_count == 1
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         exceptions = payload['events'][0]['exceptions']
 
         assert len(exceptions) == 3
@@ -1353,7 +1353,7 @@ class ClientTest(IntegrationTest):
 
         assert self.sent_report_count == 1
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         exceptions = payload['events'][0]['exceptions']
 
         assert len(exceptions) == 1
@@ -1406,7 +1406,7 @@ class ClientTest(IntegrationTest):
 
         assert self.sent_report_count == 1
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         exceptions = payload['events'][0]['exceptions']
 
         assert len(exceptions) == 1
@@ -1430,7 +1430,7 @@ class ClientTest(IntegrationTest):
 
         assert self.sent_report_count == 1
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         exceptions = payload['events'][0]['exceptions']
 
         assert len(exceptions) == 1
@@ -1455,7 +1455,7 @@ class ClientTest(IntegrationTest):
 
         assert self.sent_report_count == 1
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         exceptions = payload['events'][0]['exceptions']
 
         assert len(exceptions) == 1
@@ -1642,7 +1642,7 @@ class ClientTest(IntegrationTest):
 
         assert self.sent_report_count == 1
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         feature_flags = payload['events'][0]['featureFlags']
 
         assert feature_flags == [
@@ -1671,7 +1671,7 @@ class ClientTest(IntegrationTest):
 
         assert self.sent_report_count == 1
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         feature_flags = payload['events'][0]['featureFlags']
 
         assert feature_flags == [

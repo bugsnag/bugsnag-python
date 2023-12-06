@@ -27,7 +27,7 @@ class TestConfiguration(IntegrationTest):
         client = Client(
             api_key='a05afff2bd2ffaf0ab0f52715bbdcffd',
             auto_capture_sessions=True,
-            session_endpoint=self.server.url,
+            session_endpoint=self.server.sessions_url,
             asynchronous=False
         )
         client.session_tracker.start_session()
@@ -38,7 +38,7 @@ class TestConfiguration(IntegrationTest):
 
         assert len(client.session_tracker.session_counts) == 0
 
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.sessions_received[0]['json_body']
 
         assert 'app' in json_body
         assert 'notifier' in json_body
@@ -49,13 +49,13 @@ class TestConfiguration(IntegrationTest):
         client = Client(
             api_key='a05afff2bd2ffaf0ab0f52715bbdcffd',
             auto_capture_sessions=True,
-            session_endpoint=self.server.url,
+            session_endpoint=self.server.sessions_url,
             asynchronous=False
         )
 
         client.session_tracker.start_session()
         client.session_tracker.send_sessions()
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.sessions_received[0]['json_body']
 
         # Notifier properties
         assert json_body['notifier'] == _NOTIFIER_INFORMATION
@@ -73,17 +73,17 @@ class TestConfiguration(IntegrationTest):
     def test_session_middleware_attaches_session_to_event(self):
         client = Client(
             api_key='a05afff2bd2ffaf0ab0f52715bbdcffd',
-            session_endpoint=self.server.url + '/ignore',
-            endpoint=self.server.url,
+            session_endpoint='http://' + self.server.address + '/ignore',
+            endpoint=self.server.events_url,
             asynchronous=False
         )
 
         client.session_tracker.start_session()
         client.notify(Exception("Test"))
 
-        assert len(self.server.received) == 1
+        assert len(self.server.events_received) == 1
 
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         session = json_body['events'][0]['session']
 
         assert 'id' in session
@@ -98,14 +98,14 @@ class TestConfiguration(IntegrationTest):
 
         client = Client(
             api_key='a05afff2bd2ffaf0ab0f52715bbdcffd',
-            session_endpoint=self.server.url,
+            session_endpoint=self.server.sessions_url,
             asynchronous=False,
             logger=logger,
         )
 
         client.session_tracker.send_sessions()
 
-        assert self.server.sent_report_count == 0
+        assert self.server.sent_session_count == 0
 
         logger.debug.assert_called_once_with(
             "No sessions to deliver"
@@ -116,7 +116,7 @@ class TestConfiguration(IntegrationTest):
 
         client = Client(
             api_key='a05afff2bd2ffaf0ab0f52715bbdcffd',
-            session_endpoint=self.server.url,
+            session_endpoint=self.server.sessions_url,
             asynchronous=False,
             release_stage="dev",
             notify_release_stages=["prod"],
@@ -126,7 +126,7 @@ class TestConfiguration(IntegrationTest):
         client.session_tracker.start_session()
         client.session_tracker.send_sessions()
 
-        assert self.server.sent_report_count == 0
+        assert self.server.sent_session_count == 0
 
         logger.debug.assert_called_once_with(
             "Not delivering due to release_stages"
@@ -137,7 +137,7 @@ class TestConfiguration(IntegrationTest):
 
         client = Client(
             api_key='',
-            session_endpoint=self.server.url,
+            session_endpoint=self.server.sessions_url,
             asynchronous=False,
             logger=logger,
         )
@@ -145,7 +145,7 @@ class TestConfiguration(IntegrationTest):
         client.session_tracker.start_session()
         client.session_tracker.send_sessions()
 
-        assert self.server.sent_report_count == 0
+        assert self.server.sent_session_count == 0
 
         logger.debug.assert_called_once_with(
             "Not delivering due to an invalid api_key"
