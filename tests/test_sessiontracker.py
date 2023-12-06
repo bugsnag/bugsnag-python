@@ -20,9 +20,11 @@ class TestConfiguration(IntegrationTest):
         tracker = SessionTracker(self.config)
         tracker.auto_sessions = True
         tracker.start_session()
-        self.assertEqual(len(tracker.session_counts), 1)
+
+        assert len(tracker.session_counts) == 1
+
         for key, value in tracker.session_counts.items():
-            self.assertEqual(value, 1)
+            assert value == 1
 
     def test_session_tracker_send_sessions_sends_sessions(self):
         client = Client(
@@ -32,15 +34,19 @@ class TestConfiguration(IntegrationTest):
             asynchronous=False
         )
         client.session_tracker.start_session()
-        self.assertEqual(len(client.session_tracker.session_counts), 1)
+
+        assert len(client.session_tracker.session_counts) == 1
+
         client.session_tracker.send_sessions()
-        self.assertEqual(len(client.session_tracker.session_counts), 0)
+
+        assert len(client.session_tracker.session_counts) == 0
+
         json_body = self.server.received[0]['json_body']
-        self.assertTrue('app' in json_body)
-        self.assertTrue('notifier' in json_body)
-        self.assertTrue('device' in json_body)
-        self.assertTrue('sessionCounts' in json_body)
-        self.assertEqual(len(json_body['sessionCounts']), 1)
+
+        assert 'app' in json_body
+        assert 'notifier' in json_body
+        assert 'device' in json_body
+        assert len(json_body['sessionCounts']) == 1
 
     def test_session_tracker_sets_details_from_config(self):
         client = Client(
@@ -49,6 +55,7 @@ class TestConfiguration(IntegrationTest):
             session_endpoint=self.server.url,
             asynchronous=False
         )
+
         client.session_tracker.start_session()
         client.session_tracker.send_sessions()
         json_body = self.server.received[0]['json_body']
@@ -58,20 +65,13 @@ class TestConfiguration(IntegrationTest):
 
         # App properties
         app = json_body['app']
-        self.assertTrue('releaseStage' in app)
-        self.assertEqual(app['releaseStage'],
-                         client.configuration.release_stage)
-        self.assertTrue('version' in app)
-        self.assertEqual(app['version'],
-                         client.configuration.app_version)
+        assert app['releaseStage'] == client.configuration.release_stage
+        assert app['version'] == client.configuration.app_version
+
         # Device properties
         device = json_body['device']
-        self.assertTrue('hostname' in device)
-        self.assertEqual(device['hostname'],
-                         client.configuration.hostname)
-        self.assertTrue('runtimeVersions' in device)
-        self.assertEqual(device['runtimeVersions']['python'],
-                         platform.python_version())
+        assert device['hostname'] == client.configuration.hostname
+        assert device['runtimeVersions']['python'] == platform.python_version()
 
     def test_session_middleware_attaches_session_to_event(self):
         client = Client(
@@ -80,22 +80,21 @@ class TestConfiguration(IntegrationTest):
             endpoint=self.server.url,
             asynchronous=False
         )
+
         client.session_tracker.start_session()
         client.notify(Exception("Test"))
         while len(self.server.received) == 0:
             time.sleep(0.5)
+
         json_body = self.server.received[0]['json_body']
-        event = json_body['events'][0]
-        self.assertTrue('session' in event)
-        session = event['session']
-        self.assertTrue('id' in session)
-        self.assertTrue('startedAt' in session)
-        self.assertTrue('events' in session)
-        sesevents = session['events']
-        self.assertTrue('unhandled' in sesevents)
-        self.assertEqual(sesevents['unhandled'], 0)
-        self.assertTrue('handled' in sesevents)
-        self.assertEqual(sesevents['handled'], 1)
+        session = json_body['events'][0]['session']
+
+        assert 'id' in session
+        assert 'startedAt' in session
+        assert session['events'] == {
+            'unhandled': 0,
+            'handled': 1,
+        }
 
     def test_session_tracker_does_not_send_when_nothing_to_send(self):
         logger = Mock(logging.Logger)
