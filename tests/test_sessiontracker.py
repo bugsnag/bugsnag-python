@@ -1,11 +1,13 @@
-import platform
 import time
+import logging
+import platform
 
 from bugsnag import Client
 from bugsnag.configuration import Configuration
 from bugsnag.notifier import _NOTIFIER_INFORMATION
 from bugsnag.sessiontracker import SessionTracker
 from tests.utils import IntegrationTest
+from unittest.mock import Mock
 
 
 class TestConfiguration(IntegrationTest):
@@ -96,32 +98,59 @@ class TestConfiguration(IntegrationTest):
         self.assertEqual(sesevents['handled'], 1)
 
     def test_session_tracker_does_not_send_when_nothing_to_send(self):
+        logger = Mock(logging.Logger)
+
         client = Client(
             api_key='a05afff2bd2ffaf0ab0f52715bbdcffd',
             session_endpoint=self.server.url,
             asynchronous=False,
+            logger=logger,
         )
+
         client.session_tracker.send_sessions()
-        self.assertEqual(0, len(self.server.received))
+
+        assert self.server.sent_report_count == 0
+
+        logger.debug.assert_called_once_with(
+            "No sessions to deliver"
+        )
 
     def test_session_tracker_does_not_send_when_disabled(self):
+        logger = Mock(logging.Logger)
+
         client = Client(
             api_key='a05afff2bd2ffaf0ab0f52715bbdcffd',
             session_endpoint=self.server.url,
             asynchronous=False,
             release_stage="dev",
             notify_release_stages=["prod"],
+            logger=logger,
         )
+
         client.session_tracker.start_session()
         client.session_tracker.send_sessions()
-        self.assertEqual(0, len(self.server.received))
+
+        assert self.server.sent_report_count == 0
+
+        logger.debug.assert_called_once_with(
+            "Not delivering due to release_stages"
+        )
 
     def test_session_tracker_does_not_send_when_misconfigured(self):
+        logger = Mock(logging.Logger)
+
         client = Client(
             api_key='',
             session_endpoint=self.server.url,
             asynchronous=False,
+            logger=logger,
         )
+
         client.session_tracker.start_session()
         client.session_tracker.send_sessions()
-        self.assertEqual(0, len(self.server.received))
+
+        assert self.server.sent_report_count == 0
+
+        logger.debug.assert_called_once_with(
+            "Not delivering due to an invalid api_key"
+        )
