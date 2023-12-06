@@ -10,13 +10,11 @@ from unittest.mock import Mock
 
 
 class TestConfiguration(IntegrationTest):
-    def setUp(self):
-        super(TestConfiguration, self).setUp()
-        self.config = Configuration()
-        self.config.auto_capture_sessions = True
-
     def test_session_tracker_adds_session_object_to_queue(self):
-        tracker = SessionTracker(self.config)
+        config = Configuration()
+        config.auto_capture_sessions = True
+
+        tracker = SessionTracker(config)
         tracker.auto_sessions = True
         tracker.start_session()
 
