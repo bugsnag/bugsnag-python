@@ -118,7 +118,7 @@ class TestConfiguration(IntegrationTest):
 
     def test_session_tracker_does_not_send_when_misconfigured(self):
         client = Client(
-            api_key=None,
+            api_key='',
             session_endpoint=self.server.url,
             asynchronous=False,
         )
