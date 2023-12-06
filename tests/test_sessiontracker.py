@@ -1,4 +1,3 @@
-import time
 import logging
 import platform
 
@@ -83,8 +82,8 @@ class TestConfiguration(IntegrationTest):
 
         client.session_tracker.start_session()
         client.notify(Exception("Test"))
-        while len(self.server.received) == 0:
-            time.sleep(0.5)
+
+        assert len(self.server.received) == 1
 
         json_body = self.server.received[0]['json_body']
         session = json_body['events'][0]['session']
