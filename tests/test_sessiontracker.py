@@ -1,3 +1,4 @@
+import pytest
 import logging
 import platform
 
@@ -5,8 +6,18 @@ from bugsnag import Client
 from bugsnag.configuration import Configuration
 from bugsnag.notifier import _NOTIFIER_INFORMATION
 from bugsnag.sessiontracker import SessionTracker
-from tests.utils import IntegrationTest
+from tests.utils import IntegrationTest, MissingRequestError
 from unittest.mock import Mock
+
+
+def force_timer_to_fire(timer):
+    assert timer is not None
+
+    # setting and clearing the 'finished' Event forces the timer to fire
+    # immediately:
+    # https://github.com/python/cpython/blob/ca11aec98c39a08da858a1270b13b7e3ae6aa53b/Lib/threading.py#L1415-L1419
+    timer.finished.set()
+    timer.finished.clear()
 
 
 class TestConfiguration(IntegrationTest):
@@ -150,3 +161,38 @@ class TestConfiguration(IntegrationTest):
         logger.debug.assert_called_once_with(
             "Not delivering due to an invalid api_key"
         )
+
+    def test_session_tracker_starts_delivery_when_auto_capture_is_on(self):
+        client = Client(
+            api_key='a05afff2bd2ffaf0ab0f52715bbdcffd',
+            auto_capture_sessions=True,
+            session_endpoint=self.server.sessions_url,
+            asynchronous=False
+        )
+
+        client.session_tracker.start_session()
+
+        force_timer_to_fire(client.session_tracker.delivery_thread)
+
+        self.server.wait_for_session()
+
+        assert self.server.sent_session_count == 1
+
+    def test_session_tracker_doesnt_start_delivery_when_auto_capture_is_off(self):  # noqa
+        client = Client(
+            api_key='a05afff2bd2ffaf0ab0f52715bbdcffd',
+            auto_capture_sessions=False,
+            session_endpoint=self.server.sessions_url,
+            asynchronous=False
+        )
+
+        client.session_tracker.start_session()
+
+        assert client.session_tracker.delivery_thread is None
+
+        # we expect not to receive a session request, so this wait should
+        # timeout
+        with pytest.raises(MissingRequestError):
+            self.server.wait_for_session()
+
+        assert self.server.sent_session_count == 0
