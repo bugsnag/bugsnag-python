@@ -13,7 +13,6 @@ class SentinelError(RuntimeError):
 
 
 class TestWSGI(IntegrationTest):
-
     def setUp(self):
         super(TestWSGI, self).setUp()
         bugsnag.configure(
