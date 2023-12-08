@@ -1,15 +1,12 @@
 Changelog
 =========
 
-## TBD
-
-### Enhancements
-
-* Avoid using deprecated `flask.__version__` attribute
-  [#365](https://github.com/bugsnag/bugsnag-python/pull/365)
+## v4.6.1 (2023-12-11)
 
 ### Bug fixes
 
+* Avoid using deprecated `flask.__version__` attribute
+  [#365](https://github.com/bugsnag/bugsnag-python/pull/365)
 * Ensure the session delivery queue is started regardless of `auto_capture_sessions` configuration
   [#367](https://github.com/bugsnag/bugsnag-python/pull/367)
 
