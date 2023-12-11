@@ -14,7 +14,11 @@ def reset_breadcrumbs():
 @pytest.fixture
 def bugsnag_server():
     server = FakeBugsnagServer(wait_for_duplicate_requests=False)
-    bugsnag.configure(endpoint=server.url, api_key='3874876376238728937')
+    bugsnag.configure(
+        endpoint=server.events_url,
+        session_endpoint=server.sessions_url,
+        api_key='3874876376238728937'
+    )
 
     yield server
 

@@ -5,7 +5,7 @@ import bugsnag
 from bugsnag.wsgi import request_path
 from bugsnag.legacy import _auto_leave_breadcrumb
 from bugsnag.breadcrumbs import BreadcrumbType
-from bugsnag.utils import remove_query_from_url
+from bugsnag.utils import remove_query_from_url, get_package_version
 
 
 __all__ = ('handle_exceptions',)
@@ -36,9 +36,16 @@ def add_flask_request_to_notification(event: bugsnag.Event):
 
 
 def handle_exceptions(app):
-    middleware = bugsnag.configure().internal_middleware
-    bugsnag.configure().runtime_versions['flask'] = flask.__version__
+    configuration = bugsnag.configure()
+
+    version = get_package_version("flask")
+
+    if version is not None:
+        configuration.runtime_versions["flask"] = version
+
+    middleware = configuration.internal_middleware
     middleware.before_notify(add_flask_request_to_notification)
+
     flask.got_request_exception.connect(__log_exception, app)
     flask.request_started.connect(_on_request_started, app)
 

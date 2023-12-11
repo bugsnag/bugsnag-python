@@ -15,11 +15,14 @@ class TestBugsnag(IntegrationTest):
 
     def setUp(self):
         super(TestBugsnag, self).setUp()
-        bugsnag.configure(endpoint=self.server.url,
-                          api_key='tomatoes',
-                          notify_release_stages=['dev'],
-                          release_stage='dev',
-                          asynchronous=False)
+        bugsnag.configure(
+            endpoint=self.server.events_url,
+            session_endpoint=self.server.sessions_url,
+            api_key='tomatoes',
+            notify_release_stages=['dev'],
+            release_stage='dev',
+            asynchronous=False,
+        )
 
     def test_asynchronous_notify(self):
         bugsnag.configure(asynchronous=True)
@@ -28,71 +31,71 @@ class TestBugsnag(IntegrationTest):
         self.server.paused = False
 
         start = time.time()
-        while len(self.server.received) == 0:
+        while len(self.server.events_received) == 0:
             if time.time() > (start + 0.5):
                 raise Exception(
                     'Timed out while waiting for asynchronous request.')
 
             time.sleep(0.001)
 
-        self.assertEqual(len(self.server.received), 1)
+        self.assertEqual(len(self.server.events_received), 1)
 
     def test_notify_method(self):
         bugsnag.notify(ScaryException('unexpected failover'))
-        request = self.server.received[0]
+        request = self.server.events_received[0]
         self.assertEqual('POST', request['method'])
 
     def test_notify_request_count(self):
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.assertEqual(1, len(self.server.received))
+        self.assertEqual(1, len(self.server.events_received))
 
     def test_notify_configured_api_key(self):
         bugsnag.notify(ScaryException('unexpected failover'))
-        headers = self.server.received[0]['headers']
+        headers = self.server.events_received[0]['headers']
         self.assertEqual('tomatoes', headers['Bugsnag-Api-Key'])
 
     def test_notify_configured_release_stage(self):
         bugsnag.notify(ScaryException('unexpected failover'))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('dev', event['releaseStage'])
 
     def test_notify_unconfigured_release_stage(self):
         bugsnag.configure(release_stage='pickles')
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.assertEqual(0, len(self.server.received))
+        self.assertEqual(0, len(self.server.events_received))
 
     def test_notify_default_severity(self):
         bugsnag.notify(ScaryException('unexpected failover'))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('warning', event['severity'])
 
     def test_notify_override_severity(self):
         bugsnag.notify(ScaryException('unexpected failover'),
                        severity='info')
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('info', event['severity'])
 
     def test_notify_configured_app_version(self):
         bugsnag.configure(app_version='343.2.10')
         bugsnag.notify(ScaryException('unexpected failover'))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('343.2.10', event['app']['version'])
 
     def test_notify_override_context(self):
         bugsnag.notify(ScaryException('unexpected failover'),
                        context='/some/path')
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('/some/path', event['context'])
 
     def test_notify_override_grouping_hash(self):
         bugsnag.notify(ScaryException('unexpected failover'),
                        grouping_hash='Callout errors')
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('Callout errors', event['groupingHash'])
 
@@ -101,7 +104,7 @@ class TestBugsnag(IntegrationTest):
                        user={'name': 'bob',
                              'email': 'mcbob@example.com',
                              'id': '542347329'})
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('bob', event['user']['name'])
         self.assertEqual('542347329', event['user']['id'])
@@ -110,7 +113,7 @@ class TestBugsnag(IntegrationTest):
     def test_notify_configured_hostname(self):
         bugsnag.configure(hostname='I_AM_ROOT')
         bugsnag.notify(ScaryException('unexpected failover'))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('I_AM_ROOT', event['device']['hostname'])
 
@@ -118,7 +121,7 @@ class TestBugsnag(IntegrationTest):
         bugsnag.add_metadata_tab('food', {'beans': 3, 'corn': 'purple'})
         bugsnag.notify(ScaryException('unexpected failover'),
                        metadata={'food': {'beans': 5}, 'skills': {'spear': 6}})
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual(6, event['metaData']['skills']['spear'])
         self.assertEqual('purple', event['metaData']['food']['corn'])
@@ -127,7 +130,7 @@ class TestBugsnag(IntegrationTest):
     def test_notify_configured_metadata_sections(self):
         bugsnag.add_metadata_tab('food', {'beans': 3, 'corn': 'purple'})
         bugsnag.notify(ScaryException('unexpected failover'))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('purple', event['metaData']['food']['corn'])
         self.assertEqual(3, event['metaData']['food']['beans'])
@@ -136,7 +139,7 @@ class TestBugsnag(IntegrationTest):
         bugsnag.configure(params_filters=['apple', 'grape'])
         bugsnag.notify(ScaryException('unexpected failover'),
                        apple='four', cantaloupe='green')
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('[FILTERED]', event['metaData']['custom']['apple'])
         self.assertEqual('green', event['metaData']['custom']['cantaloupe'])
@@ -144,7 +147,7 @@ class TestBugsnag(IntegrationTest):
     def test_notify_device_filter(self):
         bugsnag.configure(params_filters=['hostname'])
         bugsnag.notify(ScaryException('unexpected failover'))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('[FILTERED]', event['device']['hostname'])
 
@@ -158,7 +161,7 @@ class TestBugsnag(IntegrationTest):
                            "firstname": "Test",
                            "lastname": "Man"
                            })
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('[FILTERED]', event['user']['address'])
         self.assertEqual('[FILTERED]', event['user']['phonenumber'])
@@ -170,24 +173,24 @@ class TestBugsnag(IntegrationTest):
         bugsnag.configure(params_filters=['bar'])
         bugsnag.notify(ScaryException('unexpected failover'), foo=4, bar=76)
 
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
 
         self.assertEqual(4, event['metaData']['custom']['foo'])
         self.assertEqual('[FILTERED]', event['metaData']['custom']['bar'])
-        self.assertEqual(171, exception['stacktrace'][0]['lineNumber'])
+        self.assertEqual(174, exception['stacktrace'][0]['lineNumber'])
 
     def test_notify_ignore_class(self):
         bugsnag.configure(ignore_classes=['tests.utils.ScaryException'])
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.assertEqual(0, len(self.server.received))
+        self.assertEqual(0, len(self.server.events_received))
 
     def test_notify_ignore_class_nested(self):
         bugsnag.configure(
             ignore_classes=['tests.utils.ScaryException.NestedScaryException'])
         bugsnag.notify(ScaryException.NestedScaryException('nested'))
-        self.assertEqual(0, len(self.server.received))
+        self.assertEqual(0, len(self.server.events_received))
 
     def test_ignore_classes_checks_exception_chain_with_explicit_cause(self):
         bugsnag.configure(ignore_classes=['ArithmeticError'])
@@ -221,11 +224,11 @@ class TestBugsnag(IntegrationTest):
         config = bugsnag.configure()
         config.api_key = None
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.assertEqual(0, len(self.server.received))
+        self.assertEqual(0, len(self.server.events_received))
 
     def test_notify_custom_app_type(self):
         bugsnag.notify(ScaryException('unexpected failover'), app_type='work')
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('work', event['app']['type'])
 
@@ -237,14 +240,14 @@ class TestBugsnag(IntegrationTest):
         bugsnag.configure(app_type='rq')
         bugsnag.before_notify(callback)
         bugsnag.notify(ScaryException('unexpected failover'))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('whopper', event['app']['type'])
 
     def test_notify_configured_app_type(self):
         bugsnag.configure(app_type='rq')
         bugsnag.notify(ScaryException('unexpected failover'))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('rq', event['app']['type'])
 
@@ -256,8 +259,8 @@ class TestBugsnag(IntegrationTest):
 
         bugsnag.before_notify(callback)
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.assertEqual(1, len(self.server.received))
-        json_body = self.server.received[0]['json_body']
+        self.assertEqual(1, len(self.server.events_received))
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('bar', event['metaData']['custom']['foo'])
 
@@ -268,7 +271,7 @@ class TestBugsnag(IntegrationTest):
 
         bugsnag.before_notify(callback)
         bugsnag.notify(ScaryException('unexpected failover'))
-        self.assertEqual(0, len(self.server.received))
+        self.assertEqual(0, len(self.server.events_received))
 
     def test_notify_before_notify_modifying_api_key(self):
 
@@ -277,7 +280,7 @@ class TestBugsnag(IntegrationTest):
 
         bugsnag.before_notify(callback)
         bugsnag.notify(ScaryException('unexpected failover'))
-        headers = self.server.received[0]['headers']
+        headers = self.server.events_received[0]['headers']
         self.assertEqual('sandwich', headers['Bugsnag-Api-Key'])
 
     def test_notify_before_notify_modifying_metadata(self):
@@ -287,7 +290,7 @@ class TestBugsnag(IntegrationTest):
 
         bugsnag.before_notify(callback)
         bugsnag.notify(ScaryException('unexpected failover'))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('bar', event['metaData']['foo']['sandwich'])
 
@@ -298,21 +301,21 @@ class TestBugsnag(IntegrationTest):
 
         bugsnag.before_notify(callback)
         bugsnag.notify(ScaryException('unexpected failover'))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('green', event['metaData']['custom']['color'])
 
     def test_notify_configured_lib_root(self):
         bugsnag.configure(lib_root='/the/basement')
         bugsnag.notify(ScaryException('unexpected failover'))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('/the/basement', event['libRoot'])
 
     def test_notify_configured_project_root(self):
         bugsnag.configure(project_root='/the/basement')
         bugsnag.notify(ScaryException('unexpected failover'))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('/the/basement', event['projectRoot'])
 
@@ -320,7 +323,7 @@ class TestBugsnag(IntegrationTest):
         bugsnag.configure(project_root=Path('/the/basement'))
         bugsnag.notify(ScaryException('unexpected failover'))
 
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
 
         assert event['projectRoot'] == '/the/basement'
@@ -328,31 +331,31 @@ class TestBugsnag(IntegrationTest):
     def test_notify_invalid_severity(self):
         bugsnag.notify(ScaryException('unexpected failover'),
                        severity='debug')
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('warning', event['severity'])
 
     def test_notify_override_deprecated_user_id(self):
         bugsnag.notify(ScaryException('unexpected failover'),
                        user_id='542347329')
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('542347329', event['user']['id'])
 
     def test_notify_override_api_key(self):
         bugsnag.notify(ScaryException('unexpected failover'),
                        api_key='gravy!')
-        headers = self.server.received[0]['headers']
+        headers = self.server.events_received[0]['headers']
         self.assertEqual('gravy!', headers['Bugsnag-Api-Key'])
 
     def test_notify_payload_version(self):
         bugsnag.notify(ScaryException('unexpected failover'))
-        headers = self.server.received[0]['headers']
+        headers = self.server.events_received[0]['headers']
         self.assertEqual('4.0', headers['Bugsnag-Payload-Version'])
 
     def test_notify_error_class(self):
         bugsnag.notify(ScaryException('unexpected failover'))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
         self.assertEqual('tests.utils.ScaryException', exception['errorClass'])
@@ -365,7 +368,7 @@ class TestBugsnag(IntegrationTest):
                 raise Exception('nah')
 
         bugsnag.notify(ScaryException('unexpected failover'), bad=BadThings())
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('[BADENCODING]', event['metaData']['custom']['bad'])
 
@@ -374,7 +377,7 @@ class TestBugsnag(IntegrationTest):
         a['baz'] = a
         bugsnag.add_metadata_tab('a', a)
         bugsnag.notify(ScaryException('unexpected failover'))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('bar', event['metaData']['a']['foo'])
         self.assertEqual('[RECURSIVE]', event['metaData']['a']['baz']['baz'])
@@ -384,7 +387,7 @@ class TestBugsnag(IntegrationTest):
         a.append(a)
         bugsnag.add_metadata_tab('a', {'b': a})
         bugsnag.notify(ScaryException('unexpected failover'))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual(['foo', 'bar', '[RECURSIVE]'],
                          event['metaData']['a']['b'])
@@ -392,7 +395,7 @@ class TestBugsnag(IntegrationTest):
     def test_notify_metadata_bool_value(self):
         bugsnag.notify(ScaryException('unexpected failover'),
                        value=True, value2=False)
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual(True, event['metaData']['custom']['value'])
         self.assertEqual(False, event['metaData']['custom']['value2'])
@@ -400,17 +403,17 @@ class TestBugsnag(IntegrationTest):
     def test_notify_metadata_complex_value(self):
         bugsnag.notify(ScaryException('unexpected failover'),
                        value=(5 + 0j), value2=(13 + 3.4j))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('(5+0j)', event['metaData']['custom']['value'])
         self.assertEqual('(13+3.4j)', event['metaData']['custom']['value2'])
 
     def test_notify_non_exception(self):
         bugsnag.notify(2)
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
-        self.assertEqual(1, len(self.server.received))
+        self.assertEqual(1, len(self.server.events_received))
         self.assertEqual('RuntimeError', exception['errorClass'])
         self.assertTrue(repr(2) in exception['message'])
 
@@ -422,26 +425,26 @@ class TestBugsnag(IntegrationTest):
                 raise Exception('nah')
 
         bugsnag.notify(BadThings())
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
         self.assertEqual('[BADENCODING]', exception['message'])
 
     def test_notify_single_value_tuple(self):
         bugsnag.notify((None,))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
-        self.assertEqual(1, len(self.server.received))
+        self.assertEqual(1, len(self.server.events_received))
         self.assertEqual('RuntimeError', exception['errorClass'])
         self.assertTrue(repr(None) in exception['message'])
 
     def test_notify_invalid_values_tuple(self):
         bugsnag.notify((None, 2, "foo"))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
-        self.assertEqual(1, len(self.server.received))
+        self.assertEqual(1, len(self.server.events_received))
         self.assertEqual('RuntimeError', exception['errorClass'])
         self.assertTrue(repr(2) in exception['message'])
 
@@ -453,11 +456,11 @@ class TestBugsnag(IntegrationTest):
             backtrace = sys.exc_info()[2]
 
         bugsnag.notify(Exception("foo"), traceback=backtrace)
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
         stacktrace = exception['stacktrace']
-        self.assertEqual(1, len(self.server.received))
+        self.assertEqual(1, len(self.server.events_received))
         self.assertEqual('foo', exception['message'])
         self.assertEqual('test_notify_exception_with_traceback_option',
                          stacktrace[0]['method'])
@@ -473,27 +476,27 @@ class TestBugsnag(IntegrationTest):
             bugsnag.notify((Exception, Exception("foo"), backtrace))
 
         send_notify()
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
         stacktrace = exception['stacktrace']
-        self.assertEqual(1, len(self.server.received))
+        self.assertEqual(1, len(self.server.events_received))
         self.assertEqual('foo', exception['message'])
         self.assertEqual('send_notify',
                          stacktrace[0]['method'])
 
     def test_notify_exception_tuple(self):
         bugsnag.notify((Exception, Exception("foo"), None))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
-        self.assertEqual(1, len(self.server.received))
+        self.assertEqual(1, len(self.server.events_received))
         self.assertEqual("RuntimeError", exception['errorClass'])
 
     def test_notify_metadata_set_value(self):
         bugsnag.notify(ScaryException('unexpected failover'),
                        value=set([6, "cow", "gravy"]))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         value = event['metaData']['custom']['value']
         self.assertEqual(3, len(value))
@@ -504,7 +507,7 @@ class TestBugsnag(IntegrationTest):
     def test_notify_metadata_tuple_value(self):
         bugsnag.notify(ScaryException('unexpected failover'),
                        value=(3, "cow", "gravy"))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual([3, "cow", "gravy"],
                          event['metaData']['custom']['value'])
@@ -512,14 +515,14 @@ class TestBugsnag(IntegrationTest):
     def test_notify_metadata_integer_value(self):
         bugsnag.notify(ScaryException('unexpected failover'),
                        value=5, value2=-13)
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual(5, event['metaData']['custom']['value'])
         self.assertEqual(-13, event['metaData']['custom']['value2'])
 
     def test_notify_error_message(self):
         bugsnag.notify(ScaryException('unexpécted failover'))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         exception = event['exceptions'][0]
         self.assertEqual('unexpécted failover', exception['message'])
@@ -542,7 +545,7 @@ class TestBugsnag(IntegrationTest):
             'self': self,
             'var': bins
         }})
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertEqual('∆πåß∂ƒ', event['metaData']['payload']['project'])
         self.assertEqual('♥♥♥♥♥♥',
@@ -568,7 +571,7 @@ class TestBugsnag(IntegrationTest):
 
     def test_notify_stacktrace(self):
         samples.call_bugsnag_nested()
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         frames = event['exceptions'][0]['stacktrace']
 
@@ -600,18 +603,17 @@ class TestBugsnag(IntegrationTest):
         self.assertEqual('', frames[2]['code']['4'])
 
     def test_notify_proxy(self):
-        bugsnag.configure(proxy_host=self.server.url)
+        bugsnag.configure(proxy_host='http://' + self.server.address)
         bugsnag.notify(ScaryException('unexpected failover'))
 
-        self.assertEqual(len(self.server.received), 1)
-        self.assertEqual(self.server.received[0]['method'], 'POST')
-        self.assertEqual(self.server.received[0]['path'].strip('/'),
-                         self.server.url)
+        assert self.sent_report_count == 1
+        assert self.server.events_received[0]['method'] == 'POST'
+        assert self.server.events_received[0]['path'] == self.server.events_url
 
     def test_notify_unhandled_defaults(self):
         bugsnag.notify(ScaryException("unexpected failover"))
 
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertFalse(event['unhandled'])
         self.assertEqual(event['severityReason'], {
@@ -621,7 +623,7 @@ class TestBugsnag(IntegrationTest):
     def test_notify_severity_overridden(self):
         bugsnag.notify(ScaryException("unexpected failover"), severity="info")
 
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertFalse(event['unhandled'])
         self.assertEqual(event['severityReason'], {
@@ -636,7 +638,7 @@ class TestBugsnag(IntegrationTest):
 
         bugsnag.notify(ScaryException("unexpected failover"), severity="error")
 
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertFalse(event['unhandled'])
         self.assertEqual(event['severityReason'], {
@@ -659,17 +661,20 @@ class TestBugsnag(IntegrationTest):
 
         bugsnag.notify(ScaryException('unexpected failover'),
                        test={'array': []})
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
 
         self.assertEqual(event['metaData']['test']['array'], [1, 2])
 
     def test_middleware_stack_order(self):
-        client = bugsnag.Client(endpoint=self.server.url,
-                                api_key='tomatoes',
-                                notify_release_stages=['dev'],
-                                release_stage='dev',
-                                asynchronous=False)
+        client = bugsnag.Client(
+            endpoint=self.server.events_url,
+            session_endpoint=self.server.sessions_url,
+            api_key='tomatoes',
+            notify_release_stages=['dev'],
+            release_stage='dev',
+            asynchronous=False,
+        )
 
         def first_callback(event):
             event.metadata['test']['array'].append(1)
@@ -682,17 +687,20 @@ class TestBugsnag(IntegrationTest):
 
         client.notify(ScaryException('unexpected failover'),
                       test={'array': []})
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
 
         self.assertEqual(event['metaData']['test']['array'], [1, 2])
 
     def test_internal_middleware_changes_severity(self):
-        client = bugsnag.Client(endpoint=self.server.url,
-                                api_key='tomatoes',
-                                notify_release_stages=['dev'],
-                                release_stage='dev',
-                                asynchronous=False)
+        client = bugsnag.Client(
+            endpoint=self.server.events_url,
+            session_endpoint=self.server.sessions_url,
+            api_key='tomatoes',
+            notify_release_stages=['dev'],
+            release_stage='dev',
+            asynchronous=False,
+        )
 
         def severity_callback(event):
             event.severity = 'info'
@@ -701,18 +709,21 @@ class TestBugsnag(IntegrationTest):
         internal_middleware.before_notify(severity_callback)
 
         client.notify(ScaryException('unexpected failover'))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
 
         self.assertEqual(event['severity'], 'info')
         self.assertEqual(event['severityReason']['type'], 'handledException')
 
     def test_internal_middleware_can_change_severity_reason(self):
-        client = bugsnag.Client(endpoint=self.server.url,
-                                api_key='tomatoes',
-                                notify_release_stages=['dev'],
-                                release_stage='dev',
-                                asynchronous=False)
+        client = bugsnag.Client(
+            endpoint=self.server.events_url,
+            session_endpoint=self.server.sessions_url,
+            api_key='tomatoes',
+            notify_release_stages=['dev'],
+            release_stage='dev',
+            asynchronous=False,
+        )
 
         def severity_reason_callback(event):
             event.severity_reason['type'] = 'testReason'
@@ -721,7 +732,7 @@ class TestBugsnag(IntegrationTest):
         internal_middleware.before_notify(severity_reason_callback)
 
         client.notify(ScaryException('unexpected failover'))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
 
         self.assertEqual(event['severityReason']['type'], 'testReason')
@@ -734,7 +745,7 @@ class TestBugsnag(IntegrationTest):
         bugsnag.before_notify(severity_callback)
 
         bugsnag.notify(ScaryException('unexpected failover'))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
 
         self.assertEqual(event['severity'], 'info')
@@ -749,7 +760,7 @@ class TestBugsnag(IntegrationTest):
         bugsnag.before_notify(severity_reason_callback)
 
         bugsnag.notify(ScaryException('unexpected failover'))
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
 
         self.assertEqual(event['severityReason']['type'], 'handledException')
@@ -757,7 +768,7 @@ class TestBugsnag(IntegrationTest):
     def test_auto_notify_defaults(self):
         bugsnag.auto_notify(ScaryException("unexpected failover"))
 
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertTrue(event['unhandled'])
         self.assertEqual(event['severity'], 'error')
@@ -778,7 +789,7 @@ class TestBugsnag(IntegrationTest):
             }
         )
 
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertFalse(event['unhandled'])
         self.assertEqual(event['severity'], 'info')
@@ -796,7 +807,7 @@ class TestBugsnag(IntegrationTest):
         except Exception:
             bugsnag.auto_notify_exc_info()
 
-        self.assertEqual(len(self.server.received), 0)
+        self.assertEqual(len(self.server.events_received), 0)
 
     def test_auto_notify_exc_info(self):
         try:
@@ -804,8 +815,8 @@ class TestBugsnag(IntegrationTest):
         except Exception:
             bugsnag.auto_notify_exc_info()
 
-        self.assertEqual(len(self.server.received), 1)
-        json_body = self.server.received[0]['json_body']
+        self.assertEqual(len(self.server.events_received), 1)
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertTrue(event['unhandled'])
         self.assertEqual(event['severity'], 'error')
@@ -833,7 +844,7 @@ class TestBugsnag(IntegrationTest):
                 }
             )
 
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         event = json_body['events'][0]
         self.assertFalse(event['unhandled'])
         self.assertEqual(event['severity'], 'info')
@@ -851,7 +862,7 @@ class TestBugsnag(IntegrationTest):
         bugsnag.configure(asynchronous=True)
         bugsnag.notify(ScaryException('unexpected failover'),
                        asynchronous=False)
-        assert len(self.server.received) == 1
+        assert len(self.server.events_received) == 1
 
     def test_meta_data_warning(self):
         with pytest.warns(DeprecationWarning) as records:
@@ -863,6 +874,6 @@ class TestBugsnag(IntegrationTest):
                                                'argument has been replaced ' +
                                                'with "metadata"')
 
-        json_body = self.server.received[0]['json_body']
+        json_body = self.server.events_received[0]['json_body']
         metadata = json_body['events'][0]['metaData']
         assert metadata['fruit']['apples'] == 2

@@ -27,9 +27,9 @@ def test_uncaught_exception_on_thread_sends_event(bugsnag_server):
     thread.start()
     thread.join()
 
-    bugsnag_server.wait_for_request()
+    bugsnag_server.wait_for_event()
 
-    event = bugsnag_server.received[0]['json_body']['events'][0]
+    event = bugsnag_server.events_received[0]['json_body']['events'][0]
     exception = event['exceptions'][0]
 
     assert 'dispatch' == event['app']['type']

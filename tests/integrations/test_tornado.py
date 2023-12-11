@@ -12,19 +12,22 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
 
     def setUp(self):
         super(TornadoTests, self).setUp()
-        bugsnag.configure(endpoint=self.server.url,
-                          api_key='3874876376238728937',
-                          notify_release_stages=['dev'],
-                          release_stage='dev',
-                          asynchronous=False,
-                          max_breadcrumbs=25)
+        bugsnag.configure(
+            endpoint=self.server.events_url,
+            session_endpoint=self.server.sessions_url,
+            api_key='3874876376238728937',
+            notify_release_stages=['dev'],
+            release_stage='dev',
+            asynchronous=False,
+            max_breadcrumbs=25,
+        )
 
     def test_notify(self):
         response = self.fetch('/notify', method="GET")
         self.assertEqual(response.code, 200)
-        self.assertEqual(len(self.server.received), 1)
+        self.assertEqual(len(self.server.events_received), 1)
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         expectedUrl = 'http://127.0.0.1:{}/notify'.format(self.get_http_port())
         self.assertEqual(event['metaData']['request'], {
@@ -45,9 +48,9 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
     def test_notify_get(self):
         response = self.fetch('/notify?password=asdf', method="GET")
         self.assertEqual(response.code, 200)
-        self.assertEqual(len(self.server.received), 1)
+        self.assertEqual(len(self.server.events_received), 1)
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         p = self.get_http_port()
         expectedUrl = \
@@ -71,9 +74,9 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
     def test_notify_post(self):
         response = self.fetch('/notify', method="POST", body="test=post")
         self.assertEqual(response.code, 200)
-        self.assertEqual(len(self.server.received), 1)
+        self.assertEqual(len(self.server.events_received), 1)
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         expectedUrl = 'http://127.0.0.1:{}/notify'.format(self.get_http_port())
         self.assertEqual(event['metaData']['request'], {
@@ -96,9 +99,9 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
         response = self.fetch('/notify', method="POST", body=body,
                               headers={'Content-Type': 'application/json'})
         self.assertEqual(response.code, 200)
-        self.assertEqual(len(self.server.received), 1)
+        self.assertEqual(len(self.server.events_received), 1)
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         expectedUrl = 'http://127.0.0.1:{}/notify'.format(self.get_http_port())
         self.assertEqual(event['metaData']['request'], {
@@ -133,9 +136,9 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
         response = self.fetch('/notify', method="POST", body=json.dumps(body),
                               headers=headers)
         self.assertEqual(response.code, 200)
-        self.assertEqual(len(self.server.received), 1)
+        self.assertEqual(len(self.server.events_received), 1)
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         self.assertEqual(event['metaData']['request'], {
             'method': 'POST',
@@ -155,9 +158,9 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
     def test_unhandled(self):
         response = self.fetch('/crash', method="GET")
         self.assertEqual(response.code, 500)
-        self.assertEqual(len(self.server.received), 1)
+        self.assertEqual(len(self.server.events_received), 1)
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         expectedUrl = 'http://127.0.0.1:{}/crash'.format(self.get_http_port())
         self.assertEqual(event['metaData']['request'], {
@@ -180,9 +183,9 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
     def test_unhandled_post(self):
         response = self.fetch('/crash', method="POST", body="test=post")
         self.assertEqual(response.code, 500)
-        self.assertEqual(len(self.server.received), 1)
+        self.assertEqual(len(self.server.events_received), 1)
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         expectedUrl = 'http://127.0.0.1:{}/crash'.format(self.get_http_port())
         self.assertEqual(event['metaData']['request'], {
@@ -206,9 +209,9 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
         response = self.fetch('/crash', method="POST", body=body,
                               headers={'Content-Type': 'application/json'})
         self.assertEqual(response.code, 500)
-        self.assertEqual(len(self.server.received), 1)
+        self.assertEqual(len(self.server.events_received), 1)
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         expectedUrl = 'http://127.0.0.1:{}/crash'.format(self.get_http_port())
         self.assertEqual(event['metaData']['request'], {
@@ -230,15 +233,15 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
     def test_ignored_http_error(self):
         response = self.fetch('/unknown_endpoint')
         self.assertEqual(response.code, 404)
-        self.assertEqual(len(self.server.received), 0)
+        self.assertEqual(len(self.server.events_received), 0)
 
     def test_enable_environment(self):
         bugsnag.configure(send_environment=True)
         response = self.fetch('/notify', method="POST", body="test=post")
         self.assertEqual(response.code, 200)
-        self.assertEqual(len(self.server.received), 1)
+        self.assertEqual(len(self.server.events_received), 1)
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         self.assertEqual(event['metaData']['environment']['REQUEST_METHOD'],
                          'POST')
@@ -252,9 +255,9 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
 
     def test_read_request_in_callback(self):
         self.fetch('/crash_with_callback?user_id=foo')
-        assert len(self.server.received) == 1
+        assert len(self.server.events_received) == 1
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
         assert event['user']['id'] == 'foo'
 
@@ -271,9 +274,9 @@ class TornadoTests(AsyncHTTPTestCase, IntegrationTest):
         )
 
         self.fetch('/crash', headers={'Referer': referer})
-        assert len(self.server.received) == 1
+        assert len(self.server.events_received) == 1
 
-        payload = self.server.received[0]['json_body']
+        payload = self.server.events_received[0]['json_body']
         breadcrumbs = payload['events'][0]['breadcrumbs']
 
         assert len(breadcrumbs) == 1
