@@ -55,7 +55,7 @@ class Delivery:
     def __init__(self):
         self.sent_session_warning = False
 
-    def deliver(self, config, payload: Any, options={}):
+    def deliver(self, config, payload: Any, options=None):
         """
         Sends error reports to Bugsnag
         """
@@ -98,8 +98,9 @@ class Delivery:
 
 
 class UrllibDelivery(Delivery):
-
-    def deliver(self, config, payload: Any, options={}):
+    def deliver(self, config, payload: Any, options=None):
+        if options is None:
+            options = {}
 
         def request():
             uri = options.pop('endpoint', config.endpoint)
@@ -136,8 +137,9 @@ class UrllibDelivery(Delivery):
 
 
 class RequestsDelivery(Delivery):
-
-    def deliver(self, config, payload: Any, options={}):
+    def deliver(self, config, payload: Any, options=None):
+        if options is None:
+            options = {}
 
         def request():
             uri = options.pop('endpoint', config.endpoint)
