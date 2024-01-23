@@ -195,6 +195,13 @@ class TestConfiguration(unittest.TestCase):
             def deliv(self, *args, **kwargs):
                 pass
 
+        class OkDelivery:
+            def deliver(self, *args, **kwargs):
+                pass
+
+            def deliver_sessions(self, config, payload):
+                pass
+
         class GoodDelivery(object):
             def deliver(self, *args, **kwargs):
                 pass
@@ -212,6 +219,20 @@ class TestConfiguration(unittest.TestCase):
             c.configure(delivery=good)
             assert len(record) == 1
             assert c.delivery == good
+
+        with pytest.warns(DeprecationWarning) as record:
+            ok = OkDelivery()
+
+            c.configure(delivery=ok)
+
+            assert len(record) == 1
+            assert str(record[0].message) == (
+                'delivery.deliver_sessions should accept an "options" ' +
+                'parameter to allow for synchronous delivery, sessions ' +
+                'may be lost when the process exits'
+            )
+
+            assert c.delivery == ok
 
     def test_validate_hostname(self):
         c = Configuration()
