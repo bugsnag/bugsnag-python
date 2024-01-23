@@ -54,7 +54,7 @@ class SessionTracker:
         _session_info.set(new_session)
         self.__queue_session(start_time)
 
-    def send_sessions(self):
+    def send_sessions(self, asynchronous=True):
         self.mutex.acquire()
         try:
             sessions = []
@@ -66,7 +66,8 @@ class SessionTracker:
             self.session_counts = {}
         finally:
             self.mutex.release()
-        self.__deliver(sessions)
+
+        self.__deliver(sessions, asynchronous)
 
     def __start_delivery(self):
         if self.delivery_thread is None:
@@ -83,7 +84,8 @@ class SessionTracker:
             def cleanup():
                 if self.delivery_thread is not None:
                     self.delivery_thread.cancel()
-                self.send_sessions()
+
+                self.send_sessions(asynchronous=False)
 
             atexit.register(cleanup)
 
@@ -96,7 +98,7 @@ class SessionTracker:
         finally:
             self.mutex.release()
 
-    def __deliver(self, sessions: List[Dict]):
+    def __deliver(self, sessions: List[Dict], asynchronous=True):
         if not sessions:
             self.config.logger.debug("No sessions to deliver")
             return
@@ -132,7 +134,19 @@ class SessionTracker:
             )
 
             encoded_payload = encoder.encode(payload)
-            self.config.delivery.deliver_sessions(self.config, encoded_payload)
+
+            deliver = self.config.delivery.deliver_sessions
+
+            if 'options' in deliver.__code__.co_varnames:
+                deliver(
+                    self.config,
+                    encoded_payload,
+                    options={'asynchronous': asynchronous}
+                )
+            else:
+                deliver(self.config, encoded_payload)
+
+
         except Exception as e:
             self.config.logger.exception('Sending sessions failed %s', e)
 

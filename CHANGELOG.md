@@ -1,6 +1,13 @@
 Changelog
 =========
 
+## TBD
+
+### Bug fixes
+
+* Ensure sessions are sent at exit
+  [#371](https://github.com/bugsnag/bugsnag-python/pull/371)
+
 ## v4.6.1 (2023-12-11)
 
 ### Bug fixes
