@@ -273,6 +273,25 @@ class Configuration:
     def delivery(self, value):
         if hasattr(value, 'deliver') and callable(value.deliver):
             self._delivery = value
+
+            # deliver_sessions is _technically_ optional in that if you disable
+            # session tracking it will never be called
+            # this should be made mandatory in the next major release
+            if (
+                hasattr(value, 'deliver_sessions') and
+                callable(value.deliver_sessions)
+            ):
+                parameter_names = value.deliver_sessions.__code__.co_varnames
+
+                if 'options' not in parameter_names:
+                    warnings.warn(
+                        'delivery.deliver_sessions should accept an ' +
+                        '"options" parameter to allow for synchronous ' +
+                        'delivery, sessions may be lost when the process ' +
+                        'exits',
+                        DeprecationWarning
+                    )
+
         else:
             message = ('delivery should implement Delivery interface, got ' +
                        '{0}. This will be an error in a future release.')
