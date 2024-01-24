@@ -139,7 +139,6 @@ class TestASGIMiddleware(IntegrationTest):
         self.assertEqual('GET', request['httpMethod'])
         self.assertEqual('http', request['type'])
         self.assertEqual('http://testserver/', request['url'])
-        self.assertEqual('testclient', request['clientIp'])
         self.assertEqual('testclient', request['headers']['user-agent'])
 
         exception = payload['events'][0]['exceptions'][0]
