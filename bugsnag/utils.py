@@ -6,7 +6,7 @@ from typing import AnyStr, Tuple, Optional
 import warnings
 import copy
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from urllib.parse import urlparse, urlunsplit, parse_qs
 
 
@@ -424,7 +424,7 @@ def remove_query_from_url(url: AnyStr) -> Optional[AnyStr]:
 # fallback implementation for Python 3.5
 try:
     # this will raise if 'timespec' isn't supported
-    datetime.utcnow().isoformat(timespec='milliseconds')  # type: ignore
+    dt.datetime.now(timezone.utc).replace(tzinfo=None).isoformat(timespec='milliseconds')  # type: ignore
 
     def to_rfc3339(dt: datetime) -> str:
         return dt.isoformat(timespec='milliseconds')  # type: ignore
