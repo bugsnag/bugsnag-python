@@ -55,13 +55,13 @@ class Delivery:
     def __init__(self):
         self.sent_session_warning = False
 
-    def deliver(self, config, payload: Any, options={}):
+    def deliver(self, config, payload: Any, options=None):
         """
         Sends error reports to Bugsnag
         """
         pass
 
-    def deliver_sessions(self, config, payload: Any):
+    def deliver_sessions(self, config, payload: Any, options=None):
         """
         Sends sessions to Bugsnag
         """
@@ -72,10 +72,12 @@ class Delivery:
                               'No sessions will be sent to Bugsnag.')
                 self.sent_session_warning = True
         else:
-            options = {
-                'endpoint': config.session_endpoint,
-                'success': 202,
-            }
+            if options is None:
+                options = {}
+
+            options['endpoint'] = config.session_endpoint
+            options['success'] = 202
+
             self.deliver(config, payload, options)
 
     def queue_request(self, request: Callable, config, options: Dict):
@@ -96,8 +98,9 @@ class Delivery:
 
 
 class UrllibDelivery(Delivery):
-
-    def deliver(self, config, payload: Any, options={}):
+    def deliver(self, config, payload: Any, options=None):
+        if options is None:
+            options = {}
 
         def request():
             uri = options.pop('endpoint', config.endpoint)
@@ -134,8 +137,9 @@ class UrllibDelivery(Delivery):
 
 
 class RequestsDelivery(Delivery):
-
-    def deliver(self, config, payload: Any, options={}):
+    def deliver(self, config, payload: Any, options=None):
+        if options is None:
+            options = {}
 
         def request():
             uri = options.pop('endpoint', config.endpoint)
