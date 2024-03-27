@@ -32,6 +32,23 @@ DEFAULT_SESSIONS_ENDPOINT = 'https://sessions.bugsnag.com'
 __all__ = ('default_headers', 'Delivery')
 
 
+def _noop():
+    pass
+
+
+def _marshall_post_delivery_callback(post_delivery_callback):
+    if not callable(post_delivery_callback):
+        return _noop
+
+    def safe_post_delivery_callback():
+        try:
+            post_delivery_callback()
+        except Exception:
+            pass
+
+    return safe_post_delivery_callback
+
+
 def create_default_delivery():
     if requests is not None:
         return RequestsDelivery()
@@ -81,6 +98,10 @@ class Delivery:
             self.deliver(config, payload, options)
 
     def queue_request(self, request: Callable, config, options: Dict):
+        post_delivery_callback = _marshall_post_delivery_callback(
+            options.pop('post_delivery_callback', None)
+        )
+
         if config.asynchronous and options.pop('asynchronous', True):
             # if an exception escapes the thread, our threading.excepthook
             # will catch it and attempt to deliver it
@@ -91,10 +112,15 @@ class Delivery:
                     request()
                 except Exception as e:
                     config.logger.exception('Notifying Bugsnag failed %s', e)
+                finally:
+                    post_delivery_callback()
 
             Thread(target=safe_request).start()
         else:
-            request()
+            try:
+                request()
+            finally:
+                post_delivery_callback()
 
 
 class UrllibDelivery(Delivery):
