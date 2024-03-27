@@ -5,7 +5,7 @@ from bugsnag import Client
 from bugsnag.configuration import Configuration
 from bugsnag.notifier import _NOTIFIER_INFORMATION
 from bugsnag.sessiontracker import SessionTracker
-from tests.utils import IntegrationTest
+from tests.utils import BrokenDelivery, IntegrationTest, QueueingDelivery
 from unittest.mock import Mock
 
 
@@ -192,3 +192,37 @@ class TestConfiguration(IntegrationTest):
         self.server.wait_for_session()
 
         assert self.server.sent_session_count == 1
+
+    def test_session_tracker_tracks_in_flight_requests(self):
+        delivery = QueueingDelivery()
+        client = Client(
+            api_key='a05afff2bd2ffaf0ab0f52715bbdcffd',
+            auto_capture_sessions=False,
+            session_endpoint=self.server.sessions_url,
+            asynchronous=False,
+            delivery=delivery,
+        )
+
+        client.session_tracker.start_session()
+        client.session_tracker.send_sessions()
+
+        request_tracker = client.session_tracker._request_tracker
+        assert request_tracker.has_in_flight_requests()
+
+        delivery.flush_request_queue()
+        assert not request_tracker.has_in_flight_requests()
+
+    def test_session_tracker_tracks_in_flight_requests_failure(self):
+        client = Client(
+            api_key='a05afff2bd2ffaf0ab0f52715bbdcffd',
+            auto_capture_sessions=False,
+            session_endpoint=self.server.sessions_url,
+            asynchronous=False,
+            delivery=BrokenDelivery(),
+        )
+
+        client.session_tracker.start_session()
+        client.session_tracker.send_sessions()
+
+        request_tracker = client.session_tracker._request_tracker
+        assert not request_tracker.has_in_flight_requests()
