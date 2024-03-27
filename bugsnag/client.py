@@ -19,6 +19,7 @@ from bugsnag.handlers import BugsnagHandler
 from bugsnag.sessiontracker import SessionTracker
 from bugsnag.utils import to_rfc3339
 from bugsnag.context import ContextLocalState
+from bugsnag.request_tracker import RequestTracker
 
 __all__ = ('Client',)
 
@@ -36,6 +37,7 @@ class Client:
         self.session_tracker = SessionTracker(self.configuration)
         self.configuration.configure(**kwargs)
         self._context = ContextLocalState(self)
+        self._request_tracker = RequestTracker()
 
         if install_sys_hook:
             self.install_sys_hook()
@@ -174,11 +176,6 @@ class Client:
             initial_reason = event.severity_reason.copy()
 
             def send_payload():
-                if asynchronous is None:
-                    options = {}
-                else:
-                    options = {'asynchronous': asynchronous}
-
                 if event.api_key is None:
                     self.configuration.logger.warning(
                         "No API key configured, couldn't notify"
@@ -192,15 +189,29 @@ class Client:
                     }
                 else:
                     event.severity_reason = initial_reason
+
                 payload = event._payload()
+
+                post_delivery_callback = self._request_tracker.new_request()
+                options = {'post_delivery_callback': post_delivery_callback}
+
+                if asynchronous is not None:
+                    options['asynchronous'] = asynchronous
+
                 try:
-                    self.configuration.delivery.deliver(self.configuration,
-                                                        payload, options)
+                    self.configuration.delivery.deliver(
+                        self.configuration,
+                        payload,
+                        options
+                    )
                 except Exception as e:
                     self.configuration.logger.exception(
                         'Notifying Bugsnag failed %s',
                         e
                     )
+
+                    # ensure this request is not still marked as in-flight
+                    post_delivery_callback()
 
                 # Trigger session delivery
                 self.session_tracker.send_sessions()
