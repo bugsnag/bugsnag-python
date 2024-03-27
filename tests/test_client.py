@@ -17,7 +17,12 @@ from bugsnag import (
 )
 
 import bugsnag.legacy as legacy
-from tests.utils import IntegrationTest, ScaryException
+from tests.utils import (
+    BrokenDelivery,
+    IntegrationTest,
+    QueueingDelivery,
+    ScaryException,
+)
 
 timestamp_regex = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}(?:[+-]\d{2}:\d{2}|Z)'  # noqa: E501
 
@@ -1687,6 +1692,62 @@ class ClientTest(IntegrationTest):
             FeatureFlag('c', '3'),
             FeatureFlag('e')
         ]
+
+    def test_in_flight_event_request_tracking_in_notify(self):
+        delivery = QueueingDelivery()
+        configuration = Configuration()
+        configuration.configure(delivery=delivery, api_key='abc')
+
+        client = Client(configuration)
+        assert not client._request_tracker.has_in_flight_requests()
+
+        client.notify(Exception('Oh no'))
+        assert client._request_tracker.has_in_flight_requests()
+
+        delivery.flush_request_queue()
+        assert not client._request_tracker.has_in_flight_requests()
+
+    def test_in_flight_event_request_tracking_in_notify_failure(self):
+        configuration = Configuration()
+        configuration.configure(delivery=BrokenDelivery(), api_key='abc')
+
+        client = Client(configuration)
+        assert not client._request_tracker.has_in_flight_requests()
+
+        client.notify(Exception('Oh no'))
+        assert not client._request_tracker.has_in_flight_requests()
+
+    def test_in_flight_event_request_tracking_in_notify_exc_info(self):
+        delivery = QueueingDelivery()
+        configuration = Configuration()
+        configuration.configure(delivery=delivery, api_key='abc')
+
+        client = Client(configuration)
+        assert not client._request_tracker.has_in_flight_requests()
+
+        try:
+            raise Exception(':)')
+        except Exception:
+            client.notify_exc_info(*sys.exc_info())
+
+        assert client._request_tracker.has_in_flight_requests()
+
+        delivery.flush_request_queue()
+        assert not client._request_tracker.has_in_flight_requests()
+
+    def test_in_flight_event_request_tracking_in_notify_exc_info_failure(self):
+        configuration = Configuration()
+        configuration.configure(delivery=BrokenDelivery(), api_key='abc')
+
+        client = Client(configuration)
+        assert not client._request_tracker.has_in_flight_requests()
+
+        try:
+            raise Exception(':)')
+        except Exception:
+            client.notify_exc_info(*sys.exc_info())
+
+        assert not client._request_tracker.has_in_flight_requests()
 
 
 @pytest.mark.parametrize("metadata,type", [
