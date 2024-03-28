@@ -366,6 +366,14 @@ class Client:
 
             raise Exception("flush timed out after %dms" % timeout_ms)
 
+    def add_metadata_tab(self, tab_name: str, data: Dict[str, Any]) -> None:
+        metadata = RequestConfiguration.get_instance().metadata
+
+        if tab_name not in metadata:
+            metadata[tab_name] = {}
+
+        metadata[tab_name].update(data)
+
 
 class ClientContext:
     def __init__(self, client,
