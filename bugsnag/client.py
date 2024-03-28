@@ -336,6 +336,36 @@ class Client:
             BreadcrumbType.ERROR
         )
 
+    def flush(self, timeout_ms: int) -> None:
+        # trigger session delivery as there may be outstanding sessions that
+        # haven't been sent yet
+        self.session_tracker.send_sessions()
+
+        stop_event = threading.Event()
+
+        def block_until_no_requests():
+            while (
+                self._request_tracker.has_in_flight_requests() or
+                self.session_tracker._request_tracker.has_in_flight_requests()
+            ):
+                # wait 10ms before checking for in-flight requests again
+                was_stopped = stop_event.wait(0.01)
+
+                # stop checking and exit if the timeout has been exceeded
+                if was_stopped:
+                    break
+
+        thread = threading.Thread(target=block_until_no_requests)
+        thread.start()
+        thread.join(timeout_ms / 1000)
+
+        if thread.is_alive():
+            # tell the thread to stop checking for in-flight requests as the
+            # timeout has been exceeded
+            stop_event.set()
+
+            raise Exception("flush timed out after %dms" % timeout_ms)
+
 
 class ClientContext:
     def __init__(self, client,

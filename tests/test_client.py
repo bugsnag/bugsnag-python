@@ -1,9 +1,11 @@
 import os
 import re
 import sys
+import time
 import pytest
 import inspect
 import logging
+import threading
 from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock, ANY
 from tests import fixtures
@@ -1748,6 +1750,77 @@ class ClientTest(IntegrationTest):
             client.notify_exc_info(*sys.exc_info())
 
         assert not client._request_tracker.has_in_flight_requests()
+
+    def test_flush_returns_immediately_when_no_requests_are_outstanding(self):
+        start_s = time.time()
+        self.client.flush(10)
+        end_s = time.time()
+
+        assert end_s - start_s < 0.01
+
+    def test_flush_raises_if_timeout_is_exceeded(self):
+        delivery = QueueingDelivery()
+        configuration = Configuration()
+        configuration.configure(delivery=delivery, api_key='abc')
+
+        client = Client(configuration)
+        client.notify(Exception('oh dear'))
+
+        with pytest.raises(Exception) as exception:
+            client.flush(10)
+
+            assert str(exception) == 'Exception: flush timed out after 10ms'
+
+    def test_flush_waits_for_outstanding_events_before_returning(self):
+        delivery = QueueingDelivery()
+        configuration = Configuration()
+        configuration.configure(delivery=delivery, api_key='abc')
+
+        client = Client(configuration)
+        client.notify(Exception('oh dear'))
+        client.notify(Exception('oh no'))
+        client.notify(Exception('oh my'))
+
+        def flush_request_queue():
+            time.sleep(0.05)
+            assert client._request_tracker.has_in_flight_requests()
+
+            delivery.flush_request_queue()
+            assert not client._request_tracker.has_in_flight_requests()
+
+        thread = threading.Thread(target=flush_request_queue)
+        thread.start()
+
+        client.flush(100)
+
+        # the thread should have stopped before flush could exit
+        assert not thread.is_alive()
+
+    def test_flush_waits_for_outstanding_sessions_before_returning(self):
+        delivery = QueueingDelivery()
+        configuration = Configuration()
+        configuration.configure(delivery=delivery, api_key='abc')
+
+        client = Client(configuration)
+        client.session_tracker.start_session()
+        client.session_tracker.start_session()
+
+        def flush_request_queue():
+            request_tracker = client.session_tracker._request_tracker
+
+            time.sleep(0.05)
+            assert request_tracker.has_in_flight_requests()
+
+            delivery.flush_request_queue()
+            assert not request_tracker.has_in_flight_requests()
+
+        thread = threading.Thread(target=flush_request_queue)
+        thread.start()
+
+        client.flush(100)
+
+        # the thread should have stopped before flush could exit
+        assert not thread.is_alive()
 
 
 @pytest.mark.parametrize("metadata,type", [
