@@ -8,6 +8,7 @@ from http.server import SimpleHTTPRequestHandler, HTTPServer
 
 import bugsnag
 from bugsnag.delivery import Delivery
+from bugsnag.configuration import RequestConfiguration
 
 
 try:
@@ -32,6 +33,7 @@ class IntegrationTest(unittest.TestCase):
         self.server.sessions_received = []
 
     def tearDown(self):
+        RequestConfiguration.get_instance().clear()
         previous_client = bugsnag.legacy.default_client
         previous_client.uninstall_sys_hook()
 
