@@ -1822,6 +1822,100 @@ class ClientTest(IntegrationTest):
         # the thread should have stopped before flush could exit
         assert not thread.is_alive()
 
+    def test_aws_lambda_handler_decorator(self):
+        aws_lambda_context = LambdaContext(function_name='abcdef')
+
+        @self.client.aws_lambda_handler
+        def my_handler(event, context):
+            assert event == {'a': 1}
+            assert context == aws_lambda_context
+
+            raise Exception('oh dear')
+
+        with pytest.raises(Exception) as exception:
+            my_handler({'a': 1}, aws_lambda_context)
+
+            assert str(exception) == 'Exception: oh dear'
+
+        assert self.sent_report_count == 1
+        assert self.sent_session_count == 1
+
+        payload = self.server.events_received[0]['json_body']
+        event = payload['events'][0]
+
+        assert event['exceptions'][0]['message'] == 'oh dear'
+        assert event['metaData']['AWS Lambda Event'] == {'a': 1}
+        assert event['metaData']['AWS Lambda Context'] == {
+            'function_name': 'abcdef',
+            'function_version': 'function_version',
+            'invoked_function_arn': 'invoked_function_arn',
+            'memory_limit_in_mb': 'memory_limit_in_mb',
+            'aws_request_id': 'aws_request_id',
+            'log_group_name': 'log_group_name',
+            'log_stream_name': 'log_stream_name',
+            'identity': 'identity',
+            'client_context': 'client_context',
+        }
+
+    def test_aws_lambda_handler_decorator_accepts_flush_timeout(self):
+        aws_lambda_context = LambdaContext(function_version='$LATEST')
+
+        @self.client.aws_lambda_handler(flush_timeout_ms=1000)
+        def my_handler(event, context):
+            assert event == {'z': 9}
+            assert context == aws_lambda_context
+
+            raise Exception('oh dear')
+
+        with pytest.raises(Exception) as exception:
+            my_handler({'z': 9}, aws_lambda_context)
+
+            assert str(exception) == 'Exception: oh dear'
+
+        assert self.sent_report_count == 1
+        assert self.sent_session_count == 1
+
+        payload = self.server.events_received[0]['json_body']
+        event = payload['events'][0]
+
+        assert event['exceptions'][0]['message'] == 'oh dear'
+        assert event['metaData']['AWS Lambda Event'] == {'z': 9}
+        assert event['metaData']['AWS Lambda Context'] == {
+            'function_name': 'function_name',
+            'function_version': '$LATEST',
+            'invoked_function_arn': 'invoked_function_arn',
+            'memory_limit_in_mb': 'memory_limit_in_mb',
+            'aws_request_id': 'aws_request_id',
+            'log_group_name': 'log_group_name',
+            'log_stream_name': 'log_stream_name',
+            'identity': 'identity',
+            'client_context': 'client_context',
+        }
+
+    def test_aws_lambda_handler_decorator_warns_after_timeout(self):
+        aws_lambda_context = LambdaContext()
+        client = Client(delivery=QueueingDelivery(), api_key='abc')
+
+        @client.aws_lambda_handler(flush_timeout_ms=50)
+        def my_handler(event, context):
+            assert event == {'z': 9}
+            assert context == aws_lambda_context
+
+            raise Exception('oh dear')
+
+        with pytest.warns(UserWarning) as warnings:
+            with pytest.raises(Exception) as exception:
+                my_handler({'z': 9}, aws_lambda_context)
+
+                assert str(exception) == 'Exception: oh dear'
+
+            assert len(warnings) == 1
+            assert warnings[0].message.args[0] == \
+                'Delivery may be unsuccessful: flush timed out after 50ms'
+
+        assert self.sent_report_count == 0
+        assert self.sent_session_count == 0
+
 
 @pytest.mark.parametrize("metadata,type", [
     (1234, 'int'),
@@ -1852,3 +1946,28 @@ def test_breadcrumb_metadata_is_coerced_to_dict(metadata, type):
     assert breadcrumb.metadata == {}
     assert breadcrumb.type == BreadcrumbType.MANUAL
     assert is_valid_timestamp(breadcrumb.timestamp)
+
+
+class LambdaContext:
+    def __init__(
+        self,
+        function_name='function_name',
+        function_version='function_version',
+        invoked_function_arn='invoked_function_arn',
+        memory_limit_in_mb='memory_limit_in_mb',
+        aws_request_id='aws_request_id',
+        log_group_name='log_group_name',
+        log_stream_name='log_stream_name',
+        identity='identity',
+        client_context='client_context',
+    ):
+        self.function_name = function_name
+        self.function_version = function_version
+        self.invoked_function_arn = invoked_function_arn
+        self.memory_limit_in_mb = memory_limit_in_mb
+        self.aws_request_id = aws_request_id
+        self.log_group_name = log_group_name
+        self.log_stream_name = log_stream_name
+        self.identity = identity
+        self.client_context = client_context
+        self.another_attribute = 'another_attribute'
