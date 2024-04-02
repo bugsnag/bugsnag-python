@@ -1,4 +1,4 @@
-from typing import Dict, Any, Tuple, Type, Optional, Union, List
+from typing import Dict, Any, Tuple, Type, Optional, Union, List, Callable
 import types
 import sys
 
@@ -176,3 +176,10 @@ def clear_feature_flag(name: Union[str, bytes]) -> None:
 
 def clear_feature_flags() -> None:
     default_client.clear_feature_flags()
+
+
+def aws_lambda_handler(
+    real_handler: Optional[Callable] = None,
+    flush_timeout_ms: int = 2000,
+) -> Callable:
+    return default_client.aws_lambda_handler(real_handler, flush_timeout_ms)
