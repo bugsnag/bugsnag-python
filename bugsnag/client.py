@@ -2,9 +2,9 @@ import builtins
 import sys
 import threading
 import warnings
+import functools
 
 from datetime import datetime, timezone
-from functools import wraps
 from typing import Union, Tuple, Callable, Optional, List, Type, Dict, Any
 
 from bugsnag.breadcrumbs import (
@@ -374,6 +374,67 @@ class Client:
 
         metadata[tab_name].update(data)
 
+    def aws_lambda_handler(
+        self,
+        real_handler: Optional[Callable] = None,
+        flush_timeout_ms: int = 2000,
+    ) -> Callable:
+        # handle being called with just 'flush_timeout_ms'
+        if real_handler is None:
+            return functools.partial(
+                self.aws_lambda_handler,
+                flush_timeout_ms=flush_timeout_ms,
+            )
+
+        # attributes from the aws context that we want to capture as metadata
+        # the context is an instance of LambdaContext, which isn't iterable and
+        # so can't be added to metadata as-is
+        aws_context_attributes = [
+            'function_name',
+            'function_version',
+            'invoked_function_arn',
+            'memory_limit_in_mb',
+            'aws_request_id',
+            'log_group_name',
+            'log_stream_name',
+            'identity',
+            'client_context',
+        ]
+
+        @functools.wraps(real_handler)
+        def wrapped_handler(aws_event, aws_context):
+            try:
+                aws_context_metadata = {
+                    attribute:
+                        getattr(aws_context, attribute, None)
+                        for attribute in aws_context_attributes
+                }
+
+                self.add_metadata_tab('AWS Lambda Event', aws_event)
+                self.add_metadata_tab(
+                    'AWS Lambda Context',
+                    aws_context_metadata
+                )
+
+                if self.configuration.auto_capture_sessions:
+                    self.session_tracker.start_session()
+
+                return real_handler(aws_event, aws_context)
+            except Exception as exception:
+                if self.configuration.auto_notify:
+                    self.notify(exception)
+
+                raise
+            finally:
+                try:
+                    self.flush(flush_timeout_ms)
+                except Exception as exception:
+                    warnings.warn(
+                        'Delivery may be unsuccessful: ' + str(exception)
+                    )
+
+        return wrapped_handler
+
 
 class ClientContext:
     def __init__(self, client,
@@ -386,7 +447,7 @@ class ClientContext:
         self.exception_types = exception_types or (Exception,)
 
     def __call__(self, function: Callable):
-        @wraps(function)
+        @functools.wraps(function)
         def decorate(*args, **kwargs):
             try:
                 return function(*args, **kwargs)
