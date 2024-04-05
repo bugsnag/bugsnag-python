@@ -378,12 +378,14 @@ class Client:
         self,
         real_handler: Optional[Callable] = None,
         flush_timeout_ms: int = 2000,
+        lambda_timeout_notify_ms: int = 1000,
     ) -> Callable:
         # handle being called with just 'flush_timeout_ms'
         if real_handler is None:
             return functools.partial(
                 self.aws_lambda_handler,
                 flush_timeout_ms=flush_timeout_ms,
+                lambda_timeout_notify_ms=lambda_timeout_notify_ms,
             )
 
         # attributes from the aws context that we want to capture as metadata
@@ -403,13 +405,65 @@ class Client:
 
         @functools.wraps(real_handler)
         def wrapped_handler(aws_event, aws_context):
-            try:
-                aws_context_metadata = {
-                    attribute:
-                        getattr(aws_context, attribute, None)
-                        for attribute in aws_context_attributes
-                }
+            timer = None
+            aws_context_metadata = {
+                attribute:
+                    getattr(aws_context, attribute, None)
+                    for attribute in aws_context_attributes
+            }
 
+            if lambda_timeout_notify_ms > 0:
+                # reporting possible timeouts is done using a separate thread,
+                # but we don't want to lose the information from the main
+                # thread so we store references here to use later
+                # TODO: we shouldn't have 3 places where per-request data is
+                #       stored - it should all be in 'self._context'
+                main_request_config = RequestConfiguration.get_instance()
+                main_request_breadcrumbs = \
+                    self.configuration._breadcrumbs._breadcrumbs
+                main_request_feature_flags = \
+                    self._context.feature_flag_delegate._storage
+
+                def report_timeout_to_bugsnag():
+                    # copy over the main thread's data to this thread
+                    RequestConfiguration.set_instance(main_request_config)
+
+                    self.configuration._breadcrumbs._breadcrumbs.extend(
+                        main_request_breadcrumbs
+                    )
+
+                    self._context.feature_flag_delegate.merge(
+                        main_request_feature_flags.values()
+                    )
+
+                    # generate an empty traceback object so the lambda timeout
+                    # doesn't have a misleading traceback
+                    try:
+                        raise Exception()
+                    except Exception as exception:
+                        empty_traceback = exception.__traceback__
+
+                    lambda_timeout_approaching = LambdaTimeoutApproaching(
+                        aws_context.get_remaining_time_in_millis(),
+                        empty_traceback
+                    )
+
+                    # set the source_func so the user's lambda handler is the
+                    # only item in the traceback
+                    self.notify(
+                        lambda_timeout_approaching,
+                        source_func=real_handler
+                    )
+
+                remaining_ms = aws_context.get_remaining_time_in_millis()
+                timer = threading.Timer(
+                    (remaining_ms - lambda_timeout_notify_ms) / 1000,
+                    report_timeout_to_bugsnag
+                )
+
+                timer.start()
+
+            try:
                 self.add_metadata_tab('AWS Lambda Event', aws_event)
                 self.add_metadata_tab(
                     'AWS Lambda Context',
@@ -426,6 +480,10 @@ class Client:
 
                 raise
             finally:
+                # a timer can only be cancelled if it hasn't fired yet
+                if timer and timer.is_alive():
+                    timer.cancel()
+
                 try:
                     self.flush(flush_timeout_ms)
                 except Exception as exception:
@@ -466,3 +524,9 @@ class ClientContext:
                 self.client.notify_exc_info(*exc_info, **self.options)
 
         return False
+
+
+class LambdaTimeoutApproaching(Exception):
+    def __init__(self, remaining_ms: int, tb):
+        super().__init__('Lambda will timeout in %dms' % remaining_ms)
+        self.__traceback__ = tb
