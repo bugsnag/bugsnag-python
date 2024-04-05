@@ -1916,6 +1916,69 @@ class ClientTest(IntegrationTest):
         assert self.sent_report_count == 0
         assert self.sent_session_count == 0
 
+    def test_aws_lambda_handler_decorator_warns_of_potential_timeout(self):
+        aws_lambda_context = LambdaContext(remaining_time_in_millis=2)
+
+        @self.client.aws_lambda_handler(lambda_timeout_notify_ms=1)
+        def my_handler(event, context):
+            assert event == {'z': 9}
+            assert context == aws_lambda_context
+
+            self.client.leave_breadcrumb('hello 1')
+            self.client.leave_breadcrumb('hello 2')
+            self.client.leave_breadcrumb('hello 3')
+
+            self.client.add_feature_flag('a')
+            self.client.add_feature_flag('b', '1')
+            self.client.add_feature_flag('c')
+
+            time.sleep(0.1)
+
+        my_handler({'z': 9}, aws_lambda_context)
+
+        assert self.sent_report_count == 1
+        assert self.sent_session_count == 1
+
+        payload = self.server.events_received[0]['json_body']
+        event = payload['events'][0]
+
+        assert event['metaData']['AWS Lambda Event'] == {'z': 9}
+        assert event['metaData']['AWS Lambda Context'] == {
+            'function_name': 'function_name',
+            'function_version': 'function_version',
+            'invoked_function_arn': 'invoked_function_arn',
+            'memory_limit_in_mb': 'memory_limit_in_mb',
+            'aws_request_id': 'aws_request_id',
+            'log_group_name': 'log_group_name',
+            'log_stream_name': 'log_stream_name',
+            'identity': 'identity',
+            'client_context': 'client_context',
+        }
+
+        assert len(event['breadcrumbs']) == 3
+        assert event['breadcrumbs'][0]['name'] == 'hello 1'
+        assert event['breadcrumbs'][1]['name'] == 'hello 2'
+        assert event['breadcrumbs'][2]['name'] == 'hello 3'
+
+        assert event['featureFlags'] == [
+            {'featureFlag': 'a'},
+            {'featureFlag': 'b', 'variant': '1'},
+            {'featureFlag': 'c'},
+        ]
+
+        exception = event['exceptions'][0]
+
+        assert exception['message'] == 'Lambda will timeout in 2ms'
+        assert exception['errorClass'] == 'LambdaTimeoutApproaching'
+
+        # the stacktrace should have a single frame pointing to the user's
+        # lambda handler
+        stacktrace = exception['stacktrace']
+
+        assert len(stacktrace) == 1
+        assert stacktrace[0]['file'] == 'test_client.py'
+        assert stacktrace[0]['method'] == 'my_handler'
+
 
 @pytest.mark.parametrize("metadata,type", [
     (1234, 'int'),
@@ -1960,6 +2023,7 @@ class LambdaContext:
         log_stream_name='log_stream_name',
         identity='identity',
         client_context='client_context',
+        remaining_time_in_millis=10000
     ):
         self.function_name = function_name
         self.function_version = function_version
@@ -1971,3 +2035,7 @@ class LambdaContext:
         self.identity = identity
         self.client_context = client_context
         self.another_attribute = 'another_attribute'
+        self.remaining_time_in_millis = remaining_time_in_millis
+
+    def get_remaining_time_in_millis(self) -> int:
+        return self.remaining_time_in_millis
