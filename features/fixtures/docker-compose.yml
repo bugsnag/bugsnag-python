@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  plain:
+    build:
+      context: plain
+      args:
+        - PYTHON_TEST_VERSION
+    environment:
+      - BUGSNAG_API_KEY
+      - BUGSNAG_ERROR_ENDPOINT
+      - BUGSNAG_SESSION_ENDPOINT
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
