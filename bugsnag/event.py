@@ -436,6 +436,7 @@ class Event:
         return encoder.encode({
             "apiKey": self.api_key,
             "notifier": _NOTIFIER_INFORMATION,
+            "payloadVersion": self.PAYLOAD_VERSION,
             "events": [{
                 "severity": self.severity,
                 "severityReason": self.severity_reason,
