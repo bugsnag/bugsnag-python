@@ -33,5 +33,5 @@ jobs:
         docker run -v $PWD:/scan licensefinder/license_finder /bin/bash -lc "
           cd /scan &&
           pip3 install -r requirements.txt --quiet &&
-          license_finder --decisions-file decisions.yml --python-version 3
+          license_finder --decisions-file decisions.yml --python-version 3 --enabled-package-managers=pip
         "
