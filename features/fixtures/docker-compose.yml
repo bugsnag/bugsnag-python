@@ -12,3 +12,18 @@ services:
       - BUGSNAG_SESSION_ENDPOINT
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  aws-lambda:
+    build:
+      context: aws-lambda
+      args:
+        - PYTHON_TEST_VERSION
+    environment:
+      - BUGSNAG_API_KEY
+      - BUGSNAG_ERROR_ENDPOINT
+      - BUGSNAG_SESSION_ENDPOINT
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./aws-lambda/app:/usr/src/app"
