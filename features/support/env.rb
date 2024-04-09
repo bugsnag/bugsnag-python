@@ -1,5 +1,15 @@
 require "fileutils"
 
+PYTHON_TEST_VERSION = ENV.fetch("PYTHON_TEST_VERSION")
+
+def current_ip
+  return "host.docker.internal" if OS.mac?
+
+  ip_addr = `ifconfig | grep -Eo 'inet (addr:)?([0-9]*\\\.){3}[0-9]*' | grep -v '127.0.0.1'`
+  ip_list = /((?:[0-9]*\.){3}[0-9]*)/.match(ip_addr)
+  ip_list.captures.first
+end
+
 Maze.hooks.before_all do
   # log to console, not the filesystem
   Maze.config.file_log = false
@@ -38,9 +48,13 @@ Maze.hooks.before_all do
 end
 
 Maze.hooks.before do
-  host = "host.docker.internal"
-
   Maze::Runner.environment["BUGSNAG_API_KEY"] = $api_key
-  Maze::Runner.environment["BUGSNAG_ERROR_ENDPOINT"] = "http://#{host}:#{Maze.config.port}/notify"
-  Maze::Runner.environment["BUGSNAG_SESSION_ENDPOINT"] = "http://#{host}:#{Maze.config.port}/sessions"
+  Maze::Runner.environment["BUGSNAG_ERROR_ENDPOINT"] = "http://#{current_ip}:#{Maze.config.port}/notify"
+  Maze::Runner.environment["BUGSNAG_SESSION_ENDPOINT"] = "http://#{current_ip}:#{Maze.config.port}/sessions"
+end
+
+5.upto(100) do |minor_version|
+  Before("@not-python-3.#{minor_version}") do
+    skip_this_scenario if PYTHON_TEST_VERSION == "3.#{minor_version}"
+  end
 end
