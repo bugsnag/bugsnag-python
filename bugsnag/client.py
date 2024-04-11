@@ -476,7 +476,12 @@ class Client:
                 return real_handler(aws_event, aws_context)
             except Exception as exception:
                 if self.configuration.auto_notify:
-                    self.notify(exception)
+                    self.notify(
+                        exception,
+                        unhandled=True,
+                        severity='error',
+                        severity_reason={'type': 'unhandledException'},
+                    )
 
                 raise
             finally:

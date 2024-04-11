@@ -1843,6 +1843,7 @@ class ClientTest(IntegrationTest):
         payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
 
+        assert event['unhandled']
         assert event['exceptions'][0]['message'] == 'oh dear'
         assert event['metaData']['AWS Lambda Event'] == {'a': 1}
         assert event['metaData']['AWS Lambda Context'] == {
@@ -1878,6 +1879,7 @@ class ClientTest(IntegrationTest):
         payload = self.server.events_received[0]['json_body']
         event = payload['events'][0]
 
+        assert event['unhandled']
         assert event['exceptions'][0]['message'] == 'oh dear'
         assert event['metaData']['AWS Lambda Event'] == {'z': 9}
         assert event['metaData']['AWS Lambda Context'] == {
