@@ -2,10 +2,7 @@
 [![Build status](https://img.shields.io/travis/bugsnag/bugsnag-python/master.svg?style=flat-square)](https://travis-ci.com/bugsnag/bugsnag-python)
 [![Documentation](https://img.shields.io/badge/documentation-latest-blue.svg)](https://docs.bugsnag.com/platforms/python/)
 
-The Bugsnag exception reporter for Python automatically detects and reports
-exceptions thrown your **Django**, **WSGI**, **Tornado**, **Flask** or
-**plain Python** app.  Any uncaught exceptions will trigger a notification to be
-sent to your Bugsnag project. Learn more about [monitoring and reporting Python errors](https://www.bugsnag.com/platforms/python-error-reporting/) with Bugsnag.
+The Bugsnag exception reporter for Python automatically detects and reports exceptions thrown your **ASGI**, **AWS Lambda**, **Bottle**, **Celery**, **Django**, **Flask**, **Tornado**, **WSGI** or **plain Python** app.  Any uncaught exceptions will trigger a notification to be sent to your Bugsnag project. Learn more about [monitoring and reporting Python errors](https://www.bugsnag.com/platforms/python-error-reporting/) with Bugsnag.
 
 
 ## Features
