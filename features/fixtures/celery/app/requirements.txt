@@ -1,0 +1,4 @@
+.
+../bugsnag
+celery[redis]${CELERY_TEST_VERSION}
+importlib-metadata<5.0
