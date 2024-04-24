@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: app
+
+Globals:
+  Function:
+    Timeout: 30
+    Environment:
+      Variables:
+        BUGSNAG_API_KEY:
+        BUGSNAG_ERROR_ENDPOINT:
+        BUGSNAG_SESSION_ENDPOINT:
+
+Parameters:
+  Runtime:
+    Type: String
+    AllowedPattern: python3\.\d+
+    ConstraintDescription: Must be a valid python runtime, e.g. "python3.12"
+  Handler:
+    Type: String
+    AllowedValues:
+      - handled
+      - handled_no_auto_notify
+      - unhandled
+      - unhandled_no_auto_notify
+      - manual_session
+      - manual_session_no_auto_capture_sessions
+    ConstraintDescription: Must be a file in the 'src' directory with a function named 'handler'
+
+Resources:
+  BugsnagAwsLambdaTestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: !Sub ${Handler}.handler
+      Runtime: !Ref Runtime
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /hello
+            Method: get

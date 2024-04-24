@@ -1,9 +1,11 @@
 import os
 import re
 import sys
+import time
 import pytest
 import inspect
 import logging
+import threading
 from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock, ANY
 from tests import fixtures
@@ -17,7 +19,12 @@ from bugsnag import (
 )
 
 import bugsnag.legacy as legacy
-from tests.utils import IntegrationTest, ScaryException
+from tests.utils import (
+    BrokenDelivery,
+    IntegrationTest,
+    QueueingDelivery,
+    ScaryException,
+)
 
 timestamp_regex = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}(?:[+-]\d{2}:\d{2}|Z)'  # noqa: E501
 
@@ -1688,6 +1695,292 @@ class ClientTest(IntegrationTest):
             FeatureFlag('e')
         ]
 
+    def test_in_flight_event_request_tracking_in_notify(self):
+        delivery = QueueingDelivery()
+        configuration = Configuration()
+        configuration.configure(delivery=delivery, api_key='abc')
+
+        client = Client(configuration)
+        assert not client._request_tracker.has_in_flight_requests()
+
+        client.notify(Exception('Oh no'))
+        assert client._request_tracker.has_in_flight_requests()
+
+        delivery.flush_request_queue()
+        assert not client._request_tracker.has_in_flight_requests()
+
+    def test_in_flight_event_request_tracking_in_notify_failure(self):
+        configuration = Configuration()
+        configuration.configure(delivery=BrokenDelivery(), api_key='abc')
+
+        client = Client(configuration)
+        assert not client._request_tracker.has_in_flight_requests()
+
+        client.notify(Exception('Oh no'))
+        assert not client._request_tracker.has_in_flight_requests()
+
+    def test_in_flight_event_request_tracking_in_notify_exc_info(self):
+        delivery = QueueingDelivery()
+        configuration = Configuration()
+        configuration.configure(delivery=delivery, api_key='abc')
+
+        client = Client(configuration)
+        assert not client._request_tracker.has_in_flight_requests()
+
+        try:
+            raise Exception(':)')
+        except Exception:
+            client.notify_exc_info(*sys.exc_info())
+
+        assert client._request_tracker.has_in_flight_requests()
+
+        delivery.flush_request_queue()
+        assert not client._request_tracker.has_in_flight_requests()
+
+    def test_in_flight_event_request_tracking_in_notify_exc_info_failure(self):
+        configuration = Configuration()
+        configuration.configure(delivery=BrokenDelivery(), api_key='abc')
+
+        client = Client(configuration)
+        assert not client._request_tracker.has_in_flight_requests()
+
+        try:
+            raise Exception(':)')
+        except Exception:
+            client.notify_exc_info(*sys.exc_info())
+
+        assert not client._request_tracker.has_in_flight_requests()
+
+    def test_flush_returns_immediately_when_no_requests_are_outstanding(self):
+        start_s = time.time()
+        self.client.flush(10)
+        end_s = time.time()
+
+        assert end_s - start_s < 0.01
+
+    def test_flush_raises_if_timeout_is_exceeded(self):
+        delivery = QueueingDelivery()
+        configuration = Configuration()
+        configuration.configure(delivery=delivery, api_key='abc')
+
+        client = Client(configuration)
+        client.notify(Exception('oh dear'))
+
+        with pytest.raises(Exception) as exception:
+            client.flush(10)
+
+            assert str(exception) == 'Exception: flush timed out after 10ms'
+
+    def test_flush_waits_for_outstanding_events_before_returning(self):
+        delivery = QueueingDelivery()
+        configuration = Configuration()
+        configuration.configure(delivery=delivery, api_key='abc')
+
+        client = Client(configuration)
+        client.notify(Exception('oh dear'))
+        client.notify(Exception('oh no'))
+        client.notify(Exception('oh my'))
+
+        def flush_request_queue():
+            time.sleep(0.05)
+            assert client._request_tracker.has_in_flight_requests()
+
+            delivery.flush_request_queue()
+            assert not client._request_tracker.has_in_flight_requests()
+
+        thread = threading.Thread(target=flush_request_queue)
+        thread.start()
+
+        client.flush(100)
+
+        # the thread should have stopped before flush could exit
+        assert not thread.is_alive()
+
+    def test_flush_waits_for_outstanding_sessions_before_returning(self):
+        delivery = QueueingDelivery()
+        configuration = Configuration()
+        configuration.configure(delivery=delivery, api_key='abc')
+
+        client = Client(configuration)
+        client.session_tracker.start_session()
+        client.session_tracker.start_session()
+
+        def flush_request_queue():
+            request_tracker = client.session_tracker._request_tracker
+
+            time.sleep(0.05)
+            assert request_tracker.has_in_flight_requests()
+
+            delivery.flush_request_queue()
+            assert not request_tracker.has_in_flight_requests()
+
+        thread = threading.Thread(target=flush_request_queue)
+        thread.start()
+
+        client.flush(100)
+
+        # the thread should have stopped before flush could exit
+        assert not thread.is_alive()
+
+    def test_aws_lambda_handler_decorator(self):
+        aws_lambda_context = LambdaContext(function_name='abcdef')
+
+        @self.client.aws_lambda_handler
+        def my_handler(event, context):
+            assert event == {'a': 1}
+            assert context == aws_lambda_context
+
+            raise Exception('oh dear')
+
+        with pytest.raises(Exception) as exception:
+            my_handler({'a': 1}, aws_lambda_context)
+
+            assert str(exception) == 'Exception: oh dear'
+
+        assert self.sent_report_count == 1
+        assert self.sent_session_count == 1
+
+        payload = self.server.events_received[0]['json_body']
+        event = payload['events'][0]
+
+        assert event['unhandled']
+        assert event['exceptions'][0]['message'] == 'oh dear'
+        assert event['metaData']['AWS Lambda Event'] == {'a': 1}
+        assert event['metaData']['AWS Lambda Context'] == {
+            'function_name': 'abcdef',
+            'function_version': 'function_version',
+            'invoked_function_arn': 'invoked_function_arn',
+            'memory_limit_in_mb': 'memory_limit_in_mb',
+            'aws_request_id': 'aws_request_id',
+            'log_group_name': 'log_group_name',
+            'log_stream_name': 'log_stream_name',
+            'identity': 'identity',
+            'client_context': 'client_context',
+        }
+
+    def test_aws_lambda_handler_decorator_accepts_flush_timeout(self):
+        aws_lambda_context = LambdaContext(function_version='$LATEST')
+
+        @self.client.aws_lambda_handler(flush_timeout_ms=1000)
+        def my_handler(event, context):
+            assert event == {'z': 9}
+            assert context == aws_lambda_context
+
+            raise Exception('oh dear')
+
+        with pytest.raises(Exception) as exception:
+            my_handler({'z': 9}, aws_lambda_context)
+
+            assert str(exception) == 'Exception: oh dear'
+
+        assert self.sent_report_count == 1
+        assert self.sent_session_count == 1
+
+        payload = self.server.events_received[0]['json_body']
+        event = payload['events'][0]
+
+        assert event['unhandled']
+        assert event['exceptions'][0]['message'] == 'oh dear'
+        assert event['metaData']['AWS Lambda Event'] == {'z': 9}
+        assert event['metaData']['AWS Lambda Context'] == {
+            'function_name': 'function_name',
+            'function_version': '$LATEST',
+            'invoked_function_arn': 'invoked_function_arn',
+            'memory_limit_in_mb': 'memory_limit_in_mb',
+            'aws_request_id': 'aws_request_id',
+            'log_group_name': 'log_group_name',
+            'log_stream_name': 'log_stream_name',
+            'identity': 'identity',
+            'client_context': 'client_context',
+        }
+
+    def test_aws_lambda_handler_decorator_warns_after_timeout(self):
+        aws_lambda_context = LambdaContext()
+        client = Client(delivery=QueueingDelivery(), api_key='abc')
+
+        @client.aws_lambda_handler(flush_timeout_ms=50)
+        def my_handler(event, context):
+            assert event == {'z': 9}
+            assert context == aws_lambda_context
+
+            raise Exception('oh dear')
+
+        with pytest.warns(UserWarning) as warnings:
+            with pytest.raises(Exception) as exception:
+                my_handler({'z': 9}, aws_lambda_context)
+
+                assert str(exception) == 'Exception: oh dear'
+
+            assert len(warnings) == 1
+            assert warnings[0].message.args[0] == \
+                'Delivery may be unsuccessful: flush timed out after 50ms'
+
+        assert self.sent_report_count == 0
+        assert self.sent_session_count == 0
+
+    def test_aws_lambda_handler_decorator_warns_of_potential_timeout(self):
+        aws_lambda_context = LambdaContext(remaining_time_in_millis=2)
+
+        @self.client.aws_lambda_handler(lambda_timeout_notify_ms=1)
+        def my_handler(event, context):
+            assert event == {'z': 9}
+            assert context == aws_lambda_context
+
+            self.client.leave_breadcrumb('hello 1')
+            self.client.leave_breadcrumb('hello 2')
+            self.client.leave_breadcrumb('hello 3')
+
+            self.client.add_feature_flag('a')
+            self.client.add_feature_flag('b', '1')
+            self.client.add_feature_flag('c')
+
+            time.sleep(0.1)
+
+        my_handler({'z': 9}, aws_lambda_context)
+
+        assert self.sent_report_count == 1
+        assert self.sent_session_count == 1
+
+        payload = self.server.events_received[0]['json_body']
+        event = payload['events'][0]
+
+        assert event['metaData']['AWS Lambda Event'] == {'z': 9}
+        assert event['metaData']['AWS Lambda Context'] == {
+            'function_name': 'function_name',
+            'function_version': 'function_version',
+            'invoked_function_arn': 'invoked_function_arn',
+            'memory_limit_in_mb': 'memory_limit_in_mb',
+            'aws_request_id': 'aws_request_id',
+            'log_group_name': 'log_group_name',
+            'log_stream_name': 'log_stream_name',
+            'identity': 'identity',
+            'client_context': 'client_context',
+        }
+
+        assert len(event['breadcrumbs']) == 3
+        assert event['breadcrumbs'][0]['name'] == 'hello 1'
+        assert event['breadcrumbs'][1]['name'] == 'hello 2'
+        assert event['breadcrumbs'][2]['name'] == 'hello 3'
+
+        assert event['featureFlags'] == [
+            {'featureFlag': 'a'},
+            {'featureFlag': 'b', 'variant': '1'},
+            {'featureFlag': 'c'},
+        ]
+
+        exception = event['exceptions'][0]
+
+        assert exception['message'] == 'Lambda will timeout in 2ms'
+        assert exception['errorClass'] == 'LambdaTimeoutApproaching'
+
+        # the stacktrace should have a single frame pointing to the user's
+        # lambda handler
+        stacktrace = exception['stacktrace']
+
+        assert len(stacktrace) == 1
+        assert stacktrace[0]['file'] == 'test_client.py'
+        assert stacktrace[0]['method'] == 'my_handler'
+
 
 @pytest.mark.parametrize("metadata,type", [
     (1234, 'int'),
@@ -1718,3 +2011,33 @@ def test_breadcrumb_metadata_is_coerced_to_dict(metadata, type):
     assert breadcrumb.metadata == {}
     assert breadcrumb.type == BreadcrumbType.MANUAL
     assert is_valid_timestamp(breadcrumb.timestamp)
+
+
+class LambdaContext:
+    def __init__(
+        self,
+        function_name='function_name',
+        function_version='function_version',
+        invoked_function_arn='invoked_function_arn',
+        memory_limit_in_mb='memory_limit_in_mb',
+        aws_request_id='aws_request_id',
+        log_group_name='log_group_name',
+        log_stream_name='log_stream_name',
+        identity='identity',
+        client_context='client_context',
+        remaining_time_in_millis=10000
+    ):
+        self.function_name = function_name
+        self.function_version = function_version
+        self.invoked_function_arn = invoked_function_arn
+        self.memory_limit_in_mb = memory_limit_in_mb
+        self.aws_request_id = aws_request_id
+        self.log_group_name = log_group_name
+        self.log_stream_name = log_stream_name
+        self.identity = identity
+        self.client_context = client_context
+        self.another_attribute = 'another_attribute'
+        self.remaining_time_in_millis = remaining_time_in_millis
+
+    def get_remaining_time_in_millis(self) -> int:
+        return self.remaining_time_in_millis

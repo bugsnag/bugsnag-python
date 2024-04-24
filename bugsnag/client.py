@@ -2,9 +2,9 @@ import builtins
 import sys
 import threading
 import warnings
+import functools
 
 from datetime import datetime, timezone
-from functools import wraps
 from typing import Union, Tuple, Callable, Optional, List, Type, Dict, Any
 
 from bugsnag.breadcrumbs import (
@@ -19,6 +19,7 @@ from bugsnag.handlers import BugsnagHandler
 from bugsnag.sessiontracker import SessionTracker
 from bugsnag.utils import to_rfc3339
 from bugsnag.context import ContextLocalState
+from bugsnag.request_tracker import RequestTracker
 
 __all__ = ('Client',)
 
@@ -36,6 +37,7 @@ class Client:
         self.session_tracker = SessionTracker(self.configuration)
         self.configuration.configure(**kwargs)
         self._context = ContextLocalState(self)
+        self._request_tracker = RequestTracker()
 
         if install_sys_hook:
             self.install_sys_hook()
@@ -174,11 +176,6 @@ class Client:
             initial_reason = event.severity_reason.copy()
 
             def send_payload():
-                if asynchronous is None:
-                    options = {}
-                else:
-                    options = {'asynchronous': asynchronous}
-
                 if event.api_key is None:
                     self.configuration.logger.warning(
                         "No API key configured, couldn't notify"
@@ -192,15 +189,29 @@ class Client:
                     }
                 else:
                     event.severity_reason = initial_reason
+
                 payload = event._payload()
+
+                post_delivery_callback = self._request_tracker.new_request()
+                options = {'post_delivery_callback': post_delivery_callback}
+
+                if asynchronous is not None:
+                    options['asynchronous'] = asynchronous
+
                 try:
-                    self.configuration.delivery.deliver(self.configuration,
-                                                        payload, options)
+                    self.configuration.delivery.deliver(
+                        self.configuration,
+                        payload,
+                        options
+                    )
                 except Exception as e:
                     self.configuration.logger.exception(
                         'Notifying Bugsnag failed %s',
                         e
                     )
+
+                    # ensure this request is not still marked as in-flight
+                    post_delivery_callback()
 
                 # Trigger session delivery
                 self.session_tracker.send_sessions()
@@ -325,6 +336,168 @@ class Client:
             BreadcrumbType.ERROR
         )
 
+    def flush(self, timeout_ms: int) -> None:
+        # trigger session delivery as there may be outstanding sessions that
+        # haven't been sent yet
+        self.session_tracker.send_sessions()
+
+        stop_event = threading.Event()
+
+        def block_until_no_requests():
+            while (
+                self._request_tracker.has_in_flight_requests() or
+                self.session_tracker._request_tracker.has_in_flight_requests()
+            ):
+                # wait 10ms before checking for in-flight requests again
+                was_stopped = stop_event.wait(0.01)
+
+                # stop checking and exit if the timeout has been exceeded
+                if was_stopped:
+                    break
+
+        thread = threading.Thread(target=block_until_no_requests)
+        thread.start()
+        thread.join(timeout_ms / 1000)
+
+        if thread.is_alive():
+            # tell the thread to stop checking for in-flight requests as the
+            # timeout has been exceeded
+            stop_event.set()
+
+            raise Exception("flush timed out after %dms" % timeout_ms)
+
+    def add_metadata_tab(self, tab_name: str, data: Dict[str, Any]) -> None:
+        metadata = RequestConfiguration.get_instance().metadata
+
+        if tab_name not in metadata:
+            metadata[tab_name] = {}
+
+        metadata[tab_name].update(data)
+
+    def aws_lambda_handler(
+        self,
+        real_handler: Optional[Callable] = None,
+        flush_timeout_ms: int = 2000,
+        lambda_timeout_notify_ms: int = 1000,
+    ) -> Callable:
+        # handle being called with just 'flush_timeout_ms'
+        if real_handler is None:
+            return functools.partial(
+                self.aws_lambda_handler,
+                flush_timeout_ms=flush_timeout_ms,
+                lambda_timeout_notify_ms=lambda_timeout_notify_ms,
+            )
+
+        # attributes from the aws context that we want to capture as metadata
+        # the context is an instance of LambdaContext, which isn't iterable and
+        # so can't be added to metadata as-is
+        aws_context_attributes = [
+            'function_name',
+            'function_version',
+            'invoked_function_arn',
+            'memory_limit_in_mb',
+            'aws_request_id',
+            'log_group_name',
+            'log_stream_name',
+            'identity',
+            'client_context',
+        ]
+
+        @functools.wraps(real_handler)
+        def wrapped_handler(aws_event, aws_context):
+            timer = None
+            aws_context_metadata = {
+                attribute:
+                    getattr(aws_context, attribute, None)
+                    for attribute in aws_context_attributes
+            }
+
+            if lambda_timeout_notify_ms > 0:
+                # reporting possible timeouts is done using a separate thread,
+                # but we don't want to lose the information from the main
+                # thread so we store references here to use later
+                # TODO: we shouldn't have 3 places where per-request data is
+                #       stored - it should all be in 'self._context'
+                main_request_config = RequestConfiguration.get_instance()
+                main_request_breadcrumbs = \
+                    self.configuration._breadcrumbs._breadcrumbs
+                main_request_feature_flags = \
+                    self._context.feature_flag_delegate._storage
+
+                def report_timeout_to_bugsnag():
+                    # copy over the main thread's data to this thread
+                    RequestConfiguration.set_instance(main_request_config)
+
+                    self.configuration._breadcrumbs._breadcrumbs.extend(
+                        main_request_breadcrumbs
+                    )
+
+                    self._context.feature_flag_delegate.merge(
+                        main_request_feature_flags.values()
+                    )
+
+                    # generate an empty traceback object so the lambda timeout
+                    # doesn't have a misleading traceback
+                    try:
+                        raise Exception()
+                    except Exception as exception:
+                        empty_traceback = exception.__traceback__
+
+                    lambda_timeout_approaching = LambdaTimeoutApproaching(
+                        aws_context.get_remaining_time_in_millis(),
+                        empty_traceback
+                    )
+
+                    # set the source_func so the user's lambda handler is the
+                    # only item in the traceback
+                    self.notify(
+                        lambda_timeout_approaching,
+                        source_func=real_handler
+                    )
+
+                remaining_ms = aws_context.get_remaining_time_in_millis()
+                timer = threading.Timer(
+                    (remaining_ms - lambda_timeout_notify_ms) / 1000,
+                    report_timeout_to_bugsnag
+                )
+
+                timer.start()
+
+            try:
+                self.add_metadata_tab('AWS Lambda Event', aws_event)
+                self.add_metadata_tab(
+                    'AWS Lambda Context',
+                    aws_context_metadata
+                )
+
+                if self.configuration.auto_capture_sessions:
+                    self.session_tracker.start_session()
+
+                return real_handler(aws_event, aws_context)
+            except Exception as exception:
+                if self.configuration.auto_notify:
+                    self.notify(
+                        exception,
+                        unhandled=True,
+                        severity='error',
+                        severity_reason={'type': 'unhandledException'},
+                    )
+
+                raise
+            finally:
+                # a timer can only be cancelled if it hasn't fired yet
+                if timer and timer.is_alive():
+                    timer.cancel()
+
+                try:
+                    self.flush(flush_timeout_ms)
+                except Exception as exception:
+                    warnings.warn(
+                        'Delivery may be unsuccessful: ' + str(exception)
+                    )
+
+        return wrapped_handler
+
 
 class ClientContext:
     def __init__(self, client,
@@ -337,7 +510,7 @@ class ClientContext:
         self.exception_types = exception_types or (Exception,)
 
     def __call__(self, function: Callable):
-        @wraps(function)
+        @functools.wraps(function)
         def decorate(*args, **kwargs):
             try:
                 return function(*args, **kwargs)
@@ -356,3 +529,9 @@ class ClientContext:
                 self.client.notify_exc_info(*exc_info, **self.options)
 
         return False
+
+
+class LambdaTimeoutApproaching(Exception):
+    def __init__(self, remaining_ms: int, tb):
+        super().__init__('Lambda will timeout in %dms' % remaining_ms)
+        self.__traceback__ = tb

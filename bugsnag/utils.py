@@ -261,7 +261,7 @@ def is_json_content_type(value: str) -> bool:
     return type == 'application' and (subtype == 'json' or suffix == 'json')
 
 
-_ignore_modules = ('__main__', 'builtins')
+_ignore_modules = ('__main__', 'builtins', 'bugsnag.client')
 
 
 def partly_qualified_class_name(obj):

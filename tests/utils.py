@@ -7,6 +7,8 @@ from threading import Thread
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 
 import bugsnag
+from bugsnag.delivery import Delivery
+from bugsnag.configuration import RequestConfiguration
 
 
 try:
@@ -31,6 +33,7 @@ class IntegrationTest(unittest.TestCase):
         self.server.sessions_received = []
 
     def tearDown(self):
+        RequestConfiguration.get_instance().clear()
         previous_client = bugsnag.legacy.default_client
         previous_client.uninstall_sys_hook()
 
@@ -176,3 +179,27 @@ class FakeBugsnagServer(object):
 class ScaryException(Exception):
     class NestedScaryException(Exception):
         pass
+
+
+class QueueingDelivery(Delivery):
+    def __init__(self):
+        self._queue = []
+
+    def deliver(self, config, payload, options):
+        self._queue.append(options['post_delivery_callback'])
+
+    def flush_request_queue(self):
+        for callback in self._queue:
+            callback()
+
+        self._queue.clear()
+
+
+class BrokenDelivery(Delivery):
+    def deliver(self, config, payload, options):
+        def request():
+            raise Exception('broken!')
+
+        options['asynchronous'] = False
+
+        self.queue_request(request, config, options)

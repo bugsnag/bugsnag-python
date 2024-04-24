@@ -14,7 +14,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='bugsnag',
-    version='4.6.2',
+    version='4.7.0',
     description='Automatic error monitoring for django, flask, etc.',
     long_description=__doc__,
     author='Simon Maynard',
@@ -39,6 +39,7 @@ setup(
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
         'Topic :: Software Development'
     ],
     package_data={

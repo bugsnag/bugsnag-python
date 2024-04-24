@@ -15,7 +15,8 @@ from bugsnag.legacy import (configuration, configure, configure_request,
                             auto_notify_exc_info, logger, leave_breadcrumb,
                             add_on_breadcrumb, remove_on_breadcrumb,
                             add_feature_flag, add_feature_flags,
-                            clear_feature_flag, clear_feature_flags)
+                            clear_feature_flag, clear_feature_flags,
+                            aws_lambda_handler)
 
 __all__ = ('Client', 'Event', 'Configuration', 'RequestConfiguration',
            'configuration', 'configure', 'configure_request',
@@ -25,4 +26,5 @@ __all__ = ('Client', 'Event', 'Configuration', 'RequestConfiguration',
            'BreadcrumbType', 'Breadcrumb', 'Breadcrumbs',
            'OnBreadcrumbCallback', 'leave_breadcrumb', 'add_on_breadcrumb',
            'remove_on_breadcrumb', 'FeatureFlag', 'add_feature_flag',
-           'add_feature_flags', 'clear_feature_flag', 'clear_feature_flags')
+           'add_feature_flags', 'clear_feature_flag', 'clear_feature_flags',
+           'aws_lambda_handler')

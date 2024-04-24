@@ -16,6 +16,7 @@ except ImportError:
 from bugsnag.notifier import _NOTIFIER_INFORMATION
 from bugsnag.utils import FilterDict, SanitizingJSONEncoder
 from bugsnag.event import Event
+from bugsnag.request_tracker import RequestTracker
 
 
 __all__ = []  # type: List[str]
@@ -36,6 +37,7 @@ class SessionTracker:
         self.mutex = Lock()
         self.auto_sessions = False
         self.delivery_thread = None
+        self._request_tracker = RequestTracker()
 
     def start_session(self):
         if not self.auto_sessions:
@@ -138,14 +140,24 @@ class SessionTracker:
             deliver = self.config.delivery.deliver_sessions
 
             if 'options' in deliver.__code__.co_varnames:
-                deliver(
-                    self.config,
-                    encoded_payload,
-                    options={'asynchronous': asynchronous}
-                )
+                try:
+                    post_delivery_callback = self._request_tracker.new_request()
+
+                    deliver(
+                        self.config,
+                        encoded_payload,
+                        options={
+                            'asynchronous': asynchronous,
+                            'post_delivery_callback': post_delivery_callback,
+                        }
+                    )
+                except Exception:
+                    # ensure the request is not still marked as pending
+                    post_delivery_callback()
+                    raise
+
             else:
                 deliver(self.config, encoded_payload)
-
 
         except Exception as e:
             self.config.logger.exception('Sending sessions failed %s', e)

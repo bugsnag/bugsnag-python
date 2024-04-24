@@ -604,6 +604,10 @@ class RequestConfiguration:
         return instance
 
     @classmethod
+    def set_instance(cls, instance: 'RequestConfiguration') -> None:
+        _request_info.set(instance)  # type: ignore
+
+    @classmethod
     def clear(cls):
         """
         Clear this thread's instance of the RequestConfiguration.
