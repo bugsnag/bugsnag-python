@@ -1,6 +1,12 @@
 Changelog
 =========
 
+## v4.7.0 (2024-04-24)
+
+### Enhancements
+
+* Add support for AWS Lambda functions via the new `bugsnag.aws_lambda_handler` decorator. See [the documentation for usage instructions](https://docs.bugsnag.com/platforms/python/aws-lambda/).
+
 ## v4.6.2 (2024-03-05)
 
 ### Bug fixes
