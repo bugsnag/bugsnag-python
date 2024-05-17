@@ -93,7 +93,6 @@ class Delivery:
                 options = {}
 
             options['endpoint'] = config.session_endpoint
-            options['success'] = 202
 
             self.deliver(config, payload, options)
 
@@ -151,10 +150,14 @@ class UrllibDelivery(Delivery):
             status = resp.getcode()
 
             if 'success' in options:
-                success = options['success']
+                # if an expected status code has been given then it must match
+                # exactly with the actual status code
+                success = status == options['success']
             else:
-                success = 200
-            if status != success:
+                # warn if we don't get a 2xx status code by default
+                success = status >= 200 and status < 300
+
+            if not success:
                 config.logger.warning(
                     'Delivery to %s failed, status %d' % (uri, status)
                 )
@@ -184,12 +187,16 @@ class RequestsDelivery(Delivery):
 
             response = requests.post(uri, **req_options)
             status = response.status_code
-            if 'success' in options:
-                success = options['success']
-            else:
-                success = requests.codes.ok
 
-            if status != success:
+            if 'success' in options:
+                # if an expected status code has been given then it must match
+                # exactly with the actual status code
+                success = status == options['success']
+            else:
+                # warn if we don't get a 2xx status code by default
+                success = status >= 200 and status < 300
+
+            if not success:
                 config.logger.warning(
                     'Delivery to %s failed, status %d' % (uri, status)
                 )
