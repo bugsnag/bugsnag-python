@@ -279,7 +279,11 @@ class Configuration:
             # this should be made mandatory in the next major release
             if (
                 hasattr(value, 'deliver_sessions') and
-                callable(value.deliver_sessions)
+                callable(value.deliver_sessions) and
+                # Mock objects don't allow accessing or mocking '__code__' so
+                # ensure it exists before attempting to read it
+                # __code__ should always be present in a real delivery object
+                hasattr(value.deliver_sessions, '__code__')
             ):
                 parameter_names = value.deliver_sessions.__code__.co_varnames
 
