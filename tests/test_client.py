@@ -18,6 +18,7 @@ from bugsnag import (
     FeatureFlag
 )
 
+from bugsnag.delivery import Delivery
 import bugsnag.legacy as legacy
 from tests.utils import (
     BrokenDelivery,
@@ -123,6 +124,22 @@ class ClientTest(IntegrationTest):
         client.notify(Exception('Oh no'))
         self.assertTrue(self.called)
         del self.called
+
+    # test for a regression caused by reading '__code__', which does not exist
+    # on Mock objects, nor can it be mocked
+    # see: https://github.com/bugsnag/bugsnag-python/commit/77e11747c293ba715bc764d17b49fb32918c030a#r142130768
+    def test_delivery_can_be_mocked(self):
+        delivery = Mock(spec=Delivery)
+
+        client = Client(delivery=delivery, api_key='abc')
+        client.notify(Exception('Oh no'))
+
+        assert delivery.deliver.call_count == 1
+
+        client.session_tracker.start_session()
+        client.session_tracker.send_sessions()
+
+        assert delivery.deliver_sessions.call_count == 1
 
     # Capture
 

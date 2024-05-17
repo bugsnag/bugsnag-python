@@ -139,7 +139,10 @@ class SessionTracker:
 
             deliver = self.config.delivery.deliver_sessions
 
-            if 'options' in deliver.__code__.co_varnames:
+            if (
+                hasattr(deliver, '__code__') and
+                'options' in deliver.__code__.co_varnames
+            ):
                 try:
                     post_delivery_callback = self._request_tracker.new_request()
 
