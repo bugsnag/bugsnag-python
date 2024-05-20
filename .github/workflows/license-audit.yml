@@ -30,6 +30,10 @@ jobs:
       run: >
         docker run -v $PWD:/scan licensefinder/license_finder /bin/bash -lc "
           cd /scan &&
-          pip3 install -r requirements.txt --quiet &&
+          apt-get update &&
+          apt-get install -y python3-venv &&
+          python3 -m venv .venv &&
+          source .venv/bin/activate &&
+          pip3 install -r requirements.txt &&
           license_finder --decisions-file decisions.yml --python-version 3 --enabled-package-managers=pip
         "
