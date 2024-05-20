@@ -127,7 +127,7 @@ class ClientTest(IntegrationTest):
 
     # test for a regression caused by reading '__code__', which does not exist
     # on Mock objects, nor can it be mocked
-    # see: https://github.com/bugsnag/bugsnag-python/commit/77e11747c293ba715bc764d17b49fb32918c030a#r142130768
+    # see: https://github.com/bugsnag/bugsnag-python/commit/77e11747c293ba715bc764d17b49fb32918c030a#r142130768  # noqa: E501
     def test_delivery_can_be_mocked(self):
         delivery = Mock(spec=Delivery)
 
