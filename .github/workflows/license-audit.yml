@@ -4,9 +4,7 @@ on: [push, pull_request]
 
 jobs:
   license-audit:
-    # TODO: a GH action update broke the 'ubuntu-latest' image
-    #       when it's fixed, we should switch back
-    runs-on: ubuntu-20.04
+    runs-on: 'ubuntu-latest'
 
     steps:
     - uses: actions/checkout@v2
@@ -14,8 +12,8 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        # License Finder's Docker image uses Python 3.5
-        python-version: 3.5
+        # License Finder's Docker image uses Python 3.10
+        python-version: '3.10'
 
     - name: Fetch decisions.yml
       run: curl https://raw.githubusercontent.com/bugsnag/license-audit/master/config/decision_files/global.yml -o decisions.yml
@@ -32,6 +30,10 @@ jobs:
       run: >
         docker run -v $PWD:/scan licensefinder/license_finder /bin/bash -lc "
           cd /scan &&
-          pip3 install -r requirements.txt --quiet &&
+          apt-get update &&
+          apt-get install -y python3-venv &&
+          python3 -m venv .venv &&
+          source .venv/bin/activate &&
+          pip3 install -r requirements.txt &&
           license_finder --decisions-file decisions.yml --python-version 3 --enabled-package-managers=pip
         "

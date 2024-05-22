@@ -1,6 +1,13 @@
 Changelog
 =========
 
+## v4.7.1 (2024-05-22)
+
+### Bug fixes
+
+* Avoid reading `__code__` when setting a custom delivery unless it exists
+  [#387](https://github.com/bugsnag/bugsnag-python/pull/387)
+
 ## v4.7.0 (2024-04-24)
 
 ### Enhancements

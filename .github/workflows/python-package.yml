@@ -14,16 +14,19 @@ jobs:
         include:
           - python-version: '3.5'
             os: 'ubuntu-20.04'
+            pip-trusted-host: 'pypi.python.org pypi.org files.pythonhosted.org'
           - python-version: '3.6'
             os: 'ubuntu-20.04'
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+      env:
+        PIP_TRUSTED_HOST: ${{ matrix.pip-trusted-host }}
 
     - name: Install dependencies
       run: |
