@@ -1,7 +1,7 @@
 Changelog
 =========
 
-## TBD
+## v4.7.1 (2024-05-22)
 
 ### Bug fixes
 
