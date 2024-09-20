@@ -1,3 +1,5 @@
+from types import TracebackType
+
 import celery
 from celery.signals import task_failure
 import bugsnag
@@ -10,6 +12,9 @@ def failure_handler(sender, task_id, exception, args, kwargs, traceback, einfo,
         "args": args,
         "kwargs": kwargs
     }
+
+    if not isinstance(traceback, TracebackType):
+        traceback = einfo.tb
 
     bugsnag.auto_notify(exception, traceback=traceback,
                         context=sender.name,
