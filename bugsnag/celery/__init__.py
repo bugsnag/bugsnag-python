@@ -13,6 +13,9 @@ def failure_handler(sender, task_id, exception, args, kwargs, traceback, einfo,
         "kwargs": kwargs
     }
 
+    # In some cases, the traceback is actually a string instread of a real
+    # traceback object. In this case, the real traceback can be obtained from
+    # the einfo parameter.
     if not isinstance(traceback, TracebackType):
         traceback = einfo.tb
 
