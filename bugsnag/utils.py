@@ -463,17 +463,15 @@ else:
 
 
 def get_package_version(package_name: str) -> Optional[str]:
-    try:
-        from importlib import metadata
-
-        return metadata.version(package_name)  # type: ignore
-    except ImportError:
+    if sys.version_info >= (3, 8):
+        try:
+            from importlib import metadata
+            return metadata.version(package_name)  # type: ignore
+        except metadata.PackageNotFoundError:
+            return None
+    else:
         try:
             import pkg_resources
-        except ImportError:
-            return None
-
-        try:
             return pkg_resources.get_distribution(package_name).version
-        except pkg_resources.DistributionNotFound:
+        except (ImportError, pkg_resources.DistributionNotFound):
             return None
