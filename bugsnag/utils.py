@@ -424,7 +424,9 @@ def remove_query_from_url(url: AnyStr) -> Optional[AnyStr]:
 # fallback implementation for Python 3.5
 try:
     # this will raise if 'timespec' isn't supported
-    datetime.now(timezone.utc).isoformat(timespec='milliseconds')
+    datetime.now(timezone.utc).isoformat(
+        timespec='milliseconds'  # type: ignore
+    )
 
     def to_rfc3339(dt: datetime) -> str:
         return dt.isoformat(timespec='milliseconds')  # type: ignore
