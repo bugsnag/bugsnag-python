@@ -471,7 +471,7 @@ def get_package_version(package_name: str) -> Optional[str]:
             return None
     else:
         try:
-            import pkg_resources
-            return pkg_resources.get_distribution(package_name).version
+            import pkg_resources # type: ignore
+            return pkg_resources.get_distribution(package_name).version # type: ignore
         except (ImportError, pkg_resources.DistributionNotFound):
             return None
