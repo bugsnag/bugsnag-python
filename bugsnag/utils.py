@@ -6,7 +6,8 @@ from typing import AnyStr, Tuple, Optional
 import warnings
 import copy
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
+import sys
 from urllib.parse import urlparse, urlunsplit, parse_qs
 
 
