@@ -422,29 +422,25 @@ def remove_query_from_url(url: AnyStr) -> Optional[AnyStr]:
 # milliseconds precision
 # Python can do this natively from version 3.6, but we need to include a
 # fallback implementation for Python 3.5
-try:
-    # this will raise if 'timespec' isn't supported
-    datetime.now(timezone.utc).isoformat(
-        timespec='milliseconds'  # type: ignore
-    )
 
+if sys.version_info >= (3, 6):
+    # Python 3.6+ has a built-in method for this
     def to_rfc3339(dt: datetime) -> str:
         return dt.isoformat(timespec='milliseconds')  # type: ignore
 
-except Exception:
+else:
+    # Python 3.5 fallback implementation
     def _get_timezone_offset(dt: datetime) -> str:
         if dt.tzinfo is None:
             return ''
 
         utc_offset = dt.tzinfo.utcoffset(dt)
-
         if utc_offset is None:
             return ''
 
         sign = '+'
-
         if utc_offset.days < 0:
-            sign = '-'
+            sign == '-'
             utc_offset = -utc_offset
 
         hours_offset, minutes = divmod(utc_offset, timedelta(hours=1))
