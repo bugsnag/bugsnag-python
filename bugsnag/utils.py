@@ -2,7 +2,7 @@ from functools import wraps, partial
 import inspect
 from json import JSONEncoder
 from threading import local as threadlocal
-from typing import AnyStr, Tuple, Optional, Union, cast
+from typing import AnyStr, Tuple, Optional
 import warnings
 import copy
 import logging
@@ -10,12 +10,12 @@ from datetime import datetime, timedelta
 import sys
 from urllib.parse import urlparse, urlunsplit, parse_qs
 
-# PathLike was added in Python 3.6 so fallback to PurePath on Python 3.5 as
-# all builtin Path objects inherit from PurePath
-if sys.version_info >= (3, 6):
+try:
     from os import PathLike
-else:
-    PathLike = cast(type(PurePath), None)  # using cast to avoid mypy error
+except ImportError:
+    # PathLike was added in Python 3.6 so fallback to PurePath on Python 3.5 as
+    # all builtin Path objects inherit from PurePath
+    from pathlib import PurePath as PathLike  # type: ignore
 
 
 MAX_PAYLOAD_LENGTH = 128 * 1024
