@@ -7,6 +7,7 @@ from typing import List, Any, Tuple, Union, Optional
 import warnings
 import logging
 from threading import Lock
+from pathlib import PurePath
 
 from bugsnag.breadcrumbs import (
     BreadcrumbType,
@@ -46,7 +47,6 @@ except ImportError:
 if sys.version_info >= (3, 6):
     from os import PathLike
 else:
-    from pathlib import PurePath
     PathLike = Union[str, PurePath]
 
 

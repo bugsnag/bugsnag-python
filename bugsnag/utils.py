@@ -9,12 +9,12 @@ import logging
 from datetime import datetime, timedelta
 import sys
 from urllib.parse import urlparse, urlunsplit, parse_qs
+from pathlib import PurePath
 
 # define PathLike as a type alias for compatibility with Python 3.5
 if sys.version_info >= (3, 6):
     from os import PathLike
 else:
-    from pathlib import PurePath
     PathLike = Union[str, PurePath]
 
 MAX_PAYLOAD_LENGTH = 128 * 1024
