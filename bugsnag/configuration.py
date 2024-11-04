@@ -42,13 +42,12 @@ except ImportError:
     from bugsnag.utils import ThreadContextVar
     _request_info = ThreadContextVar('bugsnag-request', default=None)  # type: ignore  # noqa: E501
 
-
-try:
+# Define PathLike for compatibility
+if sys.version_info >= (3, 6):
     from os import PathLike
-except ImportError:
-    # PathLike was added in Python 3.6 so fallback to PurePath on Python 3.5 as
-    # all builtin Path objects inherit from PurePath
-    from pathlib import PurePath as PathLike  # type: ignore
+else:
+    from pathlib import PurePath
+    PathLike = Union[str, PurePath]
 
 
 __all__ = ('Configuration', 'RequestConfiguration')

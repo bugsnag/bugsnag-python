@@ -10,16 +10,12 @@ from datetime import datetime, timedelta
 import sys
 from urllib.parse import urlparse, urlunsplit, parse_qs
 
-try:
+# define PathLike as a type alias for compatibility with Python 3.5
+if sys.version_info >= (3, 6):
     from os import PathLike
-except ImportError:
-    # For Py35, define PathLike as none for type check
-    PathLike = None  # type: ignore
-
-# Conditionally import PurePath if Pathlike is not available
-if PathLike is None:
-    from pathlib import PurePath  # type: ignore
-    PathLike = Union[str, PurePath]  # Define for compatibility
+else:
+    from pathlib import PurePath
+    PathLike = Union[str, PurePath]
 
 MAX_PAYLOAD_LENGTH = 128 * 1024
 MAX_STRING_LENGTH = 1024
