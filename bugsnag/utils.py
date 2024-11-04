@@ -13,13 +13,14 @@ from urllib.parse import urlparse, urlunsplit, parse_qs
 try:
     from os import PathLike
 except ImportError:
-    # For Python 3.5, define PathLike as none for type check
+    # For Py35, define PathLike as none for type check
     PathLike = None  # type: ignore
 
 # Conditionally import PurePath if Pathlike is not available
 if PathLike is None:
     from pathlib import PurePath  # type: ignore
     PathLike = Union[str, PurePath]  # Define for compatibility
+
 MAX_PAYLOAD_LENGTH = 128 * 1024
 MAX_STRING_LENGTH = 1024
 
