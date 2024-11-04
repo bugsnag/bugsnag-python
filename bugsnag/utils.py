@@ -2,7 +2,7 @@ from functools import wraps, partial
 import inspect
 from json import JSONEncoder
 from threading import local as threadlocal
-from typing import AnyStr, Tuple, Optional, Union
+from typing import AnyStr, Tuple, Optional
 import warnings
 import copy
 import logging
@@ -14,8 +14,9 @@ from pathlib import PurePath
 # define PathLike as a type alias for compatibility with Python 3.5
 if sys.version_info >= (3, 6):
     from os import PathLike
+    path_types = (str, PathLike)
 else:
-    PathLike = Union[str, PurePath]
+    path_types = (str, PurePath)
 
 MAX_PAYLOAD_LENGTH = 128 * 1024
 MAX_STRING_LENGTH = 1024
@@ -314,7 +315,7 @@ validate_required_str_setter = partial(_validate_setter, (str,),
 validate_bool_setter = partial(_validate_setter, (bool,))
 validate_iterable_setter = partial(_validate_setter, (list, tuple))
 validate_int_setter = partial(_validate_setter, (int,))
-validate_path_setter = partial(_validate_setter, (str, PathLike))
+validate_path_setter = partial(_validate_setter, path_types)
 
 
 class ThreadContextVar:
