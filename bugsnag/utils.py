@@ -2,7 +2,7 @@ from functools import wraps, partial
 import inspect
 from json import JSONEncoder
 from threading import local as threadlocal
-from typing import AnyStr, Tuple, Optional
+from typing import AnyStr, Tuple, Optional, Union
 import warnings
 import copy
 import logging
@@ -13,11 +13,13 @@ from urllib.parse import urlparse, urlunsplit, parse_qs
 try:
     from os import PathLike
 except ImportError:
-    # PathLike was added in Python 3.6 so fallback to PurePath on Python 3.5 as
-    # all builtin Path objects inherit from PurePath
-    from pathlib import PurePath as PathLike  # type: ignore
+    # For Python 3.5, define PathLike as none for type check
+    PathLike = None  # type: ignore
 
-
+# Conditionally import PurePath if Pathlike is not available
+if PathLike is None:
+    from pathlib import PurePath  # type: ignore
+    PathLike = Union[str, PurePath]  # Define for compatibility
 MAX_PAYLOAD_LENGTH = 128 * 1024
 MAX_STRING_LENGTH = 1024
 
