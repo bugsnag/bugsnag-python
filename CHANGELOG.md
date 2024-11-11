@@ -1,6 +1,13 @@
 Changelog
 =========
 
+## TBD 
+
+### Enhancements
+
+* Remove depricated `datetime.utcnow()` method call from utils class
+  [#394](https://github.com/bugsnag/bugsnag-python/pull/394).
+
 ## v4.7.1 (2024-05-22)
 
 ### Bug fixes
