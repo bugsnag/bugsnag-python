@@ -12,7 +12,7 @@ Scenario Outline: Handled exceptions are delivered in Celery <celery-version>
   And the event "severityReason.type" equals "handledException"
   And the event "device.runtimeVersions.celery" matches "<celery-version>\.\d+\.\d+"
 
-  @not-python-3.11 @not-python-3.12
+  @not-python-3.11 @not-python-3.12 @not-python-3.13
   Examples:
     | celery-version |
     |              4 |
@@ -40,7 +40,7 @@ Scenario Outline: Unhandled exceptions are delivered in Celery <celery-version>
   And the event "metaData.extra_data.args" string is empty
   And the event "metaData.extra_data.kwargs" string is empty
 
-  @not-python-3.11 @not-python-3.12
+  @not-python-3.11 @not-python-3.12 @not-python-3.13
   Examples:
     | celery-version |
     |              4 |
@@ -72,7 +72,7 @@ Scenario Outline: Task arguments are added to metadata in Celery <celery-version
   And the event "metaData.extra_data.kwargs.a" equals "100"
   And the event "metaData.extra_data.kwargs.b" equals "200"
 
-  @not-python-3.11 @not-python-3.12
+  @not-python-3.11 @not-python-3.12 @not-python-3.13
   Examples:
     | celery-version |
     |              4 |
@@ -101,7 +101,7 @@ Scenario Outline: Errors in shared tasks are reported in Celery <celery-version>
   And the event "metaData.extra_data.args.1" equals "0"
   And the event "metaData.extra_data.kwargs" string is empty
 
-  @not-python-3.11 @not-python-3.12
+  @not-python-3.11 @not-python-3.12 @not-python-3.13
   Examples:
     | celery-version |
     |              4 |
@@ -116,7 +116,7 @@ Scenario Outline: Successful tasks do not report errors in Celery <celery-versio
   When I execute the command "python bugsnag_celery_test_app/queue_task.py add 1 2 3 4 5 6 7 a=8 b=9" in the service "celery-<celery-version>"
   Then I should receive no errors
 
-  @not-python-3.11 @not-python-3.12
+  @not-python-3.11 @not-python-3.12 @not-python-3.13
   Examples:
     | celery-version |
     |              4 |
@@ -131,7 +131,7 @@ Scenario Outline: Successful shared tasks do not report errors in Celery <celery
   When I execute the command "python bugsnag_celery_test_app/queue_task.py divide 10 2" in the service "celery-<celery-version>"
   Then I should receive no errors
 
-  @not-python-3.11 @not-python-3.12
+  @not-python-3.11 @not-python-3.12 @not-python-3.13
   Examples:
     | celery-version |
     |              4 |
