@@ -1,6 +1,7 @@
 .aws-sam
 maze-runner.log
 maze_output
+Gemfile.lock
 
 *.py[co]
 
