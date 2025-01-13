@@ -4,6 +4,7 @@ from json import JSONEncoder
 from threading import local as threadlocal
 from typing import AnyStr, Tuple, Optional
 import warnings
+import sys
 import copy
 import logging
 from datetime import datetime, timedelta
@@ -422,14 +423,13 @@ def remove_query_from_url(url: AnyStr) -> Optional[AnyStr]:
 # milliseconds precision
 # Python can do this natively from version 3.6, but we need to include a
 # fallback implementation for Python 3.5
-try:
-    # this will raise if 'timespec' isn't supported
-    datetime.utcnow().isoformat(timespec='milliseconds')  # type: ignore
-
+if sys.version_info >= (3, 6):
+    # Python 3.6+ has a built-in method for this
     def to_rfc3339(dt: datetime) -> str:
         return dt.isoformat(timespec='milliseconds')  # type: ignore
 
-except Exception:
+else:
+    # Python 3.5 fallback implementation
     def _get_timezone_offset(dt: datetime) -> str:
         if dt.tzinfo is None:
             return ''
@@ -464,17 +464,16 @@ except Exception:
 
 
 def get_package_version(package_name: str) -> Optional[str]:
-    try:
-        from importlib import metadata
-
-        return metadata.version(package_name)  # type: ignore
-    except ImportError:
+    if sys.version_info >= (3, 8):
         try:
-            import pkg_resources
-        except ImportError:
+            from importlib import metadata
+            return metadata.version(package_name)  # type: ignore
+        except metadata.PackageNotFoundError:
             return None
-
+    else:
         try:
-            return pkg_resources.get_distribution(package_name).version
-        except pkg_resources.DistributionNotFound:
+            import pkg_resources  # type: ignore
+            return pkg_resources.get_distribution(
+                package_name).version  # type: ignore
+        except (ImportError, pkg_resources.DistributionNotFound):
             return None
