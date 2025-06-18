@@ -13,10 +13,10 @@ jobs:
         os: ['ubuntu-latest']
         include:
           - python-version: '3.5'
-            os: 'ubuntu-20.04'
+            os: 'ubuntu-22.04'
             pip-trusted-host: 'pypi.python.org pypi.org files.pythonhosted.org'
           - python-version: '3.6'
-            os: 'ubuntu-20.04'
+            os: 'ubuntu-22.04'
           - python-version: '3.7'
             os: 'ubuntu-22.04'
 
