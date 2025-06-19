@@ -38,3 +38,4 @@ htmlcov
 my_env
 venv
 .idea
+*.iml
