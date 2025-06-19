@@ -594,7 +594,7 @@ class Configuration:
     def _initialize_endpoints(self, endpoint, session_endpoint, api_key):
         # Default endpoints depending on the API key, if not already set
         if (endpoint is None and session_endpoint is None and
-          self.endpoint is None and self.session_endpoint is None):
+             self.endpoint is None and self.session_endpoint is None):
             if _is_hub_api_key(api_key):
                 self.endpoint = HUB_ENDPOINT
                 self.session_endpoint = HUB_SESSIONS_ENDPOINT
