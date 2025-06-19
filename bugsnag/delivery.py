@@ -84,8 +84,10 @@ class Delivery:
         """
         Sends sessions to Bugsnag
         """
-        if ((config.endpoint != DEFAULT_ENDPOINT and config.session_endpoint == DEFAULT_SESSIONS_ENDPOINT) or
-            (config.endpoint != HUB_ENDPOINT and config.session_endpoint == HUB_SESSIONS_ENDPOINT)):
+        if ((config.endpoint != DEFAULT_ENDPOINT and
+             config.session_endpoint == DEFAULT_SESSIONS_ENDPOINT) or
+            (config.endpoint != HUB_ENDPOINT and
+             config.session_endpoint == HUB_SESSIONS_ENDPOINT)):
             if not self.sent_session_warning:
                 warnings.warn('The session endpoint has not been configured. '
                               'No sessions will be sent to Bugsnag.')
