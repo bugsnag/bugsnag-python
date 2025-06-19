@@ -28,6 +28,8 @@ except ImportError:
 
 DEFAULT_ENDPOINT = 'https://notify.bugsnag.com'
 DEFAULT_SESSIONS_ENDPOINT = 'https://sessions.bugsnag.com'
+HUB_ENDPOINT = 'https://notify.insighthub.smartbear.com'
+HUB_SESSIONS_ENDPOINT = 'https://sessions.insighthub.smartbear.com'
 
 __all__ = ('default_headers', 'Delivery')
 
@@ -82,8 +84,8 @@ class Delivery:
         """
         Sends sessions to Bugsnag
         """
-        if (config.endpoint != DEFAULT_ENDPOINT and config.session_endpoint ==
-                DEFAULT_SESSIONS_ENDPOINT):
+        if ((config.endpoint != DEFAULT_ENDPOINT and config.session_endpoint == DEFAULT_SESSIONS_ENDPOINT) or
+            (config.endpoint != HUB_ENDPOINT and config.session_endpoint == HUB_SESSIONS_ENDPOINT)):
             if not self.sent_session_warning:
                 warnings.warn('The session endpoint has not been configured. '
                               'No sessions will be sent to Bugsnag.')
