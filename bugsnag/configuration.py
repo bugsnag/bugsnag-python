@@ -592,13 +592,16 @@ class Configuration:
         return logger
 
     def _initialize_endpoints(self, endpoint, session_endpoint, api_key):
-        if endpoint is None and session_endpoint is None:
+        # Default endpoints depending on the API key, if not already set
+        if (endpoint is None and session_endpoint is None and
+            self.endpoint is None and self.session_endpoint is None):
             if _is_hub_api_key(api_key):
                 self.endpoint = HUB_ENDPOINT
                 self.session_endpoint = HUB_SESSIONS_ENDPOINT
             else:
                 self.endpoint = DEFAULT_ENDPOINT
                 self.session_endpoint = DEFAULT_SESSIONS_ENDPOINT
+        # Do set endpoints if explicitly provided
         if endpoint is not None:
             self.endpoint = endpoint
         if session_endpoint is not None:
