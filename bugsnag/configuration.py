@@ -30,8 +30,11 @@ from bugsnag.utils import (
     validate_int_setter,
     validate_path_setter
 )
-from bugsnag.delivery import (create_default_delivery, DEFAULT_ENDPOINT,
-                              DEFAULT_SESSIONS_ENDPOINT)
+from bugsnag.delivery import (create_default_delivery,
+                              DEFAULT_ENDPOINT,
+                              DEFAULT_SESSIONS_ENDPOINT,
+                              HUB_ENDPOINT,
+                              HUB_SESSIONS_ENDPOINT)
 from bugsnag.uwsgi import warn_if_running_uwsgi_without_threads
 from bugsnag.error import Error
 
@@ -53,6 +56,11 @@ except ImportError:
 
 __all__ = ('Configuration', 'RequestConfiguration')
 _sentinel = object()
+
+
+def _is_hub_api_key(api_key: str) -> bool:
+    hub_prefix = "00000"
+    return api_key is not None and api_key.startswith(hub_prefix)
 
 
 class Configuration:
@@ -83,8 +91,8 @@ class Configuration:
             "django.http.Http404",
             "django.http.response.Http404",
         ]
-        self.endpoint = DEFAULT_ENDPOINT
-        self.session_endpoint = DEFAULT_SESSIONS_ENDPOINT
+        self.endpoint = None
+        self.session_endpoint = None
         self.auto_capture_sessions = True
         self.traceback_exclude_modules = []
 
@@ -126,8 +134,6 @@ class Configuration:
         Validate and set configuration options. Will warn if an option is of an
         incorrect type.
         """
-        if api_key is not None:
-            self.api_key = api_key
         if app_type is not None:
             self.app_type = app_type
         if app_version is not None:
@@ -140,8 +146,6 @@ class Configuration:
             self.auto_capture_sessions = auto_capture_sessions
         if delivery is not None:
             self.delivery = delivery
-        if endpoint is not None:
-            self.endpoint = endpoint
         if hostname is not None:
             self.hostname = hostname
         if ignore_classes is not None:
@@ -162,8 +166,6 @@ class Configuration:
             self.send_code = send_code
         if send_environment is not None:
             self.send_environment = send_environment
-        if session_endpoint is not None:
-            self.session_endpoint = session_endpoint
         if traceback_exclude_modules is not None:
             self.traceback_exclude_modules = traceback_exclude_modules
         if logger is not _sentinel:
@@ -174,6 +176,11 @@ class Configuration:
             self.enabled_breadcrumb_types = enabled_breadcrumb_types
         if max_breadcrumbs is not None:
             self.max_breadcrumbs = max_breadcrumbs
+
+        # Default endpoints depend on the API key
+        if api_key is not None:
+            self.api_key = api_key
+        self._initialize_endpoints(endpoint, session_endpoint, self.api_key)
 
         return self
 
@@ -583,6 +590,26 @@ class Configuration:
         logger.addHandler(logging.NullHandler())
 
         return logger
+
+    def _initialize_endpoints(self, endpoint, session_endpoint, api_key):
+        # Default endpoints depending on the API key, if not already set
+        if (
+            endpoint is None and
+            session_endpoint is None and
+            self.endpoint is None and
+            self.session_endpoint is None
+        ):
+            if _is_hub_api_key(api_key):
+                self.endpoint = HUB_ENDPOINT
+                self.session_endpoint = HUB_SESSIONS_ENDPOINT
+            else:
+                self.endpoint = DEFAULT_ENDPOINT
+                self.session_endpoint = DEFAULT_SESSIONS_ENDPOINT
+        # Do set endpoints if explicitly provided
+        if endpoint is not None:
+            self.endpoint = endpoint
+        if session_endpoint is not None:
+            self.session_endpoint = session_endpoint
 
 
 class RequestConfiguration:

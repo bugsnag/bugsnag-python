@@ -5,8 +5,10 @@ Changelog
 
 ### Enhancements
 
-* Remove depricated `datetime.utcnow()` method call from utils class
+* Remove deprecated `datetime.utcnow()` method call from utils class
   [#394](https://github.com/bugsnag/bugsnag-python/pull/394).
+* Set default endpoints based on API key
+  [#399](https://github.com/bugsnag/bugsnag-php/pull/399)
 
 ## v4.7.1 (2024-05-22)
 
