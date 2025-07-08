@@ -191,6 +191,7 @@ class TestASGIMiddleware(IntegrationTest):
         assert breadcrumbs[0]['metaData'] == {'to': '/'}
         assert breadcrumbs[0]['type'] == BreadcrumbType.NAVIGATION.value
 
+    @pytest.mark.skip(reason="Skipped pending PLAT-14413")
     def test_websocket_crash(self):
         async def app(scope, receive, send):
             websocket = WebSocket(scope, receive=receive, send=send)

@@ -7,7 +7,7 @@ from bugsnag.feature_flags import FeatureFlag
 from bugsnag.configuration import RequestConfiguration
 from bugsnag.client import Client
 
-default_client = Client()
+default_client = Client(configure=False)
 configuration = default_client.configuration
 logger = configuration.logger
 ExcInfoType = Tuple[Type, Exception, types.TracebackType]

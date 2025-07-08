@@ -1,6 +1,7 @@
 .aws-sam
 maze-runner.log
 maze_output
+Gemfile.lock
 
 *.py[co]
 
@@ -37,3 +38,4 @@ htmlcov
 my_env
 venv
 .idea
+*.iml

@@ -32,10 +32,11 @@ class Client:
     """
 
     def __init__(self, configuration: Optional[Configuration] = None,
-                 install_sys_hook=True, **kwargs):
+                 install_sys_hook=True, configure=True, **kwargs):
         self.configuration = configuration or Configuration()  # type: Configuration  # noqa: E501
         self.session_tracker = SessionTracker(self.configuration)
-        self.configuration.configure(**kwargs)
+        if configure:
+            self.configuration.configure(**kwargs)
         self._context = ContextLocalState(self)
         self._request_tracker = RequestTracker()
 
