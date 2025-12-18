@@ -33,8 +33,8 @@ from bugsnag.utils import (
 from bugsnag.delivery import (create_default_delivery,
                               DEFAULT_ENDPOINT,
                               DEFAULT_SESSIONS_ENDPOINT,
-                              HUB_ENDPOINT,
-                              HUB_SESSIONS_ENDPOINT)
+                              SECONDARY_ENDPOINT,
+                              SECONDARY_SESSIONS_ENDPOINT)
 from bugsnag.uwsgi import warn_if_running_uwsgi_without_threads
 from bugsnag.error import Error
 
@@ -58,9 +58,9 @@ __all__ = ('Configuration', 'RequestConfiguration')
 _sentinel = object()
 
 
-def _is_hub_api_key(api_key: str) -> bool:
-    hub_prefix = "00000"
-    return api_key is not None and api_key.startswith(hub_prefix)
+def _is_secondary_api_key(api_key: str) -> bool:
+    secondary_prefix = "00000"
+    return api_key is not None and api_key.startswith(secondary_prefix)
 
 
 class Configuration:
@@ -599,9 +599,9 @@ class Configuration:
             self.endpoint is None and
             self.session_endpoint is None
         ):
-            if _is_hub_api_key(api_key):
-                self.endpoint = HUB_ENDPOINT
-                self.session_endpoint = HUB_SESSIONS_ENDPOINT
+            if _is_secondary_api_key(api_key):
+                self.endpoint = SECONDARY_ENDPOINT
+                self.session_endpoint = SECONDARY_SESSIONS_ENDPOINT
             else:
                 self.endpoint = DEFAULT_ENDPOINT
                 self.session_endpoint = DEFAULT_SESSIONS_ENDPOINT

@@ -119,10 +119,10 @@ class TestConfiguration(unittest.TestCase):
         c.configure(api_key='12312312312312312312312312321312')
         assert c.endpoint == 'https://notify.bugsnag.com'
 
-    def test_validate_endpoint_hub_api_key(self):
+    def test_validate_endpoint_secondary_api_key(self):
         c = Configuration()
         c.configure(api_key='00000312312312312312312312321312')
-        assert c.endpoint == 'https://notify.insighthub.smartbear.com'
+        assert c.endpoint == 'https://notify.bugsnag.smartbear.com'
 
     def test_validate_app_type(self):
         c = Configuration()
@@ -425,11 +425,11 @@ class TestConfiguration(unittest.TestCase):
         c.configure(api_key='12312312312312312312312312321312')
         assert c.session_endpoint == 'https://sessions.bugsnag.com'
 
-    def test_validate_session_endpoint_hub_api_key(self):
+    def test_validate_session_endpoint_secondary_api_key(self):
         c = Configuration()
         c.configure(api_key='00000312312312312312312312321312')
         assert (c.session_endpoint ==
-                'https://sessions.insighthub.smartbear.com')
+                'https://sessions.bugsnag.smartbear.com')
 
     def test_validate_traceback_exclude_modules(self):
         c = Configuration()
