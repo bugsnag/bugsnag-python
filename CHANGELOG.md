@@ -9,6 +9,8 @@ Changelog
   [#394](https://github.com/bugsnag/bugsnag-python/pull/394).
 * Set default endpoints based on API key
   [#399](https://github.com/bugsnag/bugsnag-php/pull/399)
+* Amend secondary instance URL to bugsnag.smartbear.com
+  [#400](https://github.com/bugsnag/bugsnag-php/pull/399)
 
 ## v4.7.1 (2024-05-22)
 
