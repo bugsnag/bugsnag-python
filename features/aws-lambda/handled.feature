@@ -1,7 +1,8 @@
+# 3.9 is currently the minimum python version with a lambda runtime
+# 3.14 is not supported by the AWS `sam` CLI at the moment
+@not-python-3.5 @not-python-3.6 @not-python-3.7 @not-python-3.8 @not-python-3.14
 Feature: Handled exceptions in AWS Lambda
 
-# 3.9 is currently the minimum python version with a lambda runtime
-@not-python-3.5 @not-python-3.6 @not-python-3.7 @not-python-3.8
 Scenario: Handled exceptions are delivered in an AWS Lambda app
   Given I run the lambda handler "handled" with the "event.json" event
   When I wait to receive an error
@@ -22,7 +23,6 @@ Scenario: Handled exceptions are delivered in an AWS Lambda app
   And the session payload has a valid sessions array
   And the sessionCount "sessionsStarted" equals 1
 
-@not-python-3.5 @not-python-3.6 @not-python-3.7 @not-python-3.8
 Scenario: Handled exceptions are delivered in an AWS Lambda app when auto_notify is False
   Given I run the lambda handler "handled_no_auto_notify" with the "event.json" event
   When I wait to receive an error
