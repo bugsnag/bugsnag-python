@@ -39,3 +39,9 @@ my_env
 venv
 .idea
 *.iml
+
+#venv
+bin
+include
+lib
+pyvenv.cfg
