@@ -1,31 +1,31 @@
 import bugsnag
 
-from django.http import HttpResponse
 from django.shortcuts import render
+from django.http import HttpResponseRedirect, HttpResponse
+from django.views import generic
+from django.utils import timezone
+from django.urls import reverse
+
+from .models import Note
 
 
-def index(request):
-    return HttpResponse(b'Some content!')
+class IndexView(generic.ListView):
+    template_name = 'notes/index.html'
+    context_object_name = 'latest_notes_list'
+
+    def get_queryset(self):
+        return Note.objects.order_by('-create_date')[:5]
 
 
-"""
-(some nonsense goes here)
+class DetailView(generic.DetailView):
+    model = Note
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""
+def add_note(request):
+    note_text = request.POST['note_text']
+    note = Note(note_text=note_text, create_date=timezone.now())
+    note.save()
+    return HttpResponseRedirect(reverse('detail', args=(note.id,)))
 
 
 def unhandled_crash(request):
@@ -43,7 +43,7 @@ def handle_notify(request):
     except KeyError as e:
         bugsnag.notify(e, unhappy='nonexistent-file')
 
-    return HttpResponse(b'everything is fine!', content_type='text/plain')
+    return HttpResponse('everything is fine!', content_type='text/plain')
 
 
 def handle_notify_custom_info(request):

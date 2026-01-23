@@ -1,6 +1,6 @@
+@not-python-3.5 @not-python-3.6 @not-python-3.7 @not-python-3.8 @not-python-3.14
 Feature: Unhandled exceptions in AWS Lambda
 
-@not-python-3.5 @not-python-3.6 @not-python-3.7 @not-python-3.8
 Scenario: Unhandled exceptions are delivered in an AWS Lambda app
   Given I run the lambda handler "unhandled" with the "event.json" event
   When I wait to receive an error
@@ -21,7 +21,6 @@ Scenario: Unhandled exceptions are delivered in an AWS Lambda app
   And the session payload has a valid sessions array
   And the sessionCount "sessionsStarted" equals 1
 
-@not-python-3.5 @not-python-3.6 @not-python-3.7 @not-python-3.8
 Scenario: Unhandled exceptions are not delivered in an AWS Lambda app when auto_detect_errors is False
   Given I run the lambda handler "unhandled_no_auto_notify" with the "event.json" event
   When I wait to receive a session

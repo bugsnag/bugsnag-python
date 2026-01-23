@@ -1,8 +1,8 @@
-from django.conf.urls import include, url
+from django.urls import include, path
 from django.http import HttpResponseNotFound
 
 urlpatterns = [
-    url(r'^notes/', include('notes.urls'))
+    path('notes/', include('notes.urls'))
 ]
 
 
