@@ -3,9 +3,10 @@ Contributing
 ------------
 
 -   [Fork](https://help.github.com/articles/fork-a-repo) the [notifier on github](https://github.com/bugsnag/bugsnag-python)
+-   Create a new branch from `next`
 -   Commit and push until you are happy with your contribution
 -   Run the tests
--   [Make a pull request](https://help.github.com/articles/using-pull-requests)
+-   [Make a pull request](https://help.github.com/articles/using-pull-requests) into the `next` branch
 -   Thanks!
 
 Running the tests
@@ -90,7 +91,7 @@ If you're on the core team, you can release Bugsnag as follows:
 
 ## Making a release
 
-* Create branch for the release
+* Create branch for the release from `next`
 
     ```
     git checkout -b release/v4.x.x
@@ -108,6 +109,7 @@ If you're on the core team, you can release Bugsnag as follows:
     python setup.py sdist bdist_wheel
     twine upload dist/*
     ```
+* After the release, create a PR to merge `master` back into `next` to keep the branches in sync.
 
 ## Update docs.bugsnag.com
 
