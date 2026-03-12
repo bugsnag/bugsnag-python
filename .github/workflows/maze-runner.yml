@@ -27,3 +27,4 @@ jobs:
     - run: bundle exec maze-runner --no-source
       env:
         PYTHON_TEST_VERSION: ${{ matrix.python-version }}
+        DEBUG: 1
