@@ -1,6 +1,6 @@
 # 3.9 is currently the minimum python version with a lambda runtime
 # 3.14 is not supported by the AWS `sam` CLI at the moment
-@not-python-3.5 @not-python-3.6 @not-python-3.7 @not-python-3.8 @not-python-3.14
+@not-python-3.5 @not-python-3.6 @not-python-3.7 @not-python-3.8
 Feature: Handled exceptions in AWS Lambda
 
 Scenario: Handled exceptions are delivered in an AWS Lambda app
