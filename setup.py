@@ -48,6 +48,6 @@ setup(
     test_suite='tests',
     install_requires=['webob'],
     extras_require={
-        'flask': []
+        'flask': ['flask', 'blinker']
     }
 )

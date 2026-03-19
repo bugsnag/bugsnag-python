@@ -5,9 +5,8 @@ Changelog
 
 ### Enhancements
 
-* Add `__version__` attribute for programmatic version checking
-  * `bugsnag.__version__` now returns the installed package version
-  * Follows PEP 396 specification
+* Add `bugsnag.__version__` attribute for programmatic version checking as per PEP 396 specification
+  [#409](https://github.com/bugsnag/bugsnag-python/pull/409)
 
 ## v4.8.0 (2024-07-08)
 
