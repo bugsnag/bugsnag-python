@@ -97,9 +97,21 @@ If you're on the core team, you can release Bugsnag as follows:
     git checkout -b release/v4.x.x
     ```
 
-* Update the version number in [`setup.py`](./setup.py) and `bugsnag/notifier.py`(./bugsnag/notifier.py)
-* Update the CHANGELOG.md and README.md if necessary
+* Update the version number in the [`VERSION`](./VERSION) file
+
+    ```
+    echo "4.x.x" > VERSION
+    ```
+
+* Update the CHANGELOG.md (add version and date) and README.md if necessary
 * Commit and open a pull request into `master`
+
+    ```
+    git add VERSION CHANGELOG.md
+    git commit -m "Release v4.x.x"
+    git push origin release/v4.x.x
+    ```
+
 * Merge the PR when it's been reviewed
 * Create a release on GitHub, tagging the new version `v4.x.x`
 * Push the release to PyPI

@@ -1,6 +1,14 @@
 Changelog
 =========
 
+## TBD
+
+### Enhancements
+
+* Add `__version__` attribute for programmatic version checking
+  * Implemented VERSION file as single source of truth for version number
+  * `bugsnag.__version__` now returns the installed package version
+
 ## v4.8.0 (2024-07-08)
 
 ### Enhancements

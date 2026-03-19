@@ -10,11 +10,16 @@ in your Django and other Python apps to Bugsnag, to help you find
 and solve your bugs as fast as possible.
 """
 
+import os
 from setuptools import setup, find_packages
+
+# Read version from VERSION file
+with open(os.path.join(os.path.dirname(__file__), 'VERSION'), 'r') as f:
+    version = f.read().strip()
 
 setup(
     name='bugsnag',
-    version='4.8.0',
+    version=version,
     description='Automatic error monitoring for django, flask, etc.',
     long_description=__doc__,
     author='Simon Maynard',
@@ -48,6 +53,6 @@ setup(
     test_suite='tests',
     install_requires=['webob'],
     extras_require={
-        'flask': ['flask', 'blinker']
-    },
+        'flask': []
+    }
 )
