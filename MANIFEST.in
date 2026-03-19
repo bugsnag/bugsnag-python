@@ -1,7 +1,0 @@
-include VERSION
-include README.md
-include LICENSE.txt
-include CHANGELOG.md
-include UPGRADING.md
-include CONTRIBUTING.md
-include SECURITY.md

@@ -97,17 +97,17 @@ If you're on the core team, you can release Bugsnag as follows:
     git checkout -b release/v4.x.x
     ```
 
-* Update the version number in the [`VERSION`](./VERSION) file
+* Update the version number using the Makefile
 
     ```
-    echo "4.x.x" > VERSION
+    make VERSION=4.x.x bump
     ```
 
 * Update the CHANGELOG.md (add version and date) and README.md if necessary
 * Commit and open a pull request into `master`
 
     ```
-    git add VERSION CHANGELOG.md
+    git add bugsnag/__init__.py setup.py bugsnag/notifier.py CHANGELOG.md
     git commit -m "Release v4.x.x"
     git push origin release/v4.x.x
     ```

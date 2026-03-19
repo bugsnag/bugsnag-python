@@ -36,7 +36,7 @@ Maze.hooks.before_all do
     FileUtils.mkdir(destination) unless File.exist?(destination)
 
     FileUtils.cp_r(
-      ["bugsnag", "setup.py", "VERSION"],
+      ["bugsnag", "setup.py"],
       destination,
       remove_destination: true # delete destination before copying
     )

@@ -1,5 +1,3 @@
-import os
-
 from bugsnag.configuration import Configuration, RequestConfiguration
 from bugsnag.notification import Notification
 from bugsnag.event import Event
@@ -20,13 +18,7 @@ from bugsnag.legacy import (configuration, configure, configure_request,
                             clear_feature_flag, clear_feature_flags,
                             aws_lambda_handler)
 
-# Read version from VERSION file
-_version_file = os.path.join(os.path.dirname(__file__), '..', 'VERSION')
-try:
-    with open(_version_file, 'r') as f:
-        __version__ = f.read().strip()
-except Exception:
-    __version__ = 'unknown'
+__version__ = '4.8.0'
 
 __all__ = ('Client', 'Event', 'Configuration', 'RequestConfiguration',
            'configuration', 'configure', 'configure_request',

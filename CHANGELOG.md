@@ -6,8 +6,8 @@ Changelog
 ### Enhancements
 
 * Add `__version__` attribute for programmatic version checking
-  * Implemented VERSION file as single source of truth for version number
   * `bugsnag.__version__` now returns the installed package version
+  * Follows PEP 396 specification
 
 ## v4.8.0 (2024-07-08)
 
