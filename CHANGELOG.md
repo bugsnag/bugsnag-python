@@ -1,6 +1,13 @@
 Changelog
 =========
 
+## TBD
+
+### Enhancements
+
+* Add `bugsnag.__version__` attribute for programmatic version checking as per PEP 396 specification
+  [#409](https://github.com/bugsnag/bugsnag-python/pull/409)
+
 ## v4.8.0 (2024-07-08)
 
 ### Enhancements

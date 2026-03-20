@@ -49,5 +49,5 @@ setup(
     install_requires=['webob'],
     extras_require={
         'flask': ['flask', 'blinker']
-    },
+    }
 )
