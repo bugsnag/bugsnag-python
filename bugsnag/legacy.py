@@ -49,7 +49,8 @@ def configure(**options):
             )
         except Exception:
             warnings.warn(
-                "legacy configuration sync failed: {}".format(exc), stacklevel=2
+                "legacy configuration sync failed: {}".format(exc),
+                stacklevel=2
             )
 
     logger = configuration.logger
@@ -68,7 +69,8 @@ def configure(**options):
             )
         except Exception:
             warnings.warn(
-                "legacy package attr sync failed: {}".format(exc), stacklevel=2
+                "legacy package attr sync failed: {}".format(exc),
+                stacklevel=2
             )
 
     return result
