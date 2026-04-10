@@ -146,15 +146,18 @@ class BugsnagMiddleware:
             try:
                 bugsnag.configure()._breadcrumbs.clear()
             except Exception:
-                # Be defensive: don't let cleanup raise during request teardown
+                # Be defensive: don't let cleanup raise during teardown
                 logger = logging.getLogger(__name__)
-                logger.exception("Error clearing breadcrumbs during ASGI teardown")
+                logger.exception(
+                    "Error clearing breadcrumbs during ASGI teardown")
 
             try:
                 bugsnag.clear_request_config()
             except Exception:
                 logger = logging.getLogger(__name__)
-                logger.exception("Error clearing Bugsnag request config during ASGI teardown")
+                logger.exception(
+                    "Error clearing Bugsnag request config during ASGI "
+                    "teardown")
 
 
 def _get_breadcrumb_metadata(scope) -> Dict[str, str]:

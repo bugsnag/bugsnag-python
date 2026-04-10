@@ -134,7 +134,8 @@ class BugsnagRequestHandler(RequestHandler):
 
         # tornado.version may be None in some environments; ensure we store
         # a string in runtime_versions to satisfy type expectations.
-        tornado_version = tornado.version if tornado.version is not None else ""
+        tornado_version = (
+            tornado.version if tornado.version is not None else "")
         bugsnag.configure().runtime_versions['tornado'] = tornado_version
 
         _auto_leave_breadcrumb(
@@ -153,7 +154,8 @@ class BugsnagRequestHandler(RequestHandler):
         metadata = {'to': self.request.path}
 
         if 'Referer' in self.request.headers:
-            referer_url = remove_query_from_url(self.request.headers['Referer'])
+            referer_url = remove_query_from_url(
+                self.request.headers['Referer'])
             if referer_url:
                 metadata['from'] = referer_url
 
