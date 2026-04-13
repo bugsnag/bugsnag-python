@@ -1,11 +1,9 @@
 from enum import Enum
 from typing import Any, List, Dict, Union, Optional
 
-import logging
 import bugsnag
 from bugsnag.breadcrumbs import BreadcrumbType
 from bugsnag.legacy import _auto_leave_breadcrumb
-from bugsnag.context import create_new_context
 from bugsnag.utils import remove_query_from_url, sanitize_url
 
 __all__ = ('BugsnagMiddleware',)
@@ -118,10 +116,6 @@ class BugsnagMiddleware:
 
     async def __call__(self, scope, receive, send):
         bugsnag.configure()._breadcrumbs.create_copy_for_context()
-        # create a fresh client-local context for this request so per-client
-        # state (feature flags, delegates, etc.) does not leak between
-        # requests handled by the same process.
-        create_new_context()
         bugsnag.configure_request(asgi_scope=scope)
         try:
             if bugsnag.configuration.auto_capture_sessions:
@@ -139,25 +133,6 @@ class BugsnagMiddleware:
         except Exception as e:
             bugsnag.auto_notify(e, severity_reason=SEVERITY_REASON)
             raise
-        finally:
-            # Ensure per-request state (feature flags, metadata, etc.) and
-            # breadcrumbs are cleared after each ASGI request to avoid
-            # leaking state between requests.
-            try:
-                bugsnag.configure()._breadcrumbs.clear()
-            except Exception:
-                # Be defensive: don't let cleanup raise during teardown
-                logger = logging.getLogger(__name__)
-                logger.exception(
-                    "Error clearing breadcrumbs during ASGI teardown")
-
-            try:
-                bugsnag.clear_request_config()
-            except Exception:
-                logger = logging.getLogger(__name__)
-                logger.exception(
-                    "Error clearing Bugsnag request config during ASGI "
-                    "teardown")
 
 
 def _get_breadcrumb_metadata(scope) -> Dict[str, str]:
