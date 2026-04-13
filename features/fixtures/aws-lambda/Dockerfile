@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 		rm -rf /var/lib/apt/lists/* && \
 		python -m pip install --upgrade pip && \
 		if [ -n "${SAM_CLI_VERSION}" ]; then \
-			pip install --no-cache-dir aws-sam-cli==${SAM_CLI_VERSION}; \
+			pip install --no-cache-dir "aws-sam-cli==${SAM_CLI_VERSION}"; \
 		else \
 			pip install --no-cache-dir aws-sam-cli; \
 		fi
