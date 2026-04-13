@@ -132,11 +132,12 @@ class BugsnagRequestHandler(RequestHandler):
         bugsnag.configure()._breadcrumbs.create_copy_for_context()
         create_new_context()
 
-        # tornado.version may be None in some environments; ensure we store
-        # a string in runtime_versions to satisfy type expectations.
-        tornado_version = (
-            tornado.version if tornado.version is not None else "")
-        bugsnag.configure().runtime_versions['tornado'] = tornado_version
+        # tornado.version may be None in some environments. Only set the
+        # runtime_versions entry when a real value is available to avoid
+        # exposing an empty-string sentinel to consumers.
+        tornado_version = tornado.version
+        if tornado_version is not None:
+            bugsnag.configure().runtime_versions['tornado'] = tornado_version
 
         _auto_leave_breadcrumb(
             'http request',
