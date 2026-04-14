@@ -128,16 +128,10 @@ class BugsnagRequestHandler(RequestHandler):
 
     def prepare(self):
         middleware = bugsnag.configure().internal_middleware
+        bugsnag.configure().runtime_versions['tornado'] = tornado.version
         middleware.before_notify(self.add_tornado_request_to_notification)
         bugsnag.configure()._breadcrumbs.create_copy_for_context()
         create_new_context()
-
-        # tornado.version may be None in some environments. Only set the
-        # runtime_versions entry when a real value is available to avoid
-        # exposing an empty-string sentinel to consumers.
-        tornado_version = tornado.version
-        if tornado_version is not None:
-            bugsnag.configure().runtime_versions['tornado'] = tornado_version
 
         _auto_leave_breadcrumb(
             'http request',
@@ -155,10 +149,9 @@ class BugsnagRequestHandler(RequestHandler):
         metadata = {'to': self.request.path}
 
         if 'Referer' in self.request.headers:
-            referer_url = remove_query_from_url(
-                self.request.headers['Referer'])
-            if referer_url:
-                metadata['from'] = referer_url
+            metadata['from'] = remove_query_from_url(
+                self.request.headers['Referer']
+            )
 
         return metadata
 
