@@ -39,10 +39,11 @@ class TestASGIMiddleware(IntegrationTest):
         async def other_func():
             raise ScaryException('fell winds!')
 
-        @app.route('/')
         async def index(req):
             await other_func()
             return PlainTextResponse('pineapple')
+
+        app.add_route('/', index)
 
         app = TestClient(BugsnagMiddleware(app))
 
@@ -77,10 +78,11 @@ class TestASGIMiddleware(IntegrationTest):
         async def other_func():
             raise ScaryException('fell winds!')
 
-        @app.route('/')
         async def index(req):
             await other_func()
             return PlainTextResponse('pineapple')
+
+        app.add_route('/', index)
 
         app = TestClient(BugsnagMiddleware(app))
 
@@ -106,10 +108,11 @@ class TestASGIMiddleware(IntegrationTest):
         async def other_func():
             raise ScaryException('fell winds!')
 
-        @app.route('/')
         async def index(req):
             await other_func()
             return PlainTextResponse('pineapple')
+
+        app.add_route('/', index)
 
         app = TestClient(BugsnagMiddleware(app))
 
@@ -159,10 +162,11 @@ class TestASGIMiddleware(IntegrationTest):
             bugsnag.configure_request(metadata={'wave': {'size': '35b'}})
             raise ScaryException('fell winds!')
 
-        @app.route('/')
         async def index(req):
             await next_func()
             return PlainTextResponse('pineapple')
+
+        app.add_route('/', index)
 
         app = TestClient(BugsnagMiddleware(app))
 
@@ -229,9 +233,10 @@ class TestASGIMiddleware(IntegrationTest):
     def test_url_components(self):
         app = Starlette()
 
-        @app.route('/path')
         async def index(req):
             raise ScaryException('forgot the map')
+
+        app.add_route('/path', index)
 
         app = TestClient(BugsnagMiddleware(app))
 
@@ -261,10 +266,11 @@ class TestASGIMiddleware(IntegrationTest):
         async def other_func():
             raise ScaryException('fell winds!')
 
-        @app.route('/')
         async def index(req):
             await other_func()
             return PlainTextResponse('pineapple')
+
+        app.add_route('/', index)
 
         app = TestClient(BugsnagMiddleware(app))
         headers = {'referer': 'http://testserver/abc/xyz?password=hunter2'}
@@ -305,12 +311,13 @@ class TestASGIMiddleware(IntegrationTest):
         async def other_func():
             raise ScaryException('fell winds!')
 
-        @app.route('/')
         async def index(req):
             try:
                 await other_func()
             except ScaryException as scary:
                 raise Exception('disconcerting breeze.') from scary
+
+        app.add_route('/', index)
 
         app = TestClient(BugsnagMiddleware(app))
 
@@ -351,7 +358,6 @@ class TestASGIMiddleware(IntegrationTest):
 
             raise ScaryException('fell winds!')
 
-        @app.route('/')
         async def index(req):
             nonlocal count
             count += 1
@@ -359,6 +365,8 @@ class TestASGIMiddleware(IntegrationTest):
 
             await other_func()
             return PlainTextResponse('pineapple')
+
+        app.add_route('/', index)
 
         app = TestClient(BugsnagMiddleware(app))
 

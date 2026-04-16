@@ -1,4 +1,4 @@
-@not-python-3.5 @not-python-3.6 @not-python-3.7 @not-python-3.8 @not-python-3.14
+@not-python-3.5 @not-python-3.6 @not-python-3.7 @not-python-3.8
 Feature: Unhandled exceptions in AWS Lambda
 
 Scenario: Unhandled exceptions are delivered in an AWS Lambda app

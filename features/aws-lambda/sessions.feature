@@ -1,4 +1,4 @@
-@not-python-3.5 @not-python-3.6 @not-python-3.7 @not-python-3.8 @not-python-3.14
+@not-python-3.5 @not-python-3.6 @not-python-3.7 @not-python-3.8
 Feature: Sessions in AWS Lambda
 
 Scenario: Manually started sessions are delivered in an AWS Lambda app when auto_capture_sessions is True
