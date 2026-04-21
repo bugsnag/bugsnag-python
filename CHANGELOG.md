@@ -8,16 +8,21 @@ Changelog
 * Add `bugsnag.__version__` attribute for programmatic version checking as per PEP 396 specification
   [#409](https://github.com/bugsnag/bugsnag-python/pull/409)
 
-## v4.8.0 (2024-07-08)
+## v4.8.1 (2026-01-23)
+
+### Changes
+
+* Amend secondary instance URL to bugsnag.smartbear.com
+  [#400](https://github.com/bugsnag/bugsnag-python/pull/400)
+
+## v4.8.0 (2025-07-08)
 
 ### Enhancements
 
 * Remove deprecated `datetime.utcnow()` method call from utils class
   [#394](https://github.com/bugsnag/bugsnag-python/pull/394).
 * Set default endpoints based on API key
-  [#399](https://github.com/bugsnag/bugsnag-php/pull/399)
-* Amend secondary instance URL to bugsnag.smartbear.com
-  [#400](https://github.com/bugsnag/bugsnag-php/pull/399)
+  [#399](https://github.com/bugsnag/bugsnag-python/pull/399)
 
 ## v4.7.1 (2024-05-22)
 
