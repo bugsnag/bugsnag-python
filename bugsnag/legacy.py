@@ -1,6 +1,7 @@
 from typing import Dict, Any, Tuple, Type, Optional, Union, List, Callable
 import types
 import sys
+import warnings
 
 from bugsnag.breadcrumbs import BreadcrumbType, OnBreadcrumbCallback
 from bugsnag.feature_flags import FeatureFlag
@@ -13,16 +14,66 @@ logger = configuration.logger
 ExcInfoType = Tuple[Type, Exception, types.TracebackType]
 
 
-__all__ = ('configure', 'configure_request', 'add_metadata_tab',
-           'clear_request_config', 'notify', 'start_session', 'auto_notify',
-           'auto_notify_exc_info', 'before_notify', 'leave_breadcrumb')
+__all__ = (
+    'configure',
+    'configure_request',
+    'add_metadata_tab',
+    'clear_request_config',
+    'notify',
+    'start_session',
+    'auto_notify',
+    'auto_notify_exc_info',
+    'before_notify',
+    'leave_breadcrumb',
+)
 
 
 def configure(**options):
     """
     Configure the Bugsnag notifier application-wide settings.
     """
-    return configuration.configure(**options)
+    # Synchronize legacy references to point at the live configuration
+    # only `logger` is rebound in this scope
+    global logger
+
+    # Delegate to the module-local configuration instance so we update the
+    # single source of truth without resolving package submodules that may
+    # shadow the attribute name.
+    result = configuration.configure(**options)
+    try:
+        default_client.configuration = configuration
+    except (AttributeError, TypeError, ImportError) as exc:
+        try:
+            configuration.logger.debug(
+                "legacy configuration sync failed: %s", exc
+            )
+        except Exception:
+            warnings.warn(
+                "legacy configuration sync failed: {}".format(exc),
+                stacklevel=2
+            )
+
+    logger = configuration.logger
+
+    # Also update the `bugsnag` package attributes so other modules that
+    # reference `bugsnag.configuration` / `bugsnag.logger` reflect the
+    # live configuration object (keeps package-level attributes in sync).
+    try:
+        import bugsnag as _pkg
+        setattr(_pkg, 'configuration', configuration)
+        setattr(_pkg, 'logger', configuration.logger)
+    except (ImportError, AttributeError, TypeError) as exc:
+        try:
+            configuration.logger.debug(
+                "legacy package attr sync failed: %s", exc
+            )
+        except Exception:
+            warnings.warn(
+                "legacy package attr sync failed: {}".format(exc),
+                stacklevel=2
+            )
+
+    return result
 
 
 def configure_request(**options):
