@@ -18,7 +18,7 @@ from bugsnag.legacy import (configuration, configure, configure_request,
                             clear_feature_flag, clear_feature_flags,
                             aws_lambda_handler)
 
-__version__ = '4.8.0'
+__version__ = '4.9.0'
 
 __all__ = ('Client', 'Event', 'Configuration', 'RequestConfiguration',
            'configuration', 'configure', 'configure_request',
