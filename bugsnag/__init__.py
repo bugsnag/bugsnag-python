@@ -18,6 +18,8 @@ from bugsnag.legacy import (configuration, configure, configure_request,
                             clear_feature_flag, clear_feature_flags,
                             aws_lambda_handler)
 
+__version__ = '4.9.0'
+
 __all__ = ('Client', 'Event', 'Configuration', 'RequestConfiguration',
            'configuration', 'configure', 'configure_request',
            'add_metadata_tab', 'clear_request_config', 'notify',
@@ -27,4 +29,4 @@ __all__ = ('Client', 'Event', 'Configuration', 'RequestConfiguration',
            'OnBreadcrumbCallback', 'leave_breadcrumb', 'add_on_breadcrumb',
            'remove_on_breadcrumb', 'FeatureFlag', 'add_feature_flag',
            'add_feature_flags', 'clear_feature_flag', 'clear_feature_flags',
-           'aws_lambda_handler')
+           'aws_lambda_handler', '__version__')

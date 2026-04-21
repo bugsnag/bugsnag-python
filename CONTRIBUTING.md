@@ -3,9 +3,10 @@ Contributing
 ------------
 
 -   [Fork](https://help.github.com/articles/fork-a-repo) the [notifier on github](https://github.com/bugsnag/bugsnag-python)
+-   Create a new branch from `next`
 -   Commit and push until you are happy with your contribution
 -   Run the tests
--   [Make a pull request](https://help.github.com/articles/using-pull-requests)
+-   [Make a pull request](https://help.github.com/articles/using-pull-requests) into the `next` branch
 -   Thanks!
 
 Running the tests
@@ -90,15 +91,27 @@ If you're on the core team, you can release Bugsnag as follows:
 
 ## Making a release
 
-* Create branch for the release
+* Create branch for the release from `next`
 
     ```
     git checkout -b release/v4.x.x
     ```
 
-* Update the version number in [`setup.py`](./setup.py) and `bugsnag/notifier.py`(./bugsnag/notifier.py)
-* Update the CHANGELOG.md and README.md if necessary
+* Update the version number using the Makefile
+
+    ```
+    make VERSION=4.x.x bump
+    ```
+
+* Update the CHANGELOG.md (add version and date) and README.md if necessary
 * Commit and open a pull request into `master`
+
+    ```
+    git add bugsnag/__init__.py setup.py bugsnag/notifier.py CHANGELOG.md
+    git commit -m "Release v4.x.x"
+    git push origin release/v4.x.x
+    ```
+
 * Merge the PR when it's been reviewed
 * Create a release on GitHub, tagging the new version `v4.x.x`
 * Push the release to PyPI
@@ -108,6 +121,7 @@ If you're on the core team, you can release Bugsnag as follows:
     python setup.py sdist bdist_wheel
     twine upload dist/*
     ```
+* After the release, create a PR to merge `master` back into `next` to keep the branches in sync.
 
 ## Update docs.bugsnag.com
 

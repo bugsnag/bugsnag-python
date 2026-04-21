@@ -15,12 +15,12 @@ Maze.hooks.before_all do
   Maze.config.file_log = false
   Maze.config.log_requests = true
 
-  # don't wait so long for requests/not to receive requests
-  Maze.config.receive_requests_wait = 10
-  Maze.config.receive_no_requests_wait = 10
+  # Increased timeout to 20s for AWS Lambda cold starts (especially Python 3.12+)
+  Maze.config.receive_requests_wait = 20
+  Maze.config.receive_no_requests_wait = 20
 
-  # warn if a test takes more than 5 seconds to send a request
-  Maze.config.receive_requests_slow_threshold = 5
+  # warn if a test takes more than 10 seconds to send a request
+  Maze.config.receive_requests_slow_threshold = 10
 
   # bugsnag-python doesn't need to send the integrity header
   Maze.config.enforce_bugsnag_integrity = false

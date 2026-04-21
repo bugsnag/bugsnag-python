@@ -14,7 +14,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='bugsnag',
-    version='4.8.1',
+    version='4.9.0',
     description='Automatic error monitoring for django, flask, etc.',
     long_description=__doc__,
     author='Simon Maynard',
@@ -49,5 +49,5 @@ setup(
     install_requires=['webob'],
     extras_require={
         'flask': ['flask', 'blinker']
-    },
+    }
 )
