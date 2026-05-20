@@ -689,3 +689,83 @@ class HandlersTest(IntegrationTest):
             assert breadcrumb.message == 'Everything is not fine'
             assert breadcrumb.type == BreadcrumbType.LOG
             assert breadcrumb.metadata == {'logLevel': 'ERROR'}
+
+    def test_handler_level_via_constructor(self):
+        """Test setting level via constructor parameter"""
+        handler = BugsnagHandler(level=logging.ERROR)
+        logger = logging.getLogger(__name__)
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(handler)
+
+        # Should NOT report (below handler level)
+        logger.warning('This is just a warning')
+        self.assertSentReportCount(0)
+
+        # Should report (at handler level)
+        logger.error('This is an error')
+        logger.removeHandler(handler)
+        self.assertSentReportCount(1)
+
+        json_body = self.server.events_received[0]['json_body']
+        event = json_body['events'][0]
+        exception = event['exceptions'][0]
+        self.assertEqual('LogERROR', exception['errorClass'])
+
+    def test_handler_level_default_notset(self):
+        """Test default level is NOTSET"""
+        handler = BugsnagHandler()
+        self.assertEqual(handler.level, logging.NOTSET)
+
+    def test_handler_level_with_client_and_extra_fields(self):
+        """Test level parameter works with other parameters"""
+        client = Client(
+            api_key='abcdef',
+            endpoint=self.server.events_url,
+            session_endpoint=self.server.sessions_url,
+            asynchronous=False
+        )
+        handler = BugsnagHandler(
+            client=client,
+            extra_fields={'fruit': ['grapes']},
+            level=logging.WARNING
+        )
+        self.assertEqual(handler.level, logging.WARNING)
+        self.assertEqual(handler.client, client)
+        self.assertEqual(handler.custom_metadata_fields, {'fruit': ['grapes']})
+
+    def test_client_log_handler_with_level(self):
+        """Test client.log_handler() with level parameter"""
+        client = Client(
+            api_key='abcdef',
+            endpoint=self.server.events_url,
+            session_endpoint=self.server.sessions_url,
+            asynchronous=False
+        )
+
+        with scoped_logger() as logger:
+            handler = client.log_handler(level=logging.ERROR)
+            logger.setLevel(logging.DEBUG)
+            logger.addHandler(handler)
+
+            logger.warning('Warning message')
+            self.assertSentReportCount(0)
+
+            logger.error('Error message')
+            self.assertSentReportCount(1)
+
+            json_body = self.server.events_received[0]['json_body']
+            event = json_body['events'][0]
+            exception = event['exceptions'][0]
+            self.assertEqual('LogERROR', exception['errorClass'])
+
+    def test_backward_compatibility_no_level(self):
+        """Ensure backward compatibility when level not specified"""
+        # All these should work without breaking
+        h1 = BugsnagHandler()
+        h2 = BugsnagHandler(client=None)
+        h3 = BugsnagHandler(extra_fields={'test': ['field']})
+        h4 = BugsnagHandler(client=None, extra_fields={'test': ['field']})
+
+        # All should have default NOTSET level
+        for handler in [h1, h2, h3, h4]:
+            self.assertEqual(handler.level, logging.NOTSET)

@@ -1,6 +1,15 @@
 Changelog
 =========
 
+## TBD (Unreleased)
+
+### Enhancements
+
+* Add support for `level` parameter in `BugsnagHandler` constructor and `Client.log_handler()` method.
+  Allows setting the minimum logging level during handler initialization.
+  Fully backward compatible - existing code continues to work unchanged.
+  [#249](https://github.com/bugsnag/bugsnag-python/pull/249)
+
 ## v4.9.0 (2026-04-21)
 
 ### Enhancements
