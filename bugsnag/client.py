@@ -235,7 +235,7 @@ class Client:
 
     def log_handler(
         self,
-        extra_fields: Optional[List[str]] = None,
+        extra_fields: Optional[Dict[str, List[str]]] = None,
         level: int = logging.NOTSET
     ) -> BugsnagHandler:
         return BugsnagHandler(
