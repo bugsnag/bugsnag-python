@@ -1,6 +1,5 @@
 .aws-sam
 maze_output
-Gemfile.lock
 
 # Python compiled files
 *.py[co]
