@@ -1,4 +1,5 @@
 import builtins
+import logging
 import sys
 import threading
 import warnings
@@ -234,9 +235,12 @@ class Client:
 
     def log_handler(
         self,
-        extra_fields: Optional[List[str]] = None
+        extra_fields: Optional[Dict[str, List[str]]] = None,
+        level: int = logging.NOTSET
     ) -> BugsnagHandler:
-        return BugsnagHandler(client=self, extra_fields=extra_fields)
+        return BugsnagHandler(
+            client=self, extra_fields=extra_fields, level=level
+        )
 
     @property
     def feature_flags(self) -> List[FeatureFlag]:

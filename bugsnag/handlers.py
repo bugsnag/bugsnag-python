@@ -9,11 +9,11 @@ __all__ = ('BugsnagHandler',)
 
 
 class BugsnagHandler(logging.Handler, object):
-    def __init__(self, client=None, extra_fields=None):
+    def __init__(self, client=None, extra_fields=None, level=logging.NOTSET):
         """
         Creates a new handler which sends records to Bugsnag
         """
-        super(BugsnagHandler, self).__init__()
+        super(BugsnagHandler, self).__init__(level=level)
         self.client = client
         self.custom_metadata_fields = extra_fields
         self.callbacks = [self.extract_default_metadata,
