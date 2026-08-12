@@ -2,6 +2,9 @@ name: Maze Runner
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
   maze-runner:
     runs-on: 'ubuntu-latest'
