@@ -1,11 +1,19 @@
 Changelog
 =========
 
+## v4.9.2 (2026-09-15)
+
+### Security
+
+* Replace hardcoded Django `SECRET_KEY` values with environment variables in example apps and test fixtures [#423](https://github.com/bugsnag/bugsnag-python/pull/423)
+* Upgrade WebOb to 1.8.11 in example apps to remediate known security vulnerabilities [#424](https://github.com/bugsnag/bugsnag-python/pull/424)
+
 ## v4.9.1 (2026-06-18)
 
 ### Enhancements
 
 * Add support for `level` parameter in `BugsnagHandler` constructor and `Client.log_handler()` method.
+  [#416](https://github.com/bugsnag/bugsnag-python/pull/416)
 
 ## v4.9.0 (2026-04-21)
 
